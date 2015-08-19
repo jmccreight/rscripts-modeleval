@@ -12,7 +12,7 @@ load("/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/AMF/amf_URG.Rdata")
 # If you want to use R's multi-core capability (make sure  doMC is installed) specify the number 
 # of cores.
 ## ------------------------------------------------------------------------
-ncores <- 1
+ncores <- 16
 library(doMC)
 registerDoMC(ncores)
 
@@ -52,15 +52,11 @@ enddate <- as.POSIXct("2015-07-12 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
 
 # Range dates for main stats
 stdate_stats <- NULL
-#enddate_stats <- NULL
 enddate_stats <- as.POSIXct("2015-07-12 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
 
 # Range dates for seasonal stats (e.g., spring)
-#stdate_stats_sub <- NULL
 stdate_stats_sub <- as.POSIXct("2015-03-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
-#enddate_stats_sub <- NULL
 enddate_stats_sub <- as.POSIXct("2015-06-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
-#enddate_stats_sub <- as.POSIXct("2015-07-12 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
 
 # What to run
 runLdasin <- TRUE
@@ -105,12 +101,16 @@ ProcessLdasin <- function(modLdasin, stdate=NULL, enddate=NULL) {
   modLdasin$Wind <- with(modLdasin, sqrt(U2D^2 + V2D^2))
   # Run daily aggs
   modLdasin.snoday <- plyr::ddply(modLdasin, plyr::.(statArg, PST_dateP1), plyr::summarize, 
-                                 T2D_mean=mean(T2D), T2D_min=min(T2D), T2D_max=max(T2D), 
-                                 Q2D_mean=mean(Q2D), U2D_mean=mean(U2D), 
-                                 V2D_mean=mean(V2D), PSFC_mean=mean(PSFC), 
-                                 SWDOWN_mean=mean(SWDOWN), LWDOWN_mean=mean(LWDOWN),
-				 RelHum_mean=mean(RelHum), Wind_mean=mean(Wind),
-                                 .parallel=TRUE)
+                                 T2D_mean=mean(T2D), T2D_min=min(T2D), T2D_max=max(T2D),
+                                 Q2D_mean=mean(Q2D), Q2D_min=min(Q2D), Q2D_max=max(Q2D),
+                                 U2D_mean=mean(U2D), U2D_min=min(U2D), U2D_max=max(U2D),
+                                 V2D_mean=mean(V2D), V2D_min=min(V2D), V2D_max=max(V2D),
+                                 PSFC_mean=mean(PSFC), PSFC_min=min(PSFC), PSFC_max=max(PSFC),
+                                 SWDOWN_mean=mean(SWDOWN), SWDOWN_min=min(SWDOWN), SWDOWN_max=max(SWDOWN),
+                                 LWDOWN_mean=mean(LWDOWN), LWDOWN_min=min(LWDOWN), LWDOWN_max=max(LWDOWN),
+                                 RelHum_mean=mean(RelHum), RelHum_min=min(RelHum), RelHum_max=max(RelHum),
+                                 Wind_mean=mean(Wind), Wind_min=min(Wind), Wind_max=max(Wind),
+                                 .parallel=TRUE)  
   # Add dummy POSIXct for ease of plotting
   modLdasin.snoday$POSIXct <- as.POSIXct(paste0(modLdasin.snoday$PST_dateP1, " 00:00"), tz="UTC")
 
@@ -119,10 +119,14 @@ ProcessLdasin <- function(modLdasin, stdate=NULL, enddate=NULL) {
   # Run daily aggs
   modLdasin.utcday <- plyr::ddply(modLdasin, plyr::.(statArg, UTC_date), plyr::summarize,
                                  T2D_mean=mean(T2D), T2D_min=min(T2D), T2D_max=max(T2D),
-                                 Q2D_mean=mean(Q2D), U2D_mean=mean(U2D),
-                                 V2D_mean=mean(V2D), PSFC_mean=mean(PSFC),
-                                 SWDOWN_mean=mean(SWDOWN), LWDOWN_mean=mean(LWDOWN),
-                                 RelHum_mean=mean(RelHum), Wind_mean=mean(Wind),
+                                 Q2D_mean=mean(Q2D), Q2D_min=min(Q2D), Q2D_max=max(Q2D),
+				 U2D_mean=mean(U2D), U2D_min=min(U2D), U2D_max=max(U2D),
+                                 V2D_mean=mean(V2D), V2D_min=min(V2D), V2D_max=max(V2D),
+				 PSFC_mean=mean(PSFC), PSFC_min=min(PSFC), PSFC_max=max(PSFC),
+                                 SWDOWN_mean=mean(SWDOWN), SWDOWN_min=min(SWDOWN), SWDOWN_max=max(SWDOWN),
+				 LWDOWN_mean=mean(LWDOWN), LWDOWN_min=min(LWDOWN), LWDOWN_max=max(LWDOWN),
+                                 RelHum_mean=mean(RelHum), RelHum_min=min(RelHum), RelHum_max=max(RelHum),
+				 Wind_mean=mean(Wind), Wind_min=min(Wind), Wind_max=max(Wind),
                                  .parallel=TRUE)
   # Add dummy POSIXct for ease of plotting
   modLdasin.utcday$POSIXct <- as.POSIXct(paste0(modLdasin.utcday$UTC_date, " 00:00"), tz="UTC")

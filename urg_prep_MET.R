@@ -1,6 +1,8 @@
 library(rwrfhydro)
 load("/glade/p/ral/RHAP/alyssah/DG_stations/UpperRioGrande_stations_10012014-07012015.RData")
 load("../OBS/MET/met_URG.Rdata")
+
+# Read in and combine
 met.URG.data <- data.frame()
 for (i in 1:6) {
     tmp <- get(paste0("URG",i))[[1]]
@@ -13,6 +15,11 @@ for (i in 1:6) {
     tmp$ptrun_id <- met.URG.sites$ptrun_id[met.URG.sites$site_id==i]
     met.URG.data <- plyr::rbind.fill(met.URG.data, tmp)
     }
+
+# Remove bad obs
+met.URG.data$shortwave_radiation[met.URG.data$shortwave_radiation < (-1000.0)] <- NA
+met.URG.data$snow_depth[met.URG.data$snow_depth < 0] <- NA
+
 # Calculate hourly aggregations
 met.URG.data$Hour <- as.character(trunc(as.POSIXct(format(met.URG.data$POSIXct, tz="UTC"), tz="UTC"), "hours"))
 met.URG.data.hr <- plyr::ddply(met.URG.data, plyr::.(site_id, Hour),
@@ -37,27 +44,21 @@ met.URG.data.hr <- plyr::ddply(met.URG.data, plyr::.(site_id, Hour),
 met.URG.data$Date <- as.Date(trunc(as.POSIXct(format(met.URG.data$POSIXct, tz="UTC"), tz="UTC"), "days"))
 met.URG.data.dy <- plyr::ddply(met.URG.data, plyr::.(site_id, Date),
                          plyr::summarise,
-                         RH_mean=mean(relative_humidity, na.rm=TRUE),
-                         T_mean=mean(temperature, na.rm=TRUE),
-                         T_min=min(temperature, na.rm=TRUE),
-                         T_max=max(temperature, na.rm=TRUE),
-                         Wind_mean=mean(wind, na.rm=TRUE),
+                         RH_mean=mean(relative_humidity, na.rm=TRUE), RH_min=min(relative_humidity, na.rm=TRUE), RH_max=max(relative_humidity, na.rm=TRUE),
+                         T_mean=mean(temperature, na.rm=TRUE), T_min=min(temperature, na.rm=TRUE), T_max=max(temperature, na.rm=TRUE),
+                         Wind_mean=mean(wind, na.rm=TRUE), Wind_min=min(wind, na.rm=TRUE), Wind_max=max(wind, na.rm=TRUE),
                          WindDir_mean=mean(wdirection, na.rm=TRUE),
-                         SoilTemp1_mean=mean(Soil_Temp1, na.rm=TRUE),
-                         SoilTemp1_min=min(Soil_Temp1, na.rm=TRUE),
-                         SoilTemp1_max=max(Soil_Temp1, na.rm=TRUE),
+                         SoilTemp1_mean=mean(Soil_Temp1, na.rm=TRUE), SoilTemp1_min=min(Soil_Temp1, na.rm=TRUE), SoilTemp1_max=max(Soil_Temp1, na.rm=TRUE),
                          SM1_mean=mean(Soil_moist1, na.rm=TRUE),
-                         SoilTemp2_mean=mean(Soil_Temp2, na.rm=TRUE),
-                         SoilTemp2_min=min(Soil_Temp2, na.rm=TRUE),
-                         SoilTemp2_max=max(Soil_Temp2, na.rm=TRUE),
+                         SoilTemp2_mean=mean(Soil_Temp2, na.rm=TRUE), SoilTemp2_min=min(Soil_Temp2, na.rm=TRUE), SoilTemp2_max=max(Soil_Temp2, na.rm=TRUE),
                          SM2_mean=mean(Soil_moist2, na.rm=TRUE),
                          SnoDep_mean=mean(snow_depth, na.rm=TRUE),
-                         SWRad_mean=mean(shortwave_radiation, na.rm=TRUE),
+                         SWRad_mean=mean(shortwave_radiation, na.rm=TRUE), SWRad_min=min(shortwave_radiation, na.rm=TRUE), SWRad_max=max(shortwave_radiation, na.rm=TRUE),
                          LeafWet_mean=mean(Leaf_Wetness, na.rm=TRUE),
                          PrecAcc_max=max(Total_Accumulated_Precipitation, na.rm=TRUE),
                          PrecTot=sum(Prec_mm, na.rm=TRUE),
                          PrecInt_mean=mean(Precipitation_Intensity, na.rm=TRUE),
-                         SurfPress_mean=mean(Surface_Pressure, na.rm=TRUE),
+                         SurfPress_mean=mean(Surface_Pressure, na.rm=TRUE), SurfPress_min=min(Surface_Pressure, na.rm=TRUE), SurfPress_max=max(Surface_Pressure, na.rm=TRUE),
                          .parallel=FALSE)
 # Do unit conversions to match LDASIN
 met.URG.data$Temp_K <- met.URG.data$temperature + 273.15
@@ -76,6 +77,8 @@ met.URG.data.dy$Tmean_K <- met.URG.data.dy$T_mean + 273.15
 met.URG.data.dy$Tmin_K <- met.URG.data.dy$T_min + 273.15
 met.URG.data.dy$Tmax_K <- met.URG.data.dy$T_max + 273.15
 met.URG.data.dy$SurfPressmean_Pa <- met.URG.data.dy$SurfPress_mean * 1000
+met.URG.data.dy$SurfPressmin_Pa <- met.URG.data.dy$SurfPress_min * 1000
+met.URG.data.dy$SurfPressmax_Pa <- met.URG.data.dy$SurfPress_max * 1000
 met.URG.data.dy$SnoDepmean_m <- met.URG.data.dy$SnoDep_mean / 100
 met.URG.data.dy$SoilT1mean_K <- met.URG.data.dy$SoilTemp1_mean + 273.15
 met.URG.data.dy$SoilT1min_K <- met.URG.data.dy$SoilTemp1_min + 273.15
