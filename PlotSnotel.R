@@ -108,3 +108,53 @@ PlotSwe <- function(n, modDfs, obs, obsmeta,
         }
   mtext(txtblk, side=3, line=0.0, cex=0.9)
 }
+
+
+PlotMet <- function(obs=met.URG.data.dy, 
+			mod=modLdasin_wy2015_NLDAS2dwnsc_fullrtng_SNO.metd, 
+			site, 
+			obsVars, modVars, 
+			lnLabs, title, xLab="POSIXct", adj=0, mult=1) {
+plotList <- c()
+obs <- subset(obs, obs$site_id==site)
+obs$tmp <- "Observed"
+mod <- subset(mod, mod$statArg==site)
+mod$tmp <- "NLDAS"
+for (i in 1:length(obsVars)) {
+	p <- ggplot() + 
+		geom_line(data=obs, aes_string(x="POSIXct", y=paste0(obsVars[i], "*", as.character(mult), "+", as.character(adj)), color="tmp"), linetype=i) + 
+		geom_line(data=mod, aes_string(x="POSIXct", y=paste0(modVars[i], "*", as.character(mult), "+", as.character(adj)), color="tmp"), linetype=i) + 
+		xlim(min(obs$POSIXct), max(obs$POSIXct)) +
+		scale_color_discrete(name=element_blank())
+	if (i == 1) {
+		p <- p + labs(y=lnLabs[i], x=element_blank(), title=title) + 
+			theme(plot.title = element_text(size=14, face="bold", vjust=2))
+	} else if (i == length(obsVars)) {
+		p <- p + labs(y=lnLabs[i], x=xLab)
+	} else {
+		p <- p + labs(y=lnLabs[i], x=element_blank())
+	}
+	assign(paste0("p",i), p)
+	plotList <- c(plotList, paste0("p",i))
+}
+# Generate panel plot
+library(grid)
+numPlots = length(plotList)
+layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                    ncol = cols, nrow = ceiling(numPlots/cols))
+if (numPlots==1) {
+    print(plotList[1])
+} else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+      print(get(plotList[i]), vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+

@@ -114,7 +114,120 @@ for (n in 1:length(sites)) {
   dev.off()
 }
 
+# MET
+# Temperature
+sites <- unique(met.URG.sites$site_id)
+for (n in 1:length(sites)) {
+  print(sites[n])
+  png(paste0(outPath, "/met_temp_", sites[n], ".png"), width=1350, height=2100, res=225)
+  PlotMet(obs=met.URG.data.dy, 
+			mod=modLdasin_wy2015_NLDAS2dwnsc_fullrtng_SNO.metd, 
+			site=sites[n], 
+			obsVars=c("Tmean_K", "Tmax_K", "Tmin_K"), 
+			modVars=c("T2D_mean", "T2D_max", "T2D_min"), 
+			lnLabs=c("Mean Temp (C)", "Max Temp (C)", "Min Temp (C)"), 
+			title=paste0(met.URG.sites$site_name[met.URG.sites$site_id==n], ":\nDaily Temperature"),
+			xLab="WY2015", 
+			adj=(-273.15))
+  dev.off()
+}
 
+# Radiation
+for (n in 1:length(sites)) {
+  print(sites[n])
+  png(paste0(outPath, "/met_swrad_", sites[n], ".png"), width=1350, height=2100, res=225)
+  PlotMet(obs=met.URG.data.dy,
+                        mod=modLdasin_wy2015_NLDAS2dwnsc_fullrtng_SNO.metd,
+                        site=sites[n],
+                        obsVars=c("SWRad_mean", "SWRad_max", "SWRad_min"),
+                        modVars=c("SWDOWN_mean", "SWDOWN_max", "SWDOWN_min"),
+                        lnLabs=c("Mean Rad (W/m2)", "Max Rad (W/m2)", "Min Rad (W/m2)"),
+                        title=paste0(met.URG.sites$site_name[met.URG.sites$site_id==n], ":\nDaily Shortwave Radiation"),
+			xLab="WY2015")
+  dev.off()
+}
+
+# Wind
+for (n in 1:length(sites)) {
+  print(sites[n])
+  png(paste0(outPath, "/met_wind_", sites[n], ".png"), width=1350, height=2100, res=225)
+  PlotMet(obs=met.URG.data.dy,
+                        mod=modLdasin_wy2015_NLDAS2dwnsc_fullrtng_SNO.metd,
+                        site=sites[n],
+                        obsVars=c("Wind_mean", "Wind_max", "Wind_min"),
+                        modVars=c("Wind_mean", "Wind_max", "Wind_min"),
+                        lnLabs=c("Mean Speed (m/s)", "Max Speed (m/s)", "Min Speed (m/s)"),
+                        title=paste0(met.URG.sites$site_name[met.URG.sites$site_id==n], ":\nDaily Wind Speed"),
+			xLab="WY2015")
+  dev.off()
+}
+
+# Humidity
+for (n in 1:length(sites)) {
+  print(sites[n])
+  png(paste0(outPath, "/met_relhum_", sites[n], ".png"), width=1350, height=2100, res=225)
+  PlotMet(obs=met.URG.data.dy,
+                        mod=modLdasin_wy2015_NLDAS2dwnsc_fullrtng_SNO.metd,
+                        site=sites[n],
+                        obsVars=c("RH_mean", "RH_max", "RH_min"),
+                        modVars=c("RelHum_mean", "RelHum_max", "RelHum_min"),
+                        lnLabs=c("Mean RH (0-1)", "Max RH (0-1)", "Min RH (0-1)"),
+                        title=paste0(met.URG.sites$site_name[met.URG.sites$site_id==n], ":\nRelative Humidity"),
+			xLab="WY2015")
+  dev.off()
+}
+
+# Pressure
+for (n in 1:length(sites)) {
+  print(sites[n])
+  png(paste0(outPath, "/met_press_", sites[n], ".png"), width=1350, height=2100, res=225)
+  PlotMet(obs=met.URG.data.dy,
+                        mod=modLdasin_wy2015_NLDAS2dwnsc_fullrtng_SNO.metd,
+                        site=sites[n],
+                        obsVars=c("SurfPressmean_Pa", "SurfPressmax_Pa", "SurfPressmin_Pa"),
+                        modVars=c("PSFC_mean", "PSFC_max", "PSFC_min"),
+                        lnLabs=c("Mean Press (kPa)", "Max Press (kPa)", "Min Press (kPa)"),
+                        title=paste0(met.URG.sites$site_name[met.URG.sites$site_id==n], ":\nSurface Pressure"),
+			xLab="WY2015",			
+			mult=0.001)
+  dev.off()
+}
+
+# MSD by Station
+# Temperature
+png(paste0(outPath, "/met_msd_temp_ALL.png"), width=1900, height=1350, res=225)
+ggplot() + geom_point(data=subset(stats_met_all, stats_met_all$var=="Temp"), aes(x=site_fact, y=dy_msd, color=as.factor(seas)), size=4) + 
+	scale_color_manual(values=c("All"="Purple", "Sub"="Orange"), labels=c("Full Period", "Spring"), name="Time Period") + 
+	labs(y="Mean Signed Deviation (deg C)", x=element_blank(), title="Error in Mean Daily Temperature (NLDAS minus Met Obs)") + 
+	theme_bw() + 
+	theme(plot.title = element_text(size=14, face="bold", vjust=2), axis.text.x=element_text(size=12, angle=50, vjust=0.5), 
+		legend.justification=c(0,1), legend.position=c(0,1))
+dev.off()
+
+# Radiation
+png(paste0(outPath, "/met_msd_rad_ALL.png"), width=1900, height=1350, res=225)
+ggplot() + geom_point(data=subset(stats_met_all, stats_met_all$var=="SWRad"), aes(x=site_fact, y=dy_msd, color=as.factor(seas)), size=4) + 
+        scale_color_manual(values=c("All"="Purple", "Sub"="Orange"), labels=c("Full Period", "Spring"), name="Time Period") + 
+        labs(y="Mean Signed Deviation (W/m2)", x=element_blank(), title="Error in Downward Shortwave Radiation (NLDAS minus Met Obs)") + 
+        theme_bw() + 
+        theme(plot.title = element_text(size=14, face="bold", vjust=2), axis.text.x=element_text(size=12, angle=50, vjust=0.5), 
+                legend.justification=c(0,1), legend.position=c(0,1))
+dev.off()
+
+# Sample day radiation
+for (n in 1:length(sites)) {
+  print(sites[n])
+  png(paste0(outPath, "/met_apr1rad_", sites[n],".png"), width=1900, height=1350, res=225)
+  with(subset(modLdasin_wy2015_NLDAS2dwnsc_fullrtng_SNO, modLdasin_wy2015_NLDAS2dwnsc_fullrtng_SNO$statArg==n & 
+	modLdasin_wy2015_NLDAS2dwnsc_fullrtng_SNO$POSIXct>=as.POSIXct("2015-04-01 07:00", format="%Y-%m-%d %H:%M", tz="UTC") & 
+	modLdasin_wy2015_NLDAS2dwnsc_fullrtng_SNO$POSIXct<as.POSIXct("2015-04-02 07:00", format="%Y-%m-%d %H:%M", tz="UTC")), 
+	plot(POSIXct, SWDOWN, typ='l', ylim=c(0, 1200), col='red', lwd=2, 
+		main=paste0("SW Radiation, April 1, 2015: ", met.URG.sites$site_name[met.URG.sites$site_id==n]), 
+		ylab="Radiation (W/m2)", xlab="UTC Time"))
+  with(subset(met.URG.data, met.URG.data$site_id==n), lines(POSIXct, shortwave_radiation, col='black', lwd=2))
+  legend("topleft", c("OBS","NLDAS"), col=c("black","red"), lty=c(1,1), lwd=c(2,2))
+  dev.off()
+}
 
 ### EXIT
 

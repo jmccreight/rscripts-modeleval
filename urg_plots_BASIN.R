@@ -214,7 +214,7 @@ for (n in names(gage2basinList)) {
                         labMods=c("NLDAS-2", "NLDAS-2 + NSSL Precipitation", "NSSL w/Resistance Mods"),
                         lnCols=c("dodgerblue", "darkorange1", "olivedrab"),
                         lnWds=c(3,3,3),
-                        labTitle=paste0("Streamflow with Basin-Mean SWE: ", n, ", WY2014"),
+                        labTitle=paste0("Streamflow with Basin-Mean SWE: ", n, ", WY2015"),
                         stdate=NULL, enddate=enddate, obsCol="mean_qcms_adj")
         dev.off()
 }

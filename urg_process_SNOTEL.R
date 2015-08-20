@@ -96,7 +96,7 @@ ProcessLdasin <- function(modLdasin, stdate=NULL, enddate=NULL) {
   # Shift by 1 day so aggregations match daily report
   modLdasin$PST_dateP1 <- modLdasin$PST_date + 1
   # Unit conversions
-  modLdasin$RelHum <- with(modLdasin,                    
+  modLdasin$RelHum <- 0.01 * with(modLdasin,                    
                             0.263*PSFC*Q2D*(exp((17.67*(T2D-273.16))/(T2D-29.65)))^(-1))
   modLdasin$Wind <- with(modLdasin, sqrt(U2D^2 + V2D^2))
   # Run daily aggs
