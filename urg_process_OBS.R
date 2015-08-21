@@ -14,17 +14,55 @@
 #' 
 #' Load the rwrfhydro package. 
 ## ------------------------------------------------------------------------
-#library("rwrfhydro")
+library("rwrfhydro")
 library(doMC)
-registerDoMC(3)
+registerDoMC(16)
 
 #' Set the data paths for the Upper Rio Grande (test case general, model output, streamflow  
 #' observations, basin masks).
 ## ------------------------------------------------------------------------
 # Mask dataset so we can get station IDs
-maskPath <- 'urg_masks_NEW.Rdata'
+maskPath <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/urg_masks_NEW.Rdata'
+# Path to existing streamflow data workspace
+dataPath <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/STRFLOW/strflow_URG.Rdata'
 # Where to save the R workspace
-rimgPath <- '../OBS/strflow_URG.Rdata'
+rimgPath <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/STRFLOW/strflow_URG2.Rdata'
+
+# Download options
+getStr <- FALSE
+getRes <- TRUE
+
+
+###################################################################################################
+#' # Initialize Reservoir Info
+
+# Reservoir to basin lookup
+basin2resList <- list(	"CONPLACO"=c("PLARESCO"),
+			"CONMOGCO"=c("PLARESCO"),
+			"RIOWAGCO"=c("RIORESCO","CONRESCO"),
+			"RIODELCO"=c("RIORESCO","CONRESCO"))
+
+# Pan evap estimates
+# adjustment factor for pan evap to reservoir
+panfact <- 0.7
+# reservoir areas in sq m
+area_PLARESCO <- 600 * 4046.86 # in sq m (1 ac = 4046.86 m2)
+area_RIORESCO <- 600 * 4046.86 # in sq m
+area_CONRESCO <- 600 * 4046.86 # in sq m
+# pan evap vals in average inches per month
+obsPanEvap <- data.frame(mo=seq(1:12),
+	days=c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31),
+	PLATORO=c(1.41,  1.25,  2.81,  4.78,  5.86,  8.10,  6.57,  5.24,  5.52,  3.33,  1.35,  1.06),
+	WAGONWHEEL=c(1.41,  1.25,  2.81,  4.78,  6.69,  7.90,  7.15,  5.81,  5.30,  2.61,  1.35,  1.06))
+obsPanEvap$PLATORO_mmps <- panfact * obsPanEvap$PLATORO * 25.4 / obsPanEvap$days / 86400
+obsPanEvap$WAGONWHEEL_mmps <- panfact * obsPanEvap$WAGONWHEEL * 25.4 / obsPanEvap$days / 86400
+estResEvap <- data.frame(ResStation=c(rep("PLARESCO", 12), rep("RIORESCO", 12), rep("CONRESCO", 12)),
+	area=c(rep(area_PLARESCO, 12), rep(area_RIORESCO, 12), rep(area_CONRESCO, 12)),
+	mo=rep(seq(1:12),3),
+	RESEVAP_mmps=c(obsPanEvap$PLATORO_mmps, obsPanEvap$WAGONWHEEL_mmps, obsPanEvap$WAGONWHEEL_mmps),
+	stringsAsFactors=FALSE)
+estResEvap$RESEVAP_cms <- estResEvap$RESEVAP_mmps * estResEvap$area / 1000
+
 
 ###################################################################################################
 #' # Download streamflow data from CO DWR website
@@ -33,58 +71,75 @@ rimgPath <- '../OBS/strflow_URG.Rdata'
 #' list of stations.
 ## ------------------------------------------------------------------------
 load(maskPath)
+if (!is.null(dataPath)) load(dataPath)
 stnList <- names(gage2basinList)
 
 #' Then, we grab stage height and discharge data for the 2015 water year 
 #' (to date) using GetCoDwrData.
 ## ------------------------------------------------------------------------
-obsStr <- GetCoDwrData(siteIDs=stnList, 
+if (getStr) {
+	obsStr <- GetCoDwrData(siteIDs=stnList, 
                        paramCodes=c("GAGE_HT", "DISCHRG"), 
                        timeInt="raw", 
                        startDate="01/01/04", endDate="07/31/15")
-
-#' We also bring in the manually created reservoir storage data.
+	}
+#' We also download the reservoir storage data.
 ## ------------------------------------------------------------------------
-obsRes.plat <- GetCoDwrData("PLARESCO", 
+if (getRes) {
+	obsRes <- GetCoDwrData(siteIDs=c("PLARESCO", "RIORESCO", "CONRESCO"), 
                             paramCodes=c("STORAGE", "SURF_AC"), 
                             timeInt="raw", 
                             startDate="01/01/04", endDate="07/31/15")
-#obsRes.plat <- read.table("../OBS/RESERVOIR/Platoro_storage_change_WY_2015.csv", 
-#                          header=F, skip=1, sep=",", 
-#                          stringsAsFactors=FALSE)
-#names(obsRes.plat) <- c("Date.Time", "delstor_cms")
-#obsRes.plat$POSIXct <- as.POSIXct(format(as.POSIXct(obsRes.plat$Date.Time, 
-#                                                    format="%m/%d/%Y %H:%M", 
-#                                                    tz="America/Denver"),
-#                                  tz="UTC"), tz="UTC")
-#obsRes.plat <- subset(obsRes.plat, !is.na(obsRes.plat$POSIXct))
-obsRes.plat$Station <- "CONMOGCO"
-# Remove erroneous values
-obsRes.plat$stor_acft_out1 <- FillOutliers(obsRes.plat$STORAGE..AF., 1000)
-# Smooth the reservoir volume time series to remove some of the noise.
-# We use a 24-hr (48-hr when 30-min) smoother
-obsRes.plat$stor_acft <- CalcRunningMean(obsRes.plat$stor_acft_out1, 96)
-# Calculate timestep
-obsRes.plat$deltime_secs <- 0
-obsRes.plat$deltime_secs[2:nrow(obsRes.plat)] <- 
-  as.integer(difftime(obsRes.plat$POSIXct[2:nrow(obsRes.plat)], 
-                      obsRes.plat$POSIXct[1:(nrow(obsRes.plat)-1)], units="secs"))
-# Recalculate storage in m3
-obsRes.plat$stor_m3 <- obsRes.plat$stor_acft * 43560 * (0.3048^3)
-# And then as a flowrate
-obsRes.plat$delstor_m3 <- 0
-obsRes.plat$delstor_m3[2:nrow(obsRes.plat)] <- diff(obsRes.plat$stor_m3)
-obsRes.plat$delstor_cms <- obsRes.plat$delstor_m3/obsRes.plat$deltime_secs
+}
+names(obsRes)[names(obsRes)=="Station"] <- "ResStation"
+# Process (noisy) reservoir data
+obsResNew <- data.frame()
+for (i in unique(obsRes$ResStation)) {
+	tmp <- subset(obsRes, obsRes$ResStation==i)
+	tmp <- tmp[order(tmp$POSIXct),]
+	# Remove erroneous values
+	tmp$stor_acft_out1 <- FillOutliers(tmp$STORAGE..AF., 1000)
+	# Smooth the reservoir volume time series to remove some of the noise.
+	# We use a 24-hr (48-hr when 30-min) smoother
+	tmp$stor_acft <- CalcRunningMean(tmp$stor_acft_out1, 96)
+	# Calculate timestep
+	tmp$deltime_secs <- 0
+	tmp$deltime_secs[2:nrow(tmp)] <- 
+  		as.integer(difftime(tmp$POSIXct[2:nrow(tmp)], 
+                      tmp$POSIXct[1:(nrow(tmp)-1)], units="secs"))
+	# Recalculate storage in m3
+	tmp$stor_m3 <- tmp$stor_acft * 43560 * (0.3048^3)
+	# And then as a flowrate
+	tmp$delstor_m3 <- 0
+	tmp$delstor_m3[2:nrow(tmp)] <- diff(tmp$stor_m3)
+	tmp$delstor_cms <- tmp$delstor_m3/tmp$deltime_secs
+	# Res evap adjustment
+	tmp$mo <- as.integer(format(tmp$POSIXct, format="%m"))
+	tmp <- plyr::join(tmp, estResEvap[,c("ResStation","mo","RESEVAP_cms")], by=c("ResStation", "mo"))
+	tmp$delstornet_cms <- tmp$delstor_cms + tmp$RESEVAP_cms
+        obsResNew <- rbind(obsResNew, tmp)
+        }
+#obsResNew[obsResNew==Inf] <- NA
+#obsResNew[obsResNew==(-Inf)] <- NA
+#obsResNew[obsResNew==NaN] <- NA
+obsRes <- obsResNew
+rm(obsResNew)
 
 #' Adjust streamflow rates by reservoir storage change rates. These are now
 #' "naturalized" flows.
 ## ------------------------------------------------------------------------
 obsStr$q_cms_adj <- obsStr$q_cms
-obsStr <- plyr::join(obsStr, obsRes.plat[c("Station","POSIXct","delstor_cms")], 
-                     by=c("Station", "POSIXct"), match="first")
-obsStr$q_cms_adj[!(is.na(obsStr$delstor_cms))] <- obsStr$q_cms[!(is.na(obsStr$delstor_cms))] + 
-  obsStr$delstor_cms[!(is.na(obsStr$delstor_cms))]
-
+obsStr$delstornet_cms <- NULL
+for (i in names(basin2resList)) {
+	tmp <- subset(obsStr, obsStr$Station==i)
+	for (j in basin2resList[[i]]) {
+		tmp <- plyr::join(tmp, subset(obsRes, obsRes$ResStation==j)[c("POSIXct", "delstornet_cms")], by="POSIXct", match="first")
+		tmp$q_cms_adj[!(is.na(tmp$delstornet_cms))] <- tmp$q_cms_adj[!(is.na(tmp$delstornet_cms))] + 
+  								tmp$delstornet_cms[!(is.na(tmp$delstornet_cms))]
+		tmp$delstornet_cms <- NULL
+		}
+	obsStr <- rbind(subset(obsStr, obsStr$Station != i), tmp)
+}
 
 #' Until we can automate this from the data download side, we will have to manually set the gage 
 #' drainage areas. We will set it up as an attribute to the observation dataframe.
@@ -163,16 +218,16 @@ for (i in 1:length(gageList)) {
 #' outflow predictions. We will assign a date stamp of the following day to properly adjust
 #' the modelled flows.
 ## ------------------------------------------------------------------------
-obsRes.plat$Date <- as.Date(trunc(as.POSIXct(format(obsRes.plat$POSIXct, tz="UTC"), tz="UTC"), "days"))
-obsRes.plat.dy <- plyr::ddply(obsRes.plat, plyr::.(Date), 
-                         plyr::summarise, mean_delstorcms=mean(delstor_cms, na.rm=TRUE), 
+obsRes$Date <- as.Date(trunc(as.POSIXct(format(obsRes$POSIXct, tz="UTC"), tz="UTC"), "days"))
+obsRes.dy <- plyr::ddply(obsRes, plyr::.(Date), 
+                         plyr::summarise, mean_delstornetcms=mean(delstornet_cms, na.rm=TRUE), 
                          .parallel=TRUE)
 # Unit conversion: m^3/s -> m^3/dy -> ft^3/dy -> ac-ft/dy
-obsRes.plat.dy$delvol_acft <- obsRes.plat.dy$mean_delstorcms * 86400 / (0.3048^3) / 43560
+obsRes.dy$delvolnet_acft <- obsRes.dy$mean_delstornetcms * 86400 / (0.3048^3) / 43560
 
 #' Let's add a POSIXct column for ease of calculations and plotting.
 ## ------------------------------------------------------------------------
-obsRes.plat.dy$POSIXct <- as.POSIXct(paste0(obsRes.plat.dy$Date+1," 00:00", 
+obsRes.dy$POSIXct <- as.POSIXct(paste0(obsRes.dy$Date+1," 00:00", 
                                        format="%Y-%m-%d %H:%M", tz="UTC"), tz="UTC")
 
 ########################################################################################################
@@ -204,4 +259,4 @@ obsStr.mo$POSIXct <- as.POSIXct(paste0(obsStr.mo$yr,"-",obsStr.mo$mo,"-01",
 
 ########################################################################################################
 #' Save results
-save(obsStr, obsStr.dy, obsStr.mo, obsRes.plat, obsRes.plat.dy, file=rimgPath)
+save(obsStr, obsStr.dy, obsStr.mo, obsRes, obsRes.dy, file=rimgPath)

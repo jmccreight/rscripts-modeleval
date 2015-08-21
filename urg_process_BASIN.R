@@ -91,31 +91,20 @@ ProcessFrxstout <- function(modFrxstout, stid2gage, stdate=NULL, enddate=NULL) {
   }
   # Bring in basin IDs
   modFrxstout <- plyr::join(modFrxstout, stid2gage, by="st_id")
-  # Bring in reservoir data for adjusted flows
-  names(obsRes.plat.dy)[names(obsRes.plat.dy)=="Station"] <- "STAID"
-  modFrxstout <- plyr::join(modFrxstout, obsRes.plat.dy, by=c("STAID","POSIXct"))
   # Calculate accumulated flow
   modFrxstout$q_mm <- NA
-  modFrxstout$q_mm_adj <- NA
   for (i in 1:nrow(modFrxstout)) {
     modFrxstout$q_mm[i] <- ifelse(is.na(modFrxstout$STAID[i]), NA, 
                                 modFrxstout$q_cms[i]/
                                   (mskhyd.areaList[[modFrxstout$STAID[i]]]
                                    /100*1000*1000)*1000*(3600*24))
-    modFrxstout$q_mm_adj[i] <- ifelse(is.na(modFrxstout$STAID[i]), NA,
-                                (modFrxstout$q_cms[i]-modFrxstout$mean_delstorcms)/
-                                  (mskhyd.areaList[[modFrxstout$STAID[i]]]
-                                   /100*1000*1000)*1000*(3600*24))
     }
   modFrxstout <- modFrxstout[order(modFrxstout$st_id, modFrxstout$POSIXct),]
   modFrxstout$ACCFLOW <- NA
-  modFrxstout$ACCFLOW_adj <- NA
   for (j in unique(modFrxstout$STAID)[!is.na(unique(modFrxstout$STAID))]) {
     tmp <- subset(modFrxstout, modFrxstout$STAID==j)
     qaccum <- cumsum(tmp$q_mm)
-    qaccum_adj <- CumsumNa(tmp$q_mm_adj)
     modFrxstout$ACCFLOW[modFrxstout$STAID==j & !is.na(modFrxstout$STAID)] <- qaccum
-    modFrxstout$ACCFLOW_adj[modFrxstout$STAID==j & !is.na(modFrxstout$STAID)] <- qaccum_adj
   }
   modFrxstout
 }

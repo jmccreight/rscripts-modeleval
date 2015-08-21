@@ -166,7 +166,7 @@ for (n in names(gage2basinList)) {
 
 for (n in names(gage2basinList)) {
         png(paste0(outPath, "/accstrflow_adj_PRES", "_", n, ".png"), width=2100, height=1350, res=225)
-        if (n %in% c("CONMOGCO")) {
+        if (n %in% c("CONMOGCO", "CONPLACO", "RIOWAGCO", "RIODELCO")) {
                 labObs <- "Observed (Naturalized)"
         } else {
                 labObs <- "Observed"}
@@ -187,6 +187,10 @@ for (n in names(gage2basinList)) {
 
 # Streamflow + SWE plots
 for (n in names(gage2basinList)) {
+	if (n %in% c("CONMOGCO", "CONPLACO", "RIOWAGCO", "RIODELCO")) {
+                labObs <- "Observed (Naturalized)"
+        } else {
+                labObs <- "Observed"}
         png(paste0(outPath, "/strflow_swe_NLDAS_NSSL_adj_PRES", "_", n, ".png"), width=2100, height=1350, res=225)
         PlotFlowSwe(n, modDfs=list(modFrxstout_wy2015_NLDAS2dwnsc_snowmod_mikerec_fullrtng,
                         modFrxstout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_fullrtng),
@@ -194,6 +198,7 @@ for (n in names(gage2basinList)) {
                         modLdasout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_fullrtng_BAS),
                         obs=obsStr.dy,
                         labMods=c("NLDAS-2", "NLDAS-2 + NSSL Precipitation"),
+			labObs=labObs,
 			lnCols=c("dodgerblue", "darkorange1"),
                         lnWds=c(3,3),
                         labTitle=paste0("Streamflow with Basin-Mean SWE: ", n, ", WY2014"),
@@ -203,6 +208,10 @@ for (n in names(gage2basinList)) {
 
 
 for (n in names(gage2basinList)) {
+        if (n %in% c("CONMOGCO", "CONPLACO", "RIOWAGCO", "RIODELCO")) {
+                labObs <- "Observed (Naturalized)"
+        } else {
+                labObs <- "Observed"}
         png(paste0(outPath, "/strflow_swe_NLDAS_NSSL_adj_PRES", "_", n, ".png"), width=2100, height=1350, res=225)
         PlotFlowSwe(n, modDfs=list(modFrxstout_wy2015_NLDAS2dwnsc_snowmod_mikerec_fullrtng,
                         modFrxstout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_fullrtng,
@@ -212,6 +221,7 @@ for (n in names(gage2basinList)) {
 			modLdasout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng_BAS),
                         obs=obsStr.dy,
                         labMods=c("NLDAS-2", "NLDAS-2 + NSSL Precipitation", "NSSL w/Resistance Mods"),
+			labObs=labObs,
                         lnCols=c("dodgerblue", "darkorange1", "olivedrab"),
                         lnWds=c(3,3,3),
                         labTitle=paste0("Streamflow with Basin-Mean SWE: ", n, ", WY2015"),
