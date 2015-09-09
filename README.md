@@ -40,13 +40,14 @@ Download and prep observations. See:
 	* Pathname for the output R dataset
 	* Suffix to add to the objects to identify them
 	* Options to run
-* Run the urg_modelreads_ALL.R script.
+* Run the urg_modelreads_ALL.R script: ./jobIS_reads.sh
 * The script will create a new R dataset with "raw" data objects. Possible objects (depending on which options you choose):
 	* modFrxstout - streamflow time series
 	* modGwout - groundwater outflow time series
 	* modLdasin - climate forcings
 	* modLdasout - LSM output
 	* Objects will be appended with "_BAS" for basin means and "_SNO" for point values.
+* Import these new "raw" dataframes into the master "raw" dataframe containing output from all model runs.
 
 2. Process the model output by basin:
 * Update the parameters in the urg_process_BASIN.R:
@@ -57,7 +58,7 @@ Download and prep observations. See:
 	* Start date to restrict the output data to (applies to all models)
 	* Start and end dates to restrict the full stats calcs
 	* Start and end dates to restrict the subset stats calcs
-* Feed the R dataset created in step 1 into this processing function.
+* Run the urg_process_BASIN.R script: ./jobIS_procBAS.sh
 * The script will create a new R dataset with processed data objects at the basin scale. The objects will be same as in step 1 with new fields added. New objects include:
 	* stats_str - summary statistics for each model run
 	* stats_str_all - combined object with summary statistics for all runs
@@ -72,7 +73,7 @@ Download and prep observations. See:
 	* Start and end dates to restrict the full stats calcs
 	* Start and end dates to restrict the subset stats calcs
 	* Options to run
-* Feed the R dataset created in step 1 into this processing function.
+* Run the urg_process_SNOTEL.R script: ./jobIS_procSNO.sh
 * The script will create a new R dataset with processed data objects at the point station scale. The objects will be same as in step 1 with new fields added. New objects include:
 	* .metd - objects as above but aggregated to the MET station day
 	* .snod - objects as above but aggregated to the SNOTEL station day
