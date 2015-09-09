@@ -35,7 +35,7 @@ inImg <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/urg_wy2015_ALL_RAW.
 #outImg <- 'urg_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_fullrtng_BAS_PROCESSED.Rdata'
 #outImg <- 'urg_wy2015_NLDAS2dwnsc_SIMGM_BATSalb_fullrtng_BAS_PROCESSED.Rdata'
 
-outImg <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/urg_wy2015_ALL_PROCESSED.Rdata'
+outImg <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/urg_wy2015_BAS_PROCESSED.Rdata'
 
 # Suffix for the output objects
 objSuffixList <- c('_wy2015_NLDAS2dwnsc_fullrtng',

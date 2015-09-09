@@ -9,7 +9,7 @@ load("/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/SNOTEL/snotel_URG.Rdata")
 load("/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/STRFLOW/strflow_URG.Rdata")
 
 # Where the processed data lives
-rimgPath <- 'urg_wy2015_ALL_PROCESSED.Rdata'
+rimgPath <- 'urg_wy2015_BAS_PROCESSED.Rdata'
 
 # Where to write files
 outPath <- 'plots'
