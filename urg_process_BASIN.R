@@ -46,22 +46,34 @@ objSuffixList <- c('_wy2015_NLDAS2dwnsc_fullrtng',
                    '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_fullrtng',
                    '_wy2015_NLDAS2dwnsc_SIMGM_BATSalb_fullrtng',
 		   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_nlcd11_fullrtng',
-		   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng')
+		   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng',
+		   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist1_canresist05_fullrtng',
+		   '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng')
+
+stopDates <- c(as.POSIXct("2015-06-11 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+		as.POSIXct("2015-06-13 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+		as.POSIXct("2015-06-26 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+		as.POSIXct("2015-06-26 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+		as.POSIXct("2015-07-13 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+		as.POSIXct("2015-07-15 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+		as.POSIXct("2015-06-04 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+		as.POSIXct("2015-07-15 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+		as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+		as.POSIXct("2015-07-13 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+		as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"))
 
 # Range dates to restrict analysis
 stdate <- NULL
-enddate <- as.POSIXct("2015-07-12 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
+enddate <- as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
 
 # Range dates for main stats
 stdate_stats <- NULL
-enddate_stats <- as.POSIXct("2015-07-12 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
+enddate_stats <- as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
 
 # Range dates for seasonal stats (e.g., spring)
 stdate_stats_sub <- as.POSIXct("2015-04-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
-enddate_stats_sub <- as.POSIXct("2015-07-12 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
+enddate_stats_sub <- as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
 
-# Where the lookup table lives
-#basin2gageTbl <- "../basin_gage_lookup.csv"
 
 
 ###################################################################################################
@@ -184,9 +196,9 @@ for (j in 1:length(objSuffixList)) {
   modGwout <- get(paste0("modGwout", objSuffix))
   modFrxstout <- get(paste0("modFrxstout", objSuffix))
   # Process
-  modLdasout <- ProcessLdasout(modLdasout, stdate=stdate, enddate=enddate)
-  modGwout <- ProcessGwout(modGwout, basin2gage, stdate=stdate, enddate=enddate)
-  modFrxstout <- ProcessFrxstout(modFrxstout, stid2gage, stdate=stdate, enddate=enddate)
+  modLdasout <- ProcessLdasout(modLdasout, stdate=stdate, enddate=stopDates[j])
+  modGwout <- ProcessGwout(modGwout, basin2gage, stdate=stdate, enddate=stopDates[j])
+  modFrxstout <- ProcessFrxstout(modFrxstout, stid2gage, stdate=stdate, enddate=stopDates[j])
   # Stats
   results <- CalcStrStats(modFrxstout, obsStr, stid2gageList, stdate=stdate_stats, enddate=enddate_stats, 
 		outfile=paste0("stats_str", objSuffix, ".txt"))

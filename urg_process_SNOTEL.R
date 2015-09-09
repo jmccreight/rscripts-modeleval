@@ -43,20 +43,34 @@ objSuffixList <- c('_wy2015_NLDAS2dwnsc_fullrtng',
                    '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_fullrtng',
                    '_wy2015_NLDAS2dwnsc_SIMGM_BATSalb_fullrtng',
                    '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_nlcd11_fullrtng',
-		   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng')
+                   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng',
+                   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist1_canresist05_fullrtng',
+                   '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng')
+
+stopDates <- c(as.POSIXct("2015-06-11 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+                as.POSIXct("2015-06-13 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+                as.POSIXct("2015-06-26 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+                as.POSIXct("2015-06-26 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+                as.POSIXct("2015-07-13 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+                as.POSIXct("2015-07-15 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+                as.POSIXct("2015-06-04 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+                as.POSIXct("2015-07-15 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+                as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+                as.POSIXct("2015-07-13 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+                as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"))
 
 # Range dates to restrict analysis
 stdate <- NULL
 #enddate <- NULL
-enddate <- as.POSIXct("2015-07-12 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
+enddate <- as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
 
 # Range dates for main stats
-stdate_stats <- NULL
-enddate_stats <- as.POSIXct("2015-07-12 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
+stdate_stats <- as.POSIXct("2014-10-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
+enddate_stats <- as.POSIXct("2015-05-31 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
 
 # Range dates for seasonal stats (e.g., spring)
-stdate_stats_sub <- as.POSIXct("2015-03-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
-enddate_stats_sub <- as.POSIXct("2015-06-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
+stdate_stats_sub <- as.POSIXct("2014-12-12 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
+enddate_stats_sub <- as.POSIXct("2015-04-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
 
 # What to run
 runLdasin <- TRUE
@@ -333,59 +347,128 @@ for (j in 1:length(objSuffixList)) {
   # Process LDASOUT
   if (runLdasout) {
 	modLdasout <- get(paste0("modLdasout", objSuffix, "_SNO"))
-        modLdasout <- ProcessLdasout(modLdasout, stdate=stdate, enddate=enddate)
+        modLdasout <- ProcessLdasout(modLdasout, stdate=stdate, enddate=stopDates[j])
         assign(paste0("modLdasout", objSuffix, "_SNO"), modLdasout)
 	saveList <- c(saveList, paste0("modLdasout", objSuffix, "_SNO"))
   	if (runStats) {
 		# SNOTEL
+		# Full time period
 		results <- CalcVarStats(modLdasout, sno.URG.sites, sno.URG.data, stdate=stdate_stats, enddate=enddate_stats, 
 				flxCol.obs="Prec_mm", flxCol.mod="DEL_ACCPRCP")
 		results$run <- objSuffix
 	  	results$var <- "Precip"
+		results$seas <- "All"
 	  	stats_sno_all <- plyr::rbind.fill(stats_sno_all, results)
 
 	  	results <- CalcVarStats(modLdasout, sno.URG.sites, sno.URG.data, stdate=stdate_stats, enddate=enddate_stats, 
 				flxCol.obs="SWE_mm", flxCol.mod="SNEQV")
 	  	results$run <- objSuffix
 	  	results$var <- "SWE"
+		results$seas <- "All"
 	  	stats_sno_all <- plyr::rbind.fill(stats_sno_all, results)
+		# Subset time period
+                results <- CalcVarStats(modLdasout, sno.URG.sites, sno.URG.data, stdate=stdate_stats_sub, enddate=enddate_stats_sub, 
+                                flxCol.obs="Prec_mm", flxCol.mod="DEL_ACCPRCP")
+                results$run <- objSuffix
+                results$var <- "Precip"
+                results$seas <- "Sub"
+                stats_sno_all <- plyr::rbind.fill(stats_sno_all, results)
+
+                results <- CalcVarStats(modLdasout, sno.URG.sites, sno.URG.data, stdate=stdate_stats_sub, enddate=enddate_stats_sub, 
+                                flxCol.obs="SWE_mm", flxCol.mod="SNEQV")
+                results$run <- objSuffix
+                results$var <- "SWE"
+                results$seas <- "Sub"
+                stats_sno_all <- plyr::rbind.fill(stats_sno_all, results)
+
 
 		# MET
+		# Full time period
                 results <- CalcVarStats(modLdasout, met.URG.sites, met.URG.data.dy, stdate=stdate_stats, enddate=enddate_stats,
                                 flxCol.obs="PrecTot", flxCol.mod="DEL_ACCPRCP")
                 results$run <- objSuffix
                 results$var <- "Precip"
+		results$seas <- "All"
                 stats_met_all <- plyr::rbind.fill(stats_met_all, results)
 
                 results <- CalcVarStats(modLdasout, met.URG.sites, met.URG.data.dy, stdate=stdate_stats, enddate=enddate_stats,
                                 flxCol.obs="SnoDepmean_m", flxCol.mod="SNOWH")
                 results$run <- objSuffix
                 results$var <- "SnowDepth"
+		results$seas <- "All"
                 stats_met_all <- plyr::rbind.fill(stats_met_all, results)
 
                 results <- CalcVarStats(modLdasout, met.URG.sites, met.URG.data.dy, stdate=stdate_stats, enddate=enddate_stats,
                                 flxCol.obs="SM1_mean", flxCol.mod="SOIL_M1")
                 results$run <- objSuffix
                 results$var <- "SoilM1"
+		results$seas <- "All"
                 stats_met_all <- plyr::rbind.fill(stats_met_all, results)
 
                 results <- CalcVarStats(modLdasout, met.URG.sites, met.URG.data.dy, stdate=stdate_stats, enddate=enddate_stats,
                                 flxCol.obs="SM2_mean", flxCol.mod="SOIL_M2")
                 results$run <- objSuffix
                 results$var <- "SoilM2"
+		results$seas <- "All"
                 stats_met_all <- plyr::rbind.fill(stats_met_all, results)
 
                 results <- CalcVarStats(modLdasout, met.URG.sites, met.URG.data.dy, stdate=stdate_stats, enddate=enddate_stats,
                                 flxCol.obs="SoilT1mean_K", flxCol.mod="SOIL_T1")
                 results$run <- objSuffix
                 results$var <- "SoilT1"
+		results$seas <- "All"
                 stats_met_all <- plyr::rbind.fill(stats_met_all, results)
 
                 results <- CalcVarStats(modLdasout, met.URG.sites, met.URG.data.dy, stdate=stdate_stats, enddate=enddate_stats,
                                 flxCol.obs="SoilT2mean_K", flxCol.mod="SOIL_T2")
                 results$run <- objSuffix
                 results$var <- "SoilT2"
+		results$seas <- "All"
                 stats_met_all <- plyr::rbind.fill(stats_met_all, results)
+
+                # Subset time period
+                results <- CalcVarStats(modLdasout, met.URG.sites, met.URG.data.dy, stdate=stdate_stats_sub, enddate=enddate_stats_sub,
+                                flxCol.obs="PrecTot", flxCol.mod="DEL_ACCPRCP")
+                results$run <- objSuffix
+                results$var <- "Precip"
+                results$seas <- "Sub"
+                stats_met_all <- plyr::rbind.fill(stats_met_all, results)
+
+                results <- CalcVarStats(modLdasout, met.URG.sites, met.URG.data.dy, stdate=stdate_stats_sub, enddate=enddate_stats_sub,
+                                flxCol.obs="SnoDepmean_m", flxCol.mod="SNOWH")
+                results$run <- objSuffix
+                results$var <- "SnowDepth"
+                results$seas <- "Sub"
+                stats_met_all <- plyr::rbind.fill(stats_met_all, results)
+
+                results <- CalcVarStats(modLdasout, met.URG.sites, met.URG.data.dy, stdate=stdate_stats_sub, enddate=enddate_stats_sub,
+                                flxCol.obs="SM1_mean", flxCol.mod="SOIL_M1")
+                results$run <- objSuffix
+                results$var <- "SoilM1"
+                results$seas <- "Sub"
+                stats_met_all <- plyr::rbind.fill(stats_met_all, results)
+
+                results <- CalcVarStats(modLdasout, met.URG.sites, met.URG.data.dy, stdate=stdate_stats_sub, enddate=enddate_stats_sub,
+                                flxCol.obs="SM2_mean", flxCol.mod="SOIL_M2")
+                results$run <- objSuffix
+                results$var <- "SoilM2"
+                results$seas <- "Sub"
+                stats_met_all <- plyr::rbind.fill(stats_met_all, results)
+
+                results <- CalcVarStats(modLdasout, met.URG.sites, met.URG.data.dy, stdate=stdate_stats_sub, enddate=enddate_stats_sub,
+                                flxCol.obs="SoilT1mean_K", flxCol.mod="SOIL_T1")
+                results$run <- objSuffix
+                results$var <- "SoilT1"
+                results$seas <- "Sub"
+                stats_met_all <- plyr::rbind.fill(stats_met_all, results)
+
+                results <- CalcVarStats(modLdasout, met.URG.sites, met.URG.data.dy, stdate=stdate_stats_sub, enddate=enddate_stats_sub,
+                                flxCol.obs="SoilT2mean_K", flxCol.mod="SOIL_T2")
+                results$run <- objSuffix
+                results$var <- "SoilT2"
+                results$seas <- "Sub"
+                stats_met_all <- plyr::rbind.fill(stats_met_all, results)
+
 
 		}
   }

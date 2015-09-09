@@ -114,6 +114,44 @@ for (n in 1:length(sites)) {
   dev.off()
 }
 
+sites <- unique(sno.URG.sites$site_id)
+for (n in 1:length(sites)) {
+  print(sites[n])
+  png(paste0(outPath, "/cumprec_swe_resistmods_pres_", sites[n], ".png"), width=2100, height=1350, res=225)
+  PlotSwe(sites[n], modDfs=list(modLdasout_wy2015_NLDAS2dwnsc_snowmod_mikerec_fullrtng_SNO,
+                                modLdasout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_fullrtng_SNO,
+                                modLdasout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng_SNO),
+                obs=sno.URG.data, obsmeta=sno.URG.sites,
+                labMods=c("Model1: NLDAS-2", "Model2: NSSL Precipitation", "Model3: NSSL w/Resistance Mods"),
+                lnCols=c('dodgerblue', 'darkorange1', 'olivedrab'),
+                lnWds=c(3,3,3),
+                precCol.obs="CumPrec_mm", precCol.mod="ACCPRCP",
+                sweCol.obs="SWE_mm", sweCol.mod="SNEQV", fact=1, snowh=FALSE,
+                labTitle="Accumulated Precipitation and SWE",
+                #stdate_prec=as.POSIXct("2014-11-21", format="%Y-%m-%d", tz="UTC"))
+                stdate_prec=min(subset(sno.URG.data$POSIXct, sno.URG.data$site_id==sites[n])))
+  dev.off()
+}
+
+sites <- unique(met.URG.sites$site_id)
+for (n in 1:length(sites)) {
+  print(sites[n])
+  png(paste0(outPath, "/cumprec_swe_resistmods_pres_", sites[n], ".png"), width=2100, height=1350, res=225)
+  PlotSwe(sites[n], modDfs=list(modLdasout_wy2015_NLDAS2dwnsc_snowmod_mikerec_fullrtng_SNO,
+                                modLdasout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_fullrtng_SNO,
+				modLdasout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng_SNO),
+                obs=met.URG.data.dy, obsmeta=met.URG.sites,
+                labMods=c("Model1: NLDAS-2", "Model2: NSSL Precipitation", "Model3: NSSL w/Resistance Mods"),
+                lnCols=c('dodgerblue', 'darkorange1', 'olivedrab'),
+                lnWds=c(3,3,3),
+                precCol.obs="PrecAcc_max", precCol.mod="ACCPRCP",
+                sweCol.obs="SnoDep_mean", sweCol.mod="SNOWH", fact=1000, snowh=TRUE,
+                labTitle="Accumulated Precipitation and Snow Depth",
+                #stdate_prec=as.POSIXct("2014-11-21", format="%Y-%m-%d", tz="UTC"))
+                stdate_prec=min(subset(met.URG.data.dy$POSIXct, met.URG.data.dy$site_id==sites[n])))
+  dev.off()
+}
+
 # MET
 # Temperature
 sites <- unique(met.URG.sites$site_id)
@@ -228,6 +266,143 @@ for (n in 1:length(sites)) {
   legend("topleft", c("OBS","NLDAS"), col=c("black","red"), lty=c(1,1), lwd=c(2,2))
   dev.off()
 }
+
+
+# PRECIP BIAS
+# Bias
+lm.nldas <- lm(subset(stats_sno_all$dy_bias, stats_sno_all$var=="Precip" & 
+			stats_sno_all$run=="_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng" &
+			stats_sno_all$seas=="Sub" & 
+                	stats_sno_all$in_nssl==1) ~ 
+		subset(stats_sno_all$elev, stats_sno_all$var=="Precip" & 
+			stats_sno_all$run=="_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng" &
+                        stats_sno_all$seas=="Sub" &
+                        stats_sno_all$in_nssl==1))
+lm.nssl <- lm(subset(stats_sno_all$dy_bias, stats_sno_all$var=="Precip" & 
+			stats_sno_all$run=="_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng" &
+			stats_sno_all$seas=="Sub" &        
+                        stats_sno_all$in_nssl==1) ~ 
+		subset(stats_sno_all$elev, stats_sno_all$var=="Precip" & 
+			stats_sno_all$run=="_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng" &
+			stats_sno_all$seas=="Sub" &        
+                        stats_sno_all$in_nssl==1))
+png(paste0(outPath, "/precipbias_snotel.png"), width=2100, height=1350, res=225)
+with(subset(stats_sno_all, stats_sno_all$var=="Precip" & 
+			stats_sno_all$run=="_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng" &
+                        stats_sno_all$seas=="Sub" &        
+                        stats_sno_all$in_nssl==1), 
+	plot(elev, dy_bias, ylim=c(-100,100), col='blue', pch=15, 
+	xlab="Elevation (ft)", ylab="% Bias"))
+with(subset(stats_sno_all, stats_sno_all$var=="Precip" & 
+                        stats_sno_all$run=="_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng" &
+                        stats_sno_all$seas=="Sub" &
+                        stats_sno_all$in_nssl==1),
+	points(elev, dy_bias, col='red', cex=1.5))
+with(subset(stats_met_all, stats_met_all$var=="Precip" & 
+			stats_met_all$run=="_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng" &
+                        stats_met_all$seas=="Sub"), 
+	points(elev, dy_bias, col='green2', pch=15))
+with(subset(stats_met_all, stats_met_all$var=="Precip" & 
+                        stats_met_all$run=="_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng" &
+                        stats_met_all$seas=="Sub"),
+	points(elev, dy_bias, col='green', cex=1.5))
+with(subset(stats_sno_all, stats_sno_all$var=="Precip" &
+                        (stats_sno_all$run=="_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng" | 
+			stats_sno_all$run=="_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng") &
+                        stats_sno_all$seas=="Sub" &
+                        stats_sno_all$in_nssl==1 & (stats_sno_all$site_name=="Lily Pond " | stats_sno_all$site_name=="Cumbres Trestle ")),
+        points(elev, dy_bias, col='black', cex=3.0))
+with(subset(stats_met_all, stats_met_all$var=="Precip" &
+                        (stats_met_all$run=="_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng" | 
+			stats_met_all$run=="_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng") &
+                        stats_met_all$seas=="Sub"),
+        points(elev, dy_bias, col='black', cex=3.0))
+abline(h=0)
+abline(v=10000)
+abline(lm.nldas, col='blue')
+abline(lm.nssl, col='red')
+legend("topright", c(paste0("NLDAS to SNOTEL: slope=",round(lm.nldas$coefficients[[2]],4),
+	", p=",round(unname(pf(summary(lm.nldas)$fstatistic[1],summary(lm.nldas)$fstatistic[2],summary(lm.nldas)$fstatistic[3],lower.tail=F)),4),
+	", R-sq=",round(summary(lm.nldas)$r.squared,2)),
+	paste0("NSSL to SNOTEL: slope=",round(lm.nssl$coefficients[[2]],4),
+	", p=",round(unname(pf(summary(lm.nssl)$fstatistic[1],summary(lm.nssl)$fstatistic[2],summary(lm.nssl)$fstatistic[3],lower.tail=F)),4),
+	", R-sq=",round(summary(lm.nssl)$r.squared,2)), "NLDAS to MET", "NSSL to MET"), 
+	pch=c(15,1,15,1), col=c("blue", "red", "green2", "green"), pt.cex=c(1,1.5,1,1.5), bg="white")
+title("Precipitation bias at SNOTEL and MET sites (Dec 2014 - Apr 2015)")
+dev.off()
+
+# RMSE
+png(paste0(outPath, "/preciprmse_snotel.png"), width=2100, height=1350, res=225)
+with(subset(stats_sno_all, stats_sno_all$var=="Precip" & stats_sno_all$run=="_wy2015_NLDAS2dwnsc_snowmod_mikerec_fullrtng"),
+        plot(elev, dy_rmse, ylim=c(1,7), col='blue', pch=15,
+        xlab="Elevation (ft)", ylab="RMSE (mm)"))
+with(subset(stats_sno_all, stats_sno_all$var=="Precip" & stats_sno_all$run=="_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng"), 
+	points(elev, dy_rmse, col='red', cex=1.5))
+abline(v=10000)
+legend("topleft", c("NLDAS", "NSSL"),
+        lty=c(1,1), col=c("blue","red"), lwd=c(1,1))
+title("Precipitation RMSE at SNOTEL sites")
+dev.off()
+
+# MSD
+png(paste0(outPath, "/precipmsd_snotel.png"), width=2100, height=1350, res=225)
+with(subset(stats_sno_all, stats_sno_all$var=="Precip" & stats_sno_all$run=="_wy2015_NLDAS2dwnsc_snowmod_mikerec_fullrtng"),
+        plot(elev, dy_msd, ylim=c(-2,1.5), col='blue', pch=15,
+        xlab="Elevation (ft)", ylab="Mean Signed Deviation (mm)"))
+with(subset(stats_sno_all, stats_sno_all$var=="Precip" & stats_sno_all$run=="_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng"), 
+        points(elev, dy_msd, col='red', cex=1.5))
+abline(h=0)
+abline(v=10000)
+legend("topleft", c("NLDAS", "NSSL"),
+        lty=c(1,1), col=c("blue","red"), lwd=c(1,1))
+title("Precipitation Mean Deviation at SNOTEL sites")
+dev.off()
+
+# Correlation
+png(paste0(outPath, "/precipcor_snotel.png"), width=2100, height=1350, res=225)
+with(subset(stats_sno_all, stats_sno_all$var=="Precip" & 
+		stats_sno_all$run=="_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng" & 
+		stats_sno_all$seas=="Sub" & 
+		stats_sno_all$in_nssl==1),
+        plot(elev, dy_cor, ylim=c(0,1.4), col='blue', pch=15,
+        xlab="Elevation (ft)", ylab="Correlation"))
+with(subset(stats_sno_all, stats_sno_all$var=="Precip" & 
+		stats_sno_all$run=="_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng" & 
+		stats_sno_all$seas=="Sub" & 
+		stats_sno_all$in_nssl==1),
+        points(elev, dy_cor, col='red', cex=1.5))
+with(subset(stats_met_all, stats_met_all$var=="Precip" & 
+		stats_met_all$run=="_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng" & 
+		stats_met_all$seas=="Sub"), 
+        points(elev, dy_cor, col='green2', pch=15))
+with(subset(stats_met_all, stats_met_all$var=="Precip" & 
+		stats_met_all$run=="_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng" & 
+		stats_met_all$seas=="Sub"), 
+        points(elev, dy_cor, col='green', cex=1.5))
+with(subset(stats_sno_all, stats_sno_all$var=="Precip" &
+                        (stats_sno_all$run=="_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng" |
+                        stats_sno_all$run=="_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng") &
+                        stats_sno_all$seas=="Sub" &
+                        stats_sno_all$in_nssl==1 & (stats_sno_all$site_name=="Lily Pond " | stats_sno_all$site_name=="Cumbres Trestle ")),
+        points(elev, dy_cor, col='black', cex=3.0))
+with(subset(stats_met_all, stats_met_all$var=="Precip" &
+                        (stats_met_all$run=="_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng" |
+                        stats_met_all$run=="_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng") &
+                        stats_met_all$seas=="Sub"),
+        points(elev, dy_cor, col='black', cex=3.0))
+abline(v=10000)
+abline(h=mean(subset(stats_sno_all$dy_cor, stats_sno_all$var=="Precip" &
+                stats_sno_all$run=="_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng" &
+                stats_sno_all$seas=="Sub" & 
+                stats_sno_all$in_nssl==1)), col='blue', lty=2)
+abline(h=mean(subset(stats_sno_all$dy_cor, stats_sno_all$var=="Precip" &
+                stats_sno_all$run=="_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng" &
+                stats_sno_all$seas=="Sub" &
+                stats_sno_all$in_nssl==1)), col='red', lty=2)
+legend("topright", c("NLDAS to SNOTEL","NSSL to SNOTEL", "NLDAS to MET", "NSSL to MET"), 
+        pch=c(15,1,15,1), col=c("blue", "red", "green2", "green"), pt.cex=c(1,1.5,1,1.5), bg="white")
+title("Precipitation correlation at SNOTEL and MET sites (Dec 2014 - Apr 2015")
+dev.off()
 
 ### EXIT
 

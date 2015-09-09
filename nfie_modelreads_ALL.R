@@ -4,10 +4,10 @@
 # Load the rwrfhydro package. 
 ## ------------------------------------------------------------------------
 library("rwrfhydro")
-load("/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/urg_masks_NEW.Rdata")
-load("/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/SNOTEL/snotel_URG.Rdata")
-load("/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/MET/met_URG.Rdata")
-load("/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/AMF/amf_URG.Rdata")
+load("/glade/p/ral/RHAP/adugger/CONUS_3km/ANALYSIS/conus_masks_ALL_NEW.Rdata")
+#load("/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/SNOTEL/snotel_URG.Rdata")
+#load("/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/MET/met_URG.Rdata")
+#load("/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/AMF/amf_URG.Rdata")
 
 # If you want to use R's multi-core capability (make sure  doMC is installed) specify the number 
 # of cores.
@@ -17,58 +17,26 @@ library(doMC)
 registerDoMC(ncores)
 
 # Model run output directory
-#modoutPath <- '/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/results/WY2015_simulation_NLDAS2_w_dwnscaling_full_rtng'
-#modoutPath <- '/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/results/WY2015_simulation_NSSL_NLDAS2_w_dwnscaling_full_rtng'
-#modoutPath <- '/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/results/WY2015_simulation_NLDAS2_w_dwnscaling_full_rtng_NoahMP_snowmod'
-#modoutPath2 <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/RUN.SNOWMOD/OUTPUT_RESTART_NLDAS_snowmods'
-#modoutPath <- '/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/results/WY2015_simulation_NSSL_NLDAS2_w_dwnscaling_full_rtng_NoahMP_snowmod'
-#modoutPath2 <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/RUN.SNOWMOD/OUTPUT_RESTART_NSSL_snowmods'
-#modoutPath <- '/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/results/WY2015_simulation_NLDAS2_only_w_dwnscaling_full_rtng_NoahMP_snowmod_Mikes_recc_settings'
-#modoutPath <- '/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/results/WY2015_simulation_NSSL_NLDAS2_w_dwnscaling_full_rtng_NoahMP_snowmod_Mikes_recc_settings'
-#modoutPath <- '/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/results/WY2015_simulation_NLDAS2_w_dwnscaling_SIMGM_BATS_albedo_full_rtng'
-#modoutPath <- '/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/'
-modoutPath <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/RUN.SNOWMOD/OUTPUT_NSSL_snowmods_mikerecs_snowresist50'
-#modoutPath <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/RUN.SNOWMOD/OUTPUT_NSSL_snowmods_mikerecs_snowresist1_canresist05'
-#modoutPath <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/RUN.SNOWMOD/OUTPUT_NLDAS_snowmods_mikerecs_snowresist50'
+modoutPath <- '/glade/p/ral/RHAP/adugger/NFIE/WRF_Hydro/SPINUP/ALL_LDASOUT'
 
 # Forcing directory
 forcPath <- '/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/forcing' 
 
 # Where to save the R workspace
-#outImg <- 'urg_wy2015_NLDAS2dwnsc_fullrtng_ALL.Rdata'
-#outImg <- 'urg_wy2015_NLDAS2dwnsc_NSSL_fullrtng_ALL.Rdata'
-#outImg <- 'urg_wy2015_NLDAS2dwnsc_snowmod_fullrtng_ALL.Rdata'
-#outImg <- 'urg_wy2015_NLDAS2dwnsc_NSSL_snowmod_fullrtng_ALL.Rdata'
-#outImg <- 'urg_wy2015_NLDAS2dwnsc_snowmod_mikerec_fullrtng_ALL.Rdata'
-#outImg <- 'urg_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_fullrtng_ALL.Rdata'
-#outImg <- 'urg_wy2015_NLDAS2dwnsc_SIMGM_BATSalb_fullrtng_ALL.Rdata'
-#outImg <- 'urg_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_nlcd11_fullrtng_ALL.Rdata'
-outImg <- 'urg_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng_ALL.Rdata'
-#outImg <- 'urg_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist1_canresist05_fullrtng_ALL.Rdata'
-#outImg <- 'urg_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng_ALL.Rdata'
+outImg <- 'nfie_sum2015_MRMSsu_BAS.Rdata'
 
 # Suffix to add to output objects
-#objSuffix <- '_wy2015_NLDAS2dwnsc_fullrtng'
-#objSuffix <- '_wy2015_NLDAS2dwnsc_NSSL_fullrtng'
-#objSuffix <- '_wy2015_NLDAS2dwnsc_snowmod_fullrtng'
-#objSuffix <- '_wy2015_NLDAS2dwnsc_NSSL_snowmod_fullrtng'
-#objSuffix <- '_wy2015_NLDAS2dwnsc_snowmod_mikerec_fullrtng'
-#objSuffix <- '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_fullrtng'
-#objSuffix <- '_wy2015_NLDAS2dwnsc_SIMGM_BATSalb_fullrtng'
-#objSuffix <- '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_nlcd11_fullrtng'
-objSuffix <- '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng'
-#objSuffix <- '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist1_canresist05_fullrtng'
-#objSuffix <- '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng'
+objSuffix <- '_sum2015_MRMSsu'
 
 # Run flags for imports
 # Basin aggs
 runBasinLdasout <- TRUE
 runBasinRtout <- FALSE
-runGwout <- TRUE
-runFrxstout <- TRUE
-# Snotel sites
-runSnoLdasout <- TRUE
-runSnoLdasin <- TRUE
+runGwout <- FALSE
+runFrxstout <- FALSE
+# Point station sites
+runPtLdasout <- FALSE
+runPtLdasin <- FALSE
 
 # Subset ldasout variables?
 varsLdasoutSUB <- TRUE
@@ -133,7 +101,7 @@ if (runBasinRtout) {
          }
 
 
-if (runSnoLdasout | runSnoLdasin) {
+if (runPtLdasout | runPtLdasin) {
  	# SNOTEL points
  	snoIndex_Lev0 <- list()
  	snoIndex_Lev1 <- list()
@@ -249,7 +217,7 @@ if (runBasinRtout) {
 ## ------------------------------------------------------------------------
 ## ------------------------------------------------------------------------
 
-if (runBasinLdasout | runSnoLdasout) {
+if (runBasinLdasout | runPtLdasout) {
  
  	## ------------------------------------------------------------------------
  	# Setup LDASOUT files
@@ -270,34 +238,20 @@ if (runBasinLdasout | runSnoLdasout) {
  
  	if (varsLdasoutSUB) {
  		# SUBSET
- 		varNames <- c('ACCECAN', 'ACCEDIR', 'ACCETRAN', 'ACCPRCP', 
+ 		varNames <- c('ACCECAN', 'ACCEDIR', 'ETRAN', 'ACCPRCP', 
  			'CANICE', 'CANLIQ',
  			'SFCRNOFF','UGDRNOFF',
  			 rep('SOIL_M',4),
- 		 	rep('SOIL_T',4),
-			rep('SOIL_W', 4),
- 			'FIRA', 'FSA', 'GRDFLX', 'HFX', 'LH', 'LWFORC', 'SWFORC', 
- 			'ACSNOM', 'ACSNOW', 'ALBEDO',
- 			'SNEQV', 'FSNO', 'ISNOW', 'QSNOW', 'SNOWH',
- 		 	rep('SNICE',3),
- 			 rep('SNLIQ',3), 
- 		 	rep('SNOW_T',3),
- 		 	rep('ZSNSO_SN',3),
-			'CHUC','LAI')
- 		varLabels <- c('ACCECAN', 'ACCEDIR', 'ACCETRAN', 'ACCPRCP',
+ 			'GRDFLX', 'HFX', 'LH', 'LWFORC', 'SWFORC', 
+ 			'ALBEDO','TRAD',
+ 			'SNEQV', 'SNOWH')
+ 		varLabels <- c('ACCECAN', 'ACCEDIR', 'ETRAN', 'ACCPRCP',
                  	'CANICE', 'CANLIQ',
                  	'SFCRNOFF','UGDRNOFF',
                   	paste0('SOIL_M',1:4),
-                  	paste0('SOIL_T',1:4),
-			paste0('SOIL_W',1:4),
-                 	'FIRA', 'FSA', 'GRDFLX', 'HFX', 'LH', 'LWFORC', 'SWFORC', 
-                 	'ACSNOM', 'ACSNOW', 'ALBEDO',
-                 	'SNEQV', 'FSNO', 'ISNOW', 'QSNOW', 'SNOWH',
-                  	paste0('SNICE',1:3),
-                  	paste0('SNLIQ',1:3), 
-                  	paste0('SNOW_T',1:3),
-                  	paste0('ZSNSO_SN',1:3),
-			'CHUC','LAI')
+                 	'GRDFLX', 'HFX', 'LH', 'LWFORC', 'SWFORC', 
+                 	'ALBEDO', 'TRAD',
+                 	'SNEQV', 'SNOWH')
  		ldasoutVars <- as.list( varNames )
  		names(ldasoutVars) <- varLabels
  		ldasoutVariableList <- list( ldasout = ldasoutVars )
@@ -312,20 +266,13 @@ if (runBasinLdasout | runSnoLdasout) {
                          		level0, level0,
                          		level0, level0,
                          		level1, level2, level3, level4,
-                         		level1, level2, level3, level4,
-					level1, level2, level3, level4,
-                         		level0, level0, level0, level0, level0, level0, level0,
-                         		level0, level0, level0,
                          		level0, level0, level0, level0, level0,
-                         		level1, level2, level3,
-                         		level1, level2, level3,
-                         		level1, level2, level3,
-                         		level1, level2, level3,
+                         		level0, level0, 
 					level0, level0 )
  			names(ldasoutBasInd) <- names(ldasoutVars)
  			ldasoutBasIndexList <- list( ldasout = ldasoutBasInd )
  			} # end runBasin
- 		if (runSnoLdasout) {
+ 		if (runPtLdasout) {
  			level0 <- snoIndex_Lev0
  			level1 <- snoIndex_Lev1
  			level2 <- snoIndex_Lev2
@@ -335,15 +282,8 @@ if (runBasinLdasout | runSnoLdasout) {
                  		        level0, level0,
                          		level0, level0,
                          		level1, level2, level3, level4,
-                       	   		level1, level2, level3, level4,
-					level1, level2, level3, level4,
-                     		        level0, level0, level0, level0, level0, level0, level0,
-                        		level0, level0, level0,
-                     			level0, level0, level0, level0, level0,
-                       			level1, level2, level3,
-                			level1, level2, level3,
-                         		level1, level2, level3,
-                         		level1, level2, level3,
+                     		        level0, level0, level0, level0, level0,
+                        		level0, level0,
 					level0, level0 )
  	        	names(ldasoutSnoInd) <- names(ldasoutVars)
                  	ldasoutSnoIndexList <- list( ldasout = ldasoutSnoInd )
@@ -418,7 +358,7 @@ if (runBasinLdasout | runSnoLdasout) {
                  	names(ldasoutBasInd) <- names(ldasoutVars)
                  	ldasoutBasIndexList <- list( ldasout = ldasoutBasInd )
  			} # end runBasin
-         	if (runSnoLdasout) {
+         	if (runPtLdasout) {
                  	level0 <- snoIndex_Lev0
                 		level1 <- snoIndex_Lev1
                  	level2 <- snoIndex_Lev2
@@ -465,7 +405,7 @@ if (runBasinLdasout | runSnoLdasout) {
  		save(list=saveList, file=outImg)
  	}	
  
- 	if (runSnoLdasout) {
+ 	if (runPtLdasout) {
  		# SNOTEL
  		ldasoutDF <- GetMultiNcdf(indexList=ldasoutSnoIndexList, 
                            variableList=ldasoutVariableList, 
@@ -535,7 +475,7 @@ if (runFrxstout) {
 ## ------------------------------------------------------------------------
 ## ------------------------------------------------------------------------
 
-if (runSnoLdasin) {
+if (runPtLdasin) {
  
  	## ------------------------------------------------------------------------
  	# Setup LDASIN files
@@ -555,7 +495,7 @@ if (runSnoLdasin) {
  	ldasinVariableList <- list( ldasin = ldasinVars )
  
 	# SNOTEL
-	if (runSnoLdasin) {
+	if (runPtLdasin) {
  		## ------------------------------------------------------------------------
  		# Setup indexes
  

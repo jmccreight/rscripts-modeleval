@@ -164,30 +164,9 @@ for (n in names(gage2basinList)) {
         dev.off()
 }
 
-for (n in names(gage2basinList)) {
-        png(paste0(outPath, "/accstrflow_adj_PRES", "_", n, ".png"), width=2100, height=1350, res=225)
-        if (n %in% c("CONMOGCO", "CONPLACO", "RIOWAGCO", "RIODELCO")) {
-                labObs <- "Observed (Naturalized)"
-        } else {
-                labObs <- "Observed"}
-        PlotAccFlow(n, modDfs=list(modFrxstout_wy2015_NLDAS2dwnsc_snowmod_mikerec_fullrtng,
-                                        modFrxstout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_fullrtng,
-					modFrxstout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng),
-                        obs=obsStr.dy,
-                        stdate=as.POSIXct("2015-04-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-                        enddate=enddate,
-                        labMods=c("NLDAS-2", "NLDAS-2 + NSSL Precipitation", "NSSL w/Resistance Mods"),
-                        labObs=labObs,
-                        lnCols=c("dodgerblue", "darkorange1", "olivedrab"),
-                        lnTyps=c(1,1,1), lnWds=c(3,3,3),
-                        labTitle=paste0("Accumulated Flow: ", n, ", April-July 2015"), obsCol="cumqvol_mm_adj")
-        dev.off()
-}
-
-
 # Streamflow + SWE plots
 for (n in names(gage2basinList)) {
-	if (n %in% c("CONMOGCO", "CONPLACO", "RIOWAGCO", "RIODELCO")) {
+        if (n %in% c("CONMOGCO", "CONPLACO", "RIOWAGCO", "RIODELCO")) {
                 labObs <- "Observed (Naturalized)"
         } else {
                 labObs <- "Observed"}
@@ -198,8 +177,8 @@ for (n in names(gage2basinList)) {
                         modLdasout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_fullrtng_BAS),
                         obs=obsStr.dy,
                         labMods=c("NLDAS-2", "NLDAS-2 + NSSL Precipitation"),
-			labObs=labObs,
-			lnCols=c("dodgerblue", "darkorange1"),
+                        labObs=labObs,
+                        lnCols=c("dodgerblue", "darkorange1"),
                         lnWds=c(3,3),
                         labTitle=paste0("Streamflow with Basin-Mean SWE: ", n, ", WY2014"),
                         stdate=NULL, enddate=enddate, obsCol="mean_qcms_adj")
@@ -212,22 +191,79 @@ for (n in names(gage2basinList)) {
                 labObs <- "Observed (Naturalized)"
         } else {
                 labObs <- "Observed"}
-        png(paste0(outPath, "/strflow_swe_NLDAS_NSSL_adj_PRES", "_", n, ".png"), width=2100, height=1350, res=225)
-        PlotFlowSwe(n, modDfs=list(modFrxstout_wy2015_NLDAS2dwnsc_snowmod_mikerec_fullrtng,
-                        modFrxstout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_fullrtng,
-			modFrxstout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng),
-                        lsmDfs=list(modLdasout_wy2015_NLDAS2dwnsc_snowmod_mikerec_fullrtng_BAS,
-                        modLdasout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_fullrtng_BAS,
-			modLdasout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng_BAS),
+        png(paste0(outPath, "/strflow_swe_NSSL_adj_PRES", "_", n, ".png"), width=2100, height=1350, res=225)
+        PlotFlowSwe(n, modDfs=list(modFrxstout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_fullrtng,
+                        modFrxstout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng),
+                        lsmDfs=list(modLdasout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_fullrtng_BAS,
+                        modLdasout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng_BAS),
                         obs=obsStr.dy,
-                        labMods=c("NLDAS-2", "NLDAS-2 + NSSL Precipitation", "NSSL w/Resistance Mods"),
-			labObs=labObs,
-                        lnCols=c("dodgerblue", "darkorange1", "olivedrab"),
-                        lnWds=c(3,3,3),
+                        labMods=c("NSSL Precipitation", "NSSL w/Resistance Mods"),
+                        labObs=labObs,
+                        lnCols=c("darkorange1", "olivedrab"),
+                        lnWds=c(3,3),
                         labTitle=paste0("Streamflow with Basin-Mean SWE: ", n, ", WY2015"),
                         stdate=NULL, enddate=enddate, obsCol="mean_qcms_adj")
         dev.off()
 }
+
+
+
+################################
+
+# Acc Streamflow - 150908
+for (n in names(gage2basinList)) {
+        png(paste0(outPath, "/accstrflow_NLDAS_NSSL_", n, ".png"), width=2100, height=1350, res=225)
+        if (n %in% c("CONMOGCO", "CONPLACO", "RIOWAGCO", "RIODELCO")) {
+                labObs <- "Observed (Naturalized)"
+        } else {
+                labObs <- "Observed"}
+        PlotAccFlow(n, modDfs=list(modFrxstout_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng,
+					modFrxstout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng),
+                        obs=obsStr.dy,
+                        stdate=as.POSIXct("2015-04-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+                        enddate=enddate,
+                        labMods=c("NLDAS-2", "NLDAS-2 + NSSL Precipitation"),
+                        labObs=labObs,
+                        lnCols=c("dodgerblue", "darkorange1"),
+                        lnTyps=c(1,1), lnWds=c(3,3),
+                        labTitle=paste0("Accumulated Flow: ", n, ", April-August 2015"), obsCol="cumqvol_mm_adj")
+        dev.off()
+}
+
+# Streamflow - 150908
+for (n in names(gage2basinList)) {
+        if (n %in% c("CONMOGCO", "CONPLACO", "RIOWAGCO", "RIODELCO")) {
+                labObs <- "Observed (Naturalized)"
+        } else {
+                labObs <- "Observed"}
+        png(paste0(outPath, "/strflow_NLDAS_NSSL_", n, ".png"), width=2100, height=1350, res=225)
+        PlotFlow(n, modDfs=list(modFrxstout_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng,
+                        modFrxstout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng),
+                        obs=obsStr.dy,
+                        labMods=c("NLDAS-2", "NLDAS-2 + NSSL Precipitation"),
+                        labObs=labObs,
+                        lnCols=c("dodgerblue", "darkorange1"),
+                        lnWds=c(3,3),
+                        labTitle=paste0("Streamflow: ", n, ", WY2015"),
+                        stdate=NULL, enddate=enddate, obsCol="mean_qcms_adj")
+        dev.off()
+}
+
+# Acc Precip - 150908
+for (n in names(gage2basinList)) {
+        png(paste0(outPath, "/accprecip_NLDAS_NSSL_", n, ".png"), width=2100, height=1350, res=225)
+        PlotAccPrecip(n, modDfs=list(modLdasout_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng_BAS,
+                                        modLdasout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng_BAS),
+                        stdate=as.POSIXct("2014-10-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+                        enddate=enddate,
+                        labMods=c("NLDAS-2 Precipitation", "NSSL Precipitation"),
+                        lnCols=c("dodgerblue", "darkorange1"),
+                        lnTyps=c(1,1), lnWds=c(3,3),
+                        labTitle=paste0("Accumulated Precipitation: ", n, ", WY2015"))
+        dev.off()
+}
+
+
 
 
 
