@@ -1,89 +1,7 @@
 ###################################################################################################
-# Setup
-# 
-# Load the rwrfhydro package. 
-## ------------------------------------------------------------------------
-library("rwrfhydro")
-load("/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/urg_masks_NEW.Rdata")
-load("/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/SNOTEL/snotel_URG.Rdata")
-load("/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/MET/met_URG.Rdata")
-load("/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/AMF/amf_URG.Rdata")
-
-# If you want to use R's multi-core capability (make sure  doMC is installed) specify the number 
-# of cores.
-## ------------------------------------------------------------------------
-ncores <- 16
-library(doMC)
-registerDoMC(ncores)
-
-# Model run output directory
-#modoutPath <- '/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/results/WY2015_simulation_NLDAS2_w_dwnscaling_full_rtng'
-#modoutPath <- '/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/results/WY2015_simulation_NSSL_NLDAS2_w_dwnscaling_full_rtng'
-#modoutPath <- '/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/results/WY2015_simulation_NLDAS2_w_dwnscaling_full_rtng_NoahMP_snowmod'
-#modoutPath2 <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/RUN.SNOWMOD/OUTPUT_RESTART_NLDAS_snowmods'
-#modoutPath <- '/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/results/WY2015_simulation_NSSL_NLDAS2_w_dwnscaling_full_rtng_NoahMP_snowmod'
-#modoutPath2 <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/RUN.SNOWMOD/OUTPUT_RESTART_NSSL_snowmods'
-#modoutPath <- '/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/results/WY2015_simulation_NLDAS2_only_w_dwnscaling_full_rtng_NoahMP_snowmod_Mikes_recc_settings'
-#modoutPath <- '/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/results/WY2015_simulation_NSSL_NLDAS2_w_dwnscaling_full_rtng_NoahMP_snowmod_Mikes_recc_settings'
-#modoutPath <- '/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/results/WY2015_simulation_NLDAS2_w_dwnscaling_SIMGM_BATS_albedo_full_rtng'
-#modoutPath <- '/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/'
-#modoutPath <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/RUN.SNOWMOD/OUTPUT_NSSL_snowmods_mikerecs_snowresist50'
-#modoutPath <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/RUN.SNOWMOD/OUTPUT_NSSL_snowmods_mikerecs_snowresist1_canresist05'
-#modoutPath <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/RUN.SNOWMOD/OUTPUT_NLDAS_snowmods_mikerecs_snowresist50'
-#modoutPath <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/RUN.DWNSC/OUTPUT_NLDAS_snowmods_mikerecs_snowresist50_precipdwnsc'
-#modoutPath <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/RUN.DWNSC/OUTPUT_NLDAS_snowmods_mikerecs_snowresist50_alldwnsc'
-modoutPath <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/RUN.NEWMP/OUTPUT_NLDAS_SPINUP'
-
-# Forcing directory
-forcPath <- '/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/forcing' 
-
-# Where to save the R workspace
-#outImg <- 'urg_wy2015_NLDAS2dwnsc_fullrtng_ALL.Rdata'
-#outImg <- 'urg_wy2015_NLDAS2dwnsc_NSSL_fullrtng_ALL.Rdata'
-#outImg <- 'urg_wy2015_NLDAS2dwnsc_snowmod_fullrtng_ALL.Rdata'
-#outImg <- 'urg_wy2015_NLDAS2dwnsc_NSSL_snowmod_fullrtng_ALL.Rdata'
-#outImg <- 'urg_wy2015_NLDAS2dwnsc_snowmod_mikerec_fullrtng_ALL.Rdata'
-#outImg <- 'urg_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_fullrtng_ALL.Rdata'
-#outImg <- 'urg_wy2015_NLDAS2dwnsc_SIMGM_BATSalb_fullrtng_ALL.Rdata'
-#outImg <- 'urg_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_nlcd11_fullrtng_ALL.Rdata'
-#outImg <- 'urg_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng_ALL.Rdata'
-#outImg <- 'urg_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist1_canresist05_fullrtng_ALL.Rdata'
-#outImg <- 'urg_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng_ALL.Rdata'
-#outImg <- 'urg_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_precipdwnsc_fullrtng_ALL.Rdata'
-#outImg <- 'urg_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_alldwnsc_fullrtng_ALL.Rdata'
-outImg <- 'urg_wy2014_NLDAS2_newmp.Rdata'
-
-# Suffix to add to output objects
-#objSuffix <- '_wy2015_NLDAS2dwnsc_fullrtng'
-#objSuffix <- '_wy2015_NLDAS2dwnsc_NSSL_fullrtng'
-#objSuffix <- '_wy2015_NLDAS2dwnsc_snowmod_fullrtng'
-#objSuffix <- '_wy2015_NLDAS2dwnsc_NSSL_snowmod_fullrtng'
-#objSuffix <- '_wy2015_NLDAS2dwnsc_snowmod_mikerec_fullrtng'
-#objSuffix <- '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_fullrtng'
-#objSuffix <- '_wy2015_NLDAS2dwnsc_SIMGM_BATSalb_fullrtng'
-#objSuffix <- '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_nlcd11_fullrtng'
-#objSuffix <- '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng'
-#objSuffix <- '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist1_canresist05_fullrtng'
-#objSuffix <- '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng'
-#objSuffix <- '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_precipdwnsc_fullrtng'
-#objSuffix <- '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_alldwnsc_fullrtng'
-objSuffix <- '_wy2014_NLDAS2_newmp'
-
-# Run flags for imports
-# Basin aggs
-runBasinLdasout <- TRUE
-runBasinRtout <- FALSE
-runGwout <- FALSE
-runFrxstout <- TRUE
-# Snotel sites
-runSnoLdasout <- TRUE
-runSnoLdasin <- FALSE
-
-# Subset ldasout variables?
-varsLdasoutSUB <- TRUE
-
-###################################################################################################
 # Run
+
+for(j in 1:length(objTagList)){
 
 # Setup basin mean function
 basin_avg <- function(myvar, mskvar, minValid=-1e+29) {
@@ -243,12 +161,12 @@ if (runBasinRtout) {
          modRtout <- ReshapeMultiNcdf(rtoutDF)
          modRtout <- modRtout[order(modRtout$statArg, modRtout$POSIXct),]
  	#save(modRtout, file="test.Rdata")
- 	assign(paste0("modRtout", objSuffix, "_BAS"), modRtout)
-         saveList <- c(saveList, paste0("modRtout", objSuffix, "_BAS"))
+ 	assign(paste0("modRtout_", objTagList[j], "_BAS"), modRtout)
+         saveList <- c(saveList, paste0("modRtout_", objTagList[j], "_BAS"))
          rm(rtoutDF, modRtout)
  	rm(filesList, rtoutFilesList, varNames, rtoutVars, rtoutVariableList, level0, rtoutInd, rtoutIndexList)
  	gc()
- 	save(list=saveList, file=outImg)
+ 	save(list=saveList, file=modOutImg)
  } # end rtout processing
 
 
@@ -467,11 +385,11 @@ if (runBasinLdasout | runSnoLdasout) {
                            parallel=TRUE )
  		modLdasout <- ReshapeMultiNcdf(ldasoutDF)
  		modLdasout <- CalcNoahmpFluxes(modLdasout, "statArg")
- 		assign(paste0("modLdasout", objSuffix, "_BAS"), modLdasout)
- 		saveList <- c(saveList, paste0("modLdasout", objSuffix, "_BAS"))
+ 		assign(paste0("modLdasout_", objTagList[j], "_BAS"), modLdasout)
+ 		saveList <- c(saveList, paste0("modLdasout_", objTagList[j], "_BAS"))
  		rm(ldasoutDF, modLdasout)
  		gc()
- 		save(list=saveList, file=outImg)
+ 		save(list=saveList, file=modOutImg)
  	}	
  
  	if (runSnoLdasout) {
@@ -482,11 +400,11 @@ if (runBasinLdasout | runSnoLdasout) {
                            parallel=TRUE )
  		modLdasout <- ReshapeMultiNcdf(ldasoutDF)
  		modLdasout <- CalcNoahmpFluxes(modLdasout, "statArg")
- 		assign(paste0("modLdasout", objSuffix, "_SNO"), modLdasout)
- 		saveList <- c(saveList, paste0("modLdasout", objSuffix, "_SNO"))
+ 		assign(paste0("modLdasout_", objTagList[j], "_SNO"), modLdasout)
+ 		saveList <- c(saveList, paste0("modLdasout_", objTagList[j], "_SNO"))
  		rm(ldasoutDF, modLdasout)
  		gc()
- 		save(list=saveList, file=outImg)
+ 		save(list=saveList, file=modOutImg)
  		}
 
  	} # end ldasout processing
@@ -509,8 +427,8 @@ if (runGwout) {
  	modGwout <- modGwout[!(duplicated(modGwout$uni)),]
  	modGwout$uni <- NULL
  	modGwout <- modGwout[nrow(modGwout):1,]
- 	assign(paste0("modGwout", objSuffix), modGwout)
-        saveList <- c(saveList, paste0("modGwout", objSuffix))
+ 	assign(paste0("modGwout_", objTagList[j]), modGwout)
+        saveList <- c(saveList, paste0("modGwout_", objTagList[j]))
         rm(modGwout)
 } # end gwout processing
 
@@ -532,8 +450,8 @@ if (runFrxstout) {
         modFrxstout <- modFrxstout[!(duplicated(modFrxstout$uni)),]
         modFrxstout$uni <- NULL
         modFrxstout <- modFrxstout[nrow(modFrxstout):1,]
-        assign(paste0("modFrxstout", objSuffix), modFrxstout)
-        saveList <- c(saveList, paste0("modFrxstout", objSuffix))
+        assign(paste0("modFrxstout_", objTagList[j]), modFrxstout)
+        saveList <- c(saveList, paste0("modFrxstout_", objTagList[j]))
         rm(modFrxstout)
 } # end frxstout processing
 
@@ -581,12 +499,12 @@ if (runSnoLdasin) {
                          filesList=ldasinFilesList, parallel=TRUE )
  		modLdasin <- ReshapeMultiNcdf(ldasinDF)
  		modLdasin <- modLdasin[order(modLdasin$statArg, modLdasin$POSIXct),]
- 		assign(paste0("modLdasin", objSuffix, "_SNO"), modLdasin)
- 		saveList <- c(saveList, paste0("modLdasin", objSuffix, "_SNO"))
+ 		assign(paste0("modLdasin_", objTagList[j], "_SNO"), modLdasin)
+ 		saveList <- c(saveList, paste0("modLdasin_", objTagList[j], "_SNO"))
  		rm(ldasinDF, modLdasin)
  		rm(filesList, ldasinFilesList, varNames, ldasinVars, ldasinVariableList, level0, ldasinInd, ldasinIndexList)
  		gc()
- 		#save(list=saveList, file=outImg)
+ 		#save(list=saveList, file=modOutImg)
 		}
 
 
@@ -598,8 +516,8 @@ if (runSnoLdasin) {
 ## ------------------------------------------------------------------------
 ## ------------------------------------------------------------------------
 
-save(list=saveList, file=outImg)
+save(list=saveList, file=modOutImg)
 
-quit("no")
-proc.time()
-
+##quit("no")
+##proc.time()
+}

@@ -206,6 +206,47 @@ for (n in names(gage2basinList)) {
         dev.off()
 }
 
+for (n in names(gage2basinList)) {
+        if (n %in% c("CONMOGCO", "CONPLACO", "RIOWAGCO", "RIODELCO")) {
+                labObs <- "Observed (Naturalized)"
+        } else {
+                labObs <- "Observed"}
+        png(paste0(outPath, "/strflow_swe_NLDAS_sublfix", "_", n, ".png"), width=2100, height=1350, res=225)
+        PlotFlowSwe(n, modDfs=list(modFrxstout_wy2015_NLDAS2dwnsc_snowmod_mikerec_fullrtng,
+                        modFrxstout_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng),
+                        lsmDfs=list(modLdasout_wy2015_NLDAS2dwnsc_snowmod_mikerec_fullrtng_BAS,
+                        modLdasout_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng_BAS),
+                        obs=obsStr.dy,
+                        labMods=c("NLDAS Precipitation", "NLDAS w/Resistance Mods"),
+                        labObs=labObs,
+                        lnCols=c("dodgerblue", "coral3"),
+                        lnWds=c(3,3),
+                        labTitle=paste0("Streamflow with Basin-Mean SWE: ", n, ", WY2015"),
+                        stdate=NULL, enddate=enddate, obsCol="mean_qcms_adj")
+        dev.off()
+}
+
+for (n in names(gage2basinList)) {
+        if (n %in% c("CONMOGCO", "CONPLACO", "RIOWAGCO", "RIODELCO")) {
+                labObs <- "Observed (Naturalized)"
+        } else {
+                labObs <- "Observed"}
+        png(paste0(outPath, "/strflow_swe_NLDASdwnsc", "_", n, ".png"), width=2100, height=1350, res=225)
+        PlotFlowSwe(n, modDfs=list(modFrxstout_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng,
+                        modFrxstout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng,
+			modFrxstout_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_alldwnsc_fullrtng),
+                        lsmDfs=list(modLdasout_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng_BAS,
+                        modLdasout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng_BAS,
+			modLdasout_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_alldwnsc_fullrtng_BAS),
+                        obs=obsStr.dy,
+                        labMods=c("NLDAS-2", "NLDAS-2 + NSSL Precipitation", "NLDAS-2 downscaled"),
+                        labObs=labObs,
+                        lnCols=c("dodgerblue", "darkorange1", "olivedrab"),
+                        lnWds=c(3,3,3),
+                        labTitle=paste0("Streamflow with Basin-Mean SWE: ", n, ", WY2015"),
+                        stdate=NULL, enddate=enddate, obsCol="mean_qcms_adj")
+        dev.off()
+}
 
 
 ################################
@@ -261,6 +302,36 @@ for (n in names(gage2basinList)) {
                         lnTyps=c(1,1), lnWds=c(3,3),
                         labTitle=paste0("Accumulated Precipitation: ", n, ", WY2015"))
         dev.off()
+}
+
+# Conejos ET
+for (n in names(gage2basinList)) {
+	png(paste0(outPath, "/et_", n, ".png"), width=2100, height=1350, res=225)
+	with(subset(modLdasout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng_BAS, 
+		modLdasout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng_BAS$statArg==n), 
+		plot(POSIXct, DEL_ACCETRAN+DEL_ACCECAN+DEL_ACCEDIR, typ='l', ylab=c("ET flux (mm/d) or LAI")))
+	with(subset(modLdasout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng_BAS, 
+		modLdasout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng_BAS$statArg==n), 
+		lines(POSIXct, DEL_ACCEDIR, col='orange2'))
+	with(subset(modLdasout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng_BAS, 
+		modLdasout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng_BAS$statArg==n), 
+		lines(POSIXct, DEL_ACCETRAN, col='darkgreen'))
+	with(subset(modLdasout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng_BAS, 
+		modLdasout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng_BAS$statArg==n), 
+		lines(POSIXct, DEL_ACCECAN, col='green'))
+	with(subset(stats.lai_basins, stats.lai_basins$basin_id==n), 
+		lines(POSIXct, mean, col='blue', lty=2, lwd=2))
+	with(subset(modLdasout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng_BAS, 
+                modLdasout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng_BAS$statArg==n),
+                lines(POSIXct, LAI, col='purple', lty=2, lwd=2))
+#        with(subset(modLdasout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng_BAS,        
+#                modLdasout_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng_BAS$statArg==n),
+#                lines(POSIXct, FVEG, col='magenta', lty=2, lwd=2))
+	legend("topleft", c("Total ET","Surface Evap","Transpiration","Canopy Evaporation","LAI - model", "LAI - MODIS"), 
+		col=c("black","orange2","darkgreen","green","purple","blue"), 
+		lty=c(1,1,1,1,2,2), lwd=c(1.5,1.5,1.5,1.5,2.5,2.5))
+	title(paste0("Evapotranspiration: ", n, ", WY2015"))
+	dev.off()
 }
 
 

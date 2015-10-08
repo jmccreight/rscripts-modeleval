@@ -1,93 +1,3 @@
-###################################################################################################
-# Setup
-# 
-# Load the rwrfhydro package. 
-## ------------------------------------------------------------------------
-library("rwrfhydro")
-load("/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/urg_masks_NEW.Rdata")
-load("/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/SNOTEL/snotel_URG.Rdata")
-load("/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/MET/met_URG.Rdata")
-load("/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/AMF/amf_URG.Rdata")
-
-# If you want to use R's multi-core capability (make sure  doMC is installed) specify the number 
-# of cores.
-## ------------------------------------------------------------------------
-ncores <- 16
-library(doMC)
-registerDoMC(ncores)
-
-# Where the raw data lives
-#inImg <- 'urg_wy2015_NLDAS2dwnsc_fullrtng_SNO.Rdata'
-#inImg <- 'urg_wy2015_NLDAS2dwnsc_NSSL_fullrtng_SNO.Rdata'
-#inImg <- 'urg_wy2015_NLDASdwnsc_fullrtng_snowmod_SNO.Rdata'
-#inImg <- 'urg_wy2015_NLDASdwnsc_NSSL_fullrtng_snowmod_SNO.Rdata'
-#inImg <- 'urg_wy2015_NLDAS2dwnsc_SIMGM_BATSalb_fullrtng_ALL.Rdata'
-
-inImg <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/urg_wy2015_ALL_RAW.Rdata'
-
-# Where to output the processed data
-#outImg <- 'urg_wy2015_NLDAS2dwnsc_fullrtng_SNO_PROCESSED.Rdata'
-#outImg <- 'urg_wy2015_NLDAS2dwnsc_NSSL_fullrtng_SNO_PROCESSED.Rdata'
-#outImg <- 'urg_wy2015_NLDASdwnsc_fullrtng_snowmod_SNO_PROCESSED.Rdata'
-#outImg <- 'urg_wy2015_NLDASdwnsc_NSSL_fullrtng_snowmod_SNO_PROCESSED.Rdata'
-#outImg <- 'urg_wy2015_NLDAS2dwnsc_SIMGM_BATSalb_fullrtng_SNO_PROCESSED.Rdata'
-
-outImg <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/urg_wy2015_SNOCLIM_PROCESSED_PT1.Rdata'
-
-# Suffix for the output objects
-objSuffixList <- c('_wy2015_NLDAS2dwnsc_fullrtng',
-                   '_wy2015_NLDAS2dwnsc_NSSL_fullrtng',
-                   '_wy2015_NLDAS2dwnsc_snowmod_fullrtng',
-                   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_fullrtng',
-                   '_wy2015_NLDAS2dwnsc_snowmod_mikerec_fullrtng',
-                   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_fullrtng',
-                   '_wy2015_NLDAS2dwnsc_SIMGM_BATSalb_fullrtng',
-                   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_nlcd11_fullrtng',
-                   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng',
-                   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist1_canresist05_fullrtng',
-                   '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng',
-		   '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_precipdwnsc_fullrtng',
-		   '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_alldwnsc_fullrtng')
-
-stopDates <- c(as.POSIXct("2015-06-11 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-                as.POSIXct("2015-06-13 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-                as.POSIXct("2015-06-26 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-                as.POSIXct("2015-06-26 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-                as.POSIXct("2015-07-13 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-                as.POSIXct("2015-07-15 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-                as.POSIXct("2015-06-04 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-                as.POSIXct("2015-07-15 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-                as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-                as.POSIXct("2015-07-13 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-                as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-		as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-		as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"))
-
-# Range dates to restrict analysis
-stdate <- NULL
-#enddate <- NULL
-enddate <- as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
-
-# Range dates for main stats
-stdate_stats <- as.POSIXct("2014-10-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
-enddate_stats <- as.POSIXct("2015-05-31 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
-
-# Range dates for seasonal stats (e.g., spring)
-stdate_stats_sub <- as.POSIXct("2014-12-12 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
-enddate_stats_sub <- as.POSIXct("2015-04-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
-
-# What to run
-runLdasin <- FALSE
-runLdasout <- TRUE
-runStats <- TRUE
-writeStatsFile <- TRUE
-
-###################################################################################################
-# Run
-
-load(inImg)
-
-
 ## ------------------------------------------------------------------------
 # Setup processing functions
 
@@ -209,23 +119,41 @@ CalcVarStats <- function(modDf=modLdasout, siteDf=sno.URG.sites, obsDf=sno.URG.d
 # Run Processing
 
 saveList <- c()
+modLdasin_SNO <- data.frame()
+modLdasin_SNO.snod <- data.frame()
+modLdasin_SNO.metd <- data.frame()
+modLdasout_SNO <- data.frame()
 stats_sno_all <- data.frame()
 stats_met_all <- data.frame()
-for (j in 1:length(objSuffixList)) {
-  print(paste0("WORKING: ",objSuffixList))
+for (j in 1:length(objTagList)) {
   # Get files
-  objSuffix <- objSuffixList[j]
+  objSuffix <- objTagList[j]
   # Generate daily forcing values
   if (runLdasin) {
-	if (exists(paste0("modLdasin", objSuffix, "_SNO"))) {
-		modLdasin <- get(paste0("modLdasin", objSuffix, "_SNO"))
+	if (exists(paste0("modLdasin_", objSuffix, "_SNO"))) {
+		modLdasin <- get(paste0("modLdasin_", objSuffix, "_SNO"))
   		modLdasinList <- ProcessLdasin(modLdasin, stdate=stdate, enddate=enddate)
-  		assign(paste0("modLdasin", objSuffix, "_SNO"), modLdasinList[[1]])
-  		assign(paste0("modLdasin", objSuffix, "_SNO.snod"), modLdasinList[[2]])
-		assign(paste0("modLdasin", objSuffix, "_SNO.metd"), modLdasinList[[3]])
-		saveList <- c(saveList, paste0("modLdasin", objSuffix, "_SNO"), 
-					paste0("modLdasin", objSuffix, "_SNO.snod"),
-					paste0("modLdasin", objSuffix, "_SNO.metd"))
+  		
+		modLdasin_SNO_tmp <- modLdasinList[[1]]
+		modLdasin_SNO_tmp$modTag <- objSuffix
+		modLdasin_SNO <- rbind(modLdasin_SNO,modLdasin_SNO_tmp)
+
+		modLdasin_SNO.snod_tmp <- modLdasinList[[2]]
+		modLdasin_SNO.snod_tmp$modTag <- objSuffix
+		modLdasin_SNO.snod <- rbind(modLdasin_SNO.snod,modLdasin_SNO.snod_tmp)
+
+		modLdasin_SNO.metd_tmp <- modLdasinList[[3]]
+		modLdasin_SNO.metd_tmp$modTag <- objSuffix
+		modLdasin_SNO.metd <- rbind(modLdasin_SNO.metd,modLdasin_SNO.metd_tmp)
+
+		##assign(paste0("modLdasin", objSuffix, "_SNO"), modLdasinList[[1]])
+  		##assign(paste0("modLdasin", objSuffix, "_SNO.snod"), modLdasinList[[2]])
+		##assign(paste0("modLdasin", objSuffix, "_SNO.metd"), modLdasinList[[3]])
+		##saveList <- c(saveList, paste0("modLdasin", objSuffix, "_SNO"), 
+				##	paste0("modLdasin", objSuffix, "_SNO.snod"),
+			     	##	paste0("modLdasin", objSuffix, "_SNO.metd"))
+		saveList <- c("modLdasin_SNO","modLdasin_SNO.snod","modLdasin_SNO.metd")
+		
 		if (runStats) {
 			# SNOTEL (daily)
 			# Full run
@@ -351,10 +279,13 @@ for (j in 1:length(objSuffixList)) {
 	}
   # Process LDASOUT
   if (runLdasout) {
-	modLdasout <- get(paste0("modLdasout", objSuffix, "_SNO"))
+	modLdasout <- get(paste0("modLdasout_", objSuffix, "_SNO"))
         modLdasout <- ProcessLdasout(modLdasout, stdate=stdate, enddate=stopDates[j])
-        assign(paste0("modLdasout", objSuffix, "_SNO"), modLdasout)
-	saveList <- c(saveList, paste0("modLdasout", objSuffix, "_SNO"))
+        modLdasout$modTag <- objSuffix
+        modLdasout_SNO <- rbind(modLdasout_SNO,modLdasout)
+
+##        assign(paste0("modLdasout", objSuffix, "_SNO"), modLdasout)
+	saveList <- c(saveList, "modLdasout_SNO")
   	if (runStats) {
 		# SNOTEL
 		# Full time period
@@ -496,7 +427,8 @@ if (runStats) {
 
 ## ------------------------------------------------------------------------
 # Cleanup
-save(list=saveList, file=outImg)
+save(list=saveList, file=pointOutImg)
 
-proc.time()
-quit("no")
+##proc.time()
+##quit("no")
+

@@ -48,7 +48,9 @@ objSuffixList <- c('_wy2015_NLDAS2dwnsc_fullrtng',
 		   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_nlcd11_fullrtng',
 		   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng',
 		   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist1_canresist05_fullrtng',
-		   '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng')
+		   '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng',
+		   '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_precipdwnsc_fullrtng',
+		   '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_alldwnsc_fullrtng')
 
 stopDates <- c(as.POSIXct("2015-06-11 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
 		as.POSIXct("2015-06-13 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
@@ -60,7 +62,9 @@ stopDates <- c(as.POSIXct("2015-06-11 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
 		as.POSIXct("2015-07-15 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
 		as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
 		as.POSIXct("2015-07-13 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-		as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"))
+		as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+		as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+	        as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"))
 
 # Range dates to restrict analysis
 stdate <- NULL
