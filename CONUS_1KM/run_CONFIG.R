@@ -8,38 +8,16 @@
 ncores <- 16
 
 ## Specify the high-resolution routing domain file
-hydFile <- '/glade/p/nral0008/zhangyx/CONUS1km_LSMOnly_daily_snowmods/Fulldom_hires_netcdf_file.nc'
+hydFile <- '/glade/p/nral0008/zhangyx/CONUS1km_LSMOnly_daily_snowmods/DOMAIN/Fulldom_hires_netcdf_file.nc'
 
 ## Specify the low-resolution geogrid file
-geoFile <- '/glade/p/nral0008/zhangyx/CONUS1km_LSMOnly_daily_snowmods/geo_em.d01.nc.conus_1km'
+geoFile <- '/glade/p/nral0008/zhangyx/CONUS1km_LSMOnly_daily_snowmods/DOMAIN/geo_em.d01.nc.conus_1km'
 
 ## Specify the aggregation factor between hydrogrid and geogrid
 aggfact <- 4
 
-
-##################### Masks #######################
-## Create mask objects from hydro domain basins?
-createMask <- FALSE
-
-## If FALSE, specify location of .Rdata file containing pre-processed mask objects
-maskFileIn <- '/glade/p/ral/RHAP/adugger/CONUS_3km/ANALYSIS/conus_masks_ALL_NEW.Rdata'
-
-## If TRUE, specify the following:
-
-	# Select which masks/points to create:
-		# Basin masks
-		createBasMask <- TRUE
-		# Ameriflux points
-		createAmfMask <- TRUE
-		# SNOTEL points
-		createSnoMask <- TRUE
-		# MET station points
-		createMetMask <- FALSE
-		# MET station sites (must include columns: id, lat, lon)
-		metSites <- NULL
-
-	# Specify the .Rdata file to create
-	maskFileOut <- NULL
+## Specify location of .Rdata file containing pre-processed mask objects
+maskFile <- '/glade/p/ral/RHAP/adugger/CONUS_1km/ANALYSIS/conus1km_masks.Rdata'
 
 
 ################## Observations ###################
@@ -73,7 +51,7 @@ readMod <- TRUE
 	modTagList <- c('su2011_13_LSMonly_NLDASdwnsc_oldmodel')
 
 	# Specify the output .Rdata file to create
-	modReadFileOut <- 'conus1km_gagesII_raw.Rdata'
+	modReadFileOut <- 'conus1km_eval_raw.Rdata'
 
 	# Select what aggregations/imports to run:
 
@@ -173,21 +151,14 @@ pointProc <- TRUE
 
 library(rwrfhydro)
 
+load(maskFile)
+source("util_FUNC.R")
+
 # Multi-core
 if (ncores>1) {
 	library(doMC)
 	registerDoMC(ncores)
-}
-
-# Masks
-if (createMask) {
-	source("create_MASKS.R")
-} else {
-	if (file.exists(maskFileIn)) {
-		load(maskFileIn)
-	} else if (readMod) {
-		stop(paste("Model read requested but mask file does not exist:", maskFileIn, "Check path or change createMask flag to TRUE to create."))
-	}
+	parallelFlag <- TRUE
 }
 
 # Obs

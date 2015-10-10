@@ -1,0 +1,24 @@
+# Basin mean function
+basin_avg <- function(myvar, mskvar, minValid=-1e+29) {
+   myvar[which(myvar<minValid)]<-NA
+   sum(mskvar*myvar, na.rm=TRUE)/sum(mskvar, na.rm=TRUE)
+ }
+
+# Filename to date conversion functions
+rt2dt <- function(x) {as.POSIXct(unlist(strsplit(x, "[.]"))[1], format="%Y%m%d%H%M", tz="UTC")}
+ldas2dt <- function(x) {as.POSIXct(unlist(strsplit(x, "[.]"))[1], format="%Y%m%d%H", tz="UTC")}
+
+# Subset file list by dates
+subDates <- function(filesList, startDate, endDate, func) {
+	tmp <- basename(filesList)
+	tmp <- as.POSIXct(apply(as.data.frame(tmp), 1, func), origin='1970-01-01 00:00.00 UTC', tz="UTC")              
+	if (!is.null(startDate) & !is.null(endDate)) {
+		filesList <- filesList[tmp >= startDate & tmp <= endDate]
+        } else if (!is.null(startDate) & is.null(endDate)) {
+		filesList <- filesList[tmp >= startDate]
+	} else if (is.null(startDate) & !is.null(endDate)) {
+                filesList <- filesList[tmp <= endDate]
+	}
+	filesList
+}
+

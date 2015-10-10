@@ -23,7 +23,7 @@ registerDoMC(ncores)
 #inImg <- 'urg_wy2015_NLDASdwnsc_NSSL_fullrtng_snowmod_SNO.Rdata'
 #inImg <- 'urg_wy2015_NLDAS2dwnsc_SIMGM_BATSalb_fullrtng_ALL.Rdata'
 
-inImg <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/urg_wy2015_ALL_RAW.Rdata'
+inImg <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/urg_spinup_NLDAS2_newmp.Rdata'
 
 # Where to output the processed data
 #outImg <- 'urg_wy2015_NLDAS2dwnsc_fullrtng_SNO_PROCESSED.Rdata'
@@ -32,36 +32,39 @@ inImg <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/urg_wy2015_ALL_RAW.
 #outImg <- 'urg_wy2015_NLDASdwnsc_NSSL_fullrtng_snowmod_SNO_PROCESSED.Rdata'
 #outImg <- 'urg_wy2015_NLDAS2dwnsc_SIMGM_BATSalb_fullrtng_SNO_PROCESSED.Rdata'
 
-outImg <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/urg_wy2015_SNOCLIM_PROCESSED_PT1.Rdata'
+outImg <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/urg_spinup_NLDAS2_newmp_SNO_PROCESSED.Rdata'
 
 # Suffix for the output objects
-objSuffixList <- c('_wy2015_NLDAS2dwnsc_fullrtng',
-                   '_wy2015_NLDAS2dwnsc_NSSL_fullrtng',
-                   '_wy2015_NLDAS2dwnsc_snowmod_fullrtng',
-                   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_fullrtng',
-                   '_wy2015_NLDAS2dwnsc_snowmod_mikerec_fullrtng',
-                   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_fullrtng',
-                   '_wy2015_NLDAS2dwnsc_SIMGM_BATSalb_fullrtng',
-                   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_nlcd11_fullrtng',
-                   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng',
-                   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist1_canresist05_fullrtng',
-                   '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng',
-		   '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_precipdwnsc_fullrtng',
-		   '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_alldwnsc_fullrtng')
+#objSuffixList <- c('_wy2015_NLDAS2dwnsc_fullrtng',
+#                   '_wy2015_NLDAS2dwnsc_NSSL_fullrtng',
+#                  '_wy2015_NLDAS2dwnsc_snowmod_fullrtng',
+#                   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_fullrtng',
+#                  '_wy2015_NLDAS2dwnsc_snowmod_mikerec_fullrtng',
+#                   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_fullrtng',
+#                   '_wy2015_NLDAS2dwnsc_SIMGM_BATSalb_fullrtng',
+#                  '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_nlcd11_fullrtng',
+#                  '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng',
+#                  '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist1_canresist05_fullrtng',
+#                  '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng',
+#                  '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_precipdwnsc_fullrtng',
+#                  '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_alldwnsc_fullrtng')
+objSuffixList <- c('_spinup_NLDAS2_newmp', '_spinup_NLDAS2dwnsc_newmp')
 
-stopDates <- c(as.POSIXct("2015-06-11 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-                as.POSIXct("2015-06-13 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-                as.POSIXct("2015-06-26 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-                as.POSIXct("2015-06-26 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-                as.POSIXct("2015-07-13 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-                as.POSIXct("2015-07-15 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-                as.POSIXct("2015-06-04 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-                as.POSIXct("2015-07-15 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-                as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-                as.POSIXct("2015-07-13 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-                as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-		as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-		as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"))
+#stopDates <- c(as.POSIXct("2015-06-11 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+#               as.POSIXct("2015-06-13 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+#               as.POSIXct("2015-06-26 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+#               as.POSIXct("2015-06-26 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+#               as.POSIXct("2015-07-13 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+#               as.POSIXct("2015-07-15 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+#               as.POSIXct("2015-06-04 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+#               as.POSIXct("2015-07-15 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+#               as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+#               as.POSIXct("2015-07-13 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+#               as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+#               as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+#               as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"))
+stopDates <-  c(as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+                as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"))
 
 # Range dates to restrict analysis
 stdate <- NULL
@@ -70,7 +73,7 @@ enddate <- as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
 
 # Range dates for main stats
 stdate_stats <- as.POSIXct("2014-10-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
-enddate_stats <- as.POSIXct("2015-05-31 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
+enddate_stats <- as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
 
 # Range dates for seasonal stats (e.g., spring)
 stdate_stats_sub <- as.POSIXct("2014-12-12 00:00", format="%Y-%m-%d %H:%M", tz="UTC")

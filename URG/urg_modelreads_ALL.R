@@ -32,7 +32,8 @@ registerDoMC(ncores)
 #modoutPath <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/RUN.SNOWMOD/OUTPUT_NLDAS_snowmods_mikerecs_snowresist50'
 #modoutPath <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/RUN.DWNSC/OUTPUT_NLDAS_snowmods_mikerecs_snowresist50_precipdwnsc'
 #modoutPath <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/RUN.DWNSC/OUTPUT_NLDAS_snowmods_mikerecs_snowresist50_alldwnsc'
-modoutPath <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/RUN.NEWMP/OUTPUT_NLDAS_SPINUP'
+#modoutPath <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/RUN.NEWMP/OUTPUT_NLDAS_SPINUP'
+modoutPath <- '/glade/scratch/zhangyx/WRF-Hydro/RioGrande/spinup'
 
 # Forcing directory
 forcPath <- '/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/forcing' 
@@ -51,7 +52,8 @@ forcPath <- '/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/forcing'
 #outImg <- 'urg_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng_ALL.Rdata'
 #outImg <- 'urg_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_precipdwnsc_fullrtng_ALL.Rdata'
 #outImg <- 'urg_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_alldwnsc_fullrtng_ALL.Rdata'
-outImg <- 'urg_wy2014_NLDAS2_newmp.Rdata'
+#outImg <- 'urg_spinup_NLDAS2_newmp.Rdata'
+outImg <- 'urg_spinup_NLDAS2dwnsc_newmp.Rdata'
 
 # Suffix to add to output objects
 #objSuffix <- '_wy2015_NLDAS2dwnsc_fullrtng'
@@ -67,7 +69,8 @@ outImg <- 'urg_wy2014_NLDAS2_newmp.Rdata'
 #objSuffix <- '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng'
 #objSuffix <- '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_precipdwnsc_fullrtng'
 #objSuffix <- '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_alldwnsc_fullrtng'
-objSuffix <- '_wy2014_NLDAS2_newmp'
+#objSuffix <- '_spinup_NLDAS2_newmp'
+objSuffix <- '_spinup_NLDAS2dwnsc_newmp'
 
 # Run flags for imports
 # Basin aggs

@@ -24,7 +24,7 @@ registerDoMC(ncores)
 #inImg <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/urg_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_fullrtng_BAS.Rdata'
 #inImg <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/urg_wy2015_NLDAS2dwnsc_SIMGM_BATSalb_fullrtng_BAS.Rdata'
 
-inImg <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/urg_wy2015_ALL_RAW.Rdata'
+inImg <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/urg_spinup_NLDAS2_newmp.Rdata'
 
 # Where to save the processed data
 #outImg <- 'urg_wy2015_NLDAS2dwnsc_fullrtng_BAS_PROCESSED.Rdata'
@@ -35,36 +35,39 @@ inImg <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/urg_wy2015_ALL_RAW.
 #outImg <- 'urg_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_fullrtng_BAS_PROCESSED.Rdata'
 #outImg <- 'urg_wy2015_NLDAS2dwnsc_SIMGM_BATSalb_fullrtng_BAS_PROCESSED.Rdata'
 
-outImg <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/urg_wy2015_BAS_PROCESSED.Rdata'
+outImg <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/urg_spinup_NLDAS2_newmp_BAS_PROCESSED.Rdata'
 
 # Suffix for the output objects
-objSuffixList <- c('_wy2015_NLDAS2dwnsc_fullrtng',
-                   '_wy2015_NLDAS2dwnsc_NSSL_fullrtng',
-		   '_wy2015_NLDAS2dwnsc_snowmod_fullrtng',
-                   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_fullrtng',
-		   '_wy2015_NLDAS2dwnsc_snowmod_mikerec_fullrtng',
-                   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_fullrtng',
-                   '_wy2015_NLDAS2dwnsc_SIMGM_BATSalb_fullrtng',
-		   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_nlcd11_fullrtng',
-		   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng',
-		   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist1_canresist05_fullrtng',
-		   '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng',
-		   '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_precipdwnsc_fullrtng',
-		   '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_alldwnsc_fullrtng')
+#objSuffixList <- c('_wy2015_NLDAS2dwnsc_fullrtng',
+#                   '_wy2015_NLDAS2dwnsc_NSSL_fullrtng',
+#		   '_wy2015_NLDAS2dwnsc_snowmod_fullrtng',
+#                   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_fullrtng',
+#		   '_wy2015_NLDAS2dwnsc_snowmod_mikerec_fullrtng',
+#                   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_fullrtng',
+#                   '_wy2015_NLDAS2dwnsc_SIMGM_BATSalb_fullrtng',
+#		   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_nlcd11_fullrtng',
+#		   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist50_fullrtng',
+#		   '_wy2015_NLDAS2dwnsc_NSSL_snowmod_mikerec_snowresist1_canresist05_fullrtng',
+#		   '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng',
+#		   '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_precipdwnsc_fullrtng',
+#		   '_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_alldwnsc_fullrtng')
+objSuffixList <- c('_spinup_NLDAS2_newmp', '_spinup_NLDAS2dwnsc_newmp')
 
-stopDates <- c(as.POSIXct("2015-06-11 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-		as.POSIXct("2015-06-13 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-		as.POSIXct("2015-06-26 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-		as.POSIXct("2015-06-26 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-		as.POSIXct("2015-07-13 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-		as.POSIXct("2015-07-15 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-		as.POSIXct("2015-06-04 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-		as.POSIXct("2015-07-15 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-		as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-		as.POSIXct("2015-07-13 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-		as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-		as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
-	        as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"))
+#stopDates <- c(as.POSIXct("2015-06-11 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+#		as.POSIXct("2015-06-13 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+#		as.POSIXct("2015-06-26 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+#		as.POSIXct("2015-06-26 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+#		as.POSIXct("2015-07-13 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+#		as.POSIXct("2015-07-15 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+#		as.POSIXct("2015-06-04 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+#		as.POSIXct("2015-07-15 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+#		as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+#		as.POSIXct("2015-07-13 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+#		as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+#		as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+#	        as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"))
+stopDates <-  c(as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+                as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC"))
 
 # Range dates to restrict analysis
 stdate <- NULL
@@ -197,11 +200,11 @@ for (j in 1:length(objSuffixList)) {
   # Get files
   objSuffix <- objSuffixList[j]
   modLdasout <- get(paste0("modLdasout", objSuffix, "_BAS"))
-  modGwout <- get(paste0("modGwout", objSuffix))
+  #modGwout <- get(paste0("modGwout", objSuffix))
   modFrxstout <- get(paste0("modFrxstout", objSuffix))
   # Process
   modLdasout <- ProcessLdasout(modLdasout, stdate=stdate, enddate=stopDates[j])
-  modGwout <- ProcessGwout(modGwout, basin2gage, stdate=stdate, enddate=stopDates[j])
+  #modGwout <- ProcessGwout(modGwout, basin2gage, stdate=stdate, enddate=stopDates[j])
   modFrxstout <- ProcessFrxstout(modFrxstout, stid2gage, stdate=stdate, enddate=stopDates[j])
   # Stats
   results <- CalcStrStats(modFrxstout, obsStr, stid2gageList, stdate=stdate_stats, enddate=enddate_stats, 
@@ -217,11 +220,11 @@ for (j in 1:length(objSuffixList)) {
   # Save
   assign(paste0("modLdasout", objSuffix, "_BAS"), modLdasout)
   assign(paste0("modFrxstout", objSuffix), modFrxstout)
-  assign(paste0("modGwout", objSuffix), modGwout)
+  #assign(paste0("modGwout", objSuffix), modGwout)
   assign(paste0("stats_str", objSuffix), results)
   saveList <- c(saveList, paste0("modLdasout", objSuffix, "_BAS"), 
 			paste0("modFrxstout", objSuffix), 
-			paste0("modGwout", objSuffix),
+			#paste0("modGwout", objSuffix),
 			paste0("stats_str", objSuffix))
 }
 
