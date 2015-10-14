@@ -26,7 +26,7 @@ hydDX <- geoDX/aggfact
 ## ------------------------------------------------------------------------
 ## ------------------------------------------------------------------------
 
-if (readBasinLdasout | readBasinLdasin) {
+if ((readMod & readBasinLdasout) | (readForc & readBasinLdasin)) {
  	# Basin means
  	basgeoIndex_Lev0 <- list()
  	basgeoIndex_Lev1 <- list()
@@ -47,7 +47,7 @@ if (readBasinLdasout | readBasinLdasin) {
  		}
  	}
 
-if (readBasinRtout) {
+if (readMod & readBasinRtout) {
          # Basin means
          bashydIndex_Lev0 <- list()
          bashydIndex_Lev1 <- list()
@@ -68,7 +68,7 @@ if (readBasinRtout) {
                  }
          }
 
-if (readAmfLdasout | readAmfLdasin) {
+if ((readMod & readAmfLdasout) | (readForc & readAmfLdasin)) {
         # Ameriflux stations
         amfIndex_Lev0 <- list()
         amfIndex_Lev1 <- list()
@@ -92,7 +92,7 @@ if (readAmfLdasout | readAmfLdasin) {
                 }
         }
 
-if (readSnoLdasout | readSnoLdasin) {
+if ((readMod & readSnoLdasout) | (readForc & readSnoLdasin)) {
  	# SNOTEL points
  	snoIndex_Lev0 <- list()
  	snoIndex_Lev1 <- list()
@@ -115,7 +115,7 @@ if (readSnoLdasout | readSnoLdasin) {
  		}
 	}
 
-if (readMetLdasout | readMetLdasin) {
+if ((readMod & readMetLdasout) | (readForc & readMetLdasin)) {
 	# Other met stations
         metIndex_Lev0 <- list()
         metIndex_Lev1 <- list()
@@ -144,7 +144,7 @@ if (readMetLdasout | readMetLdasin) {
 ## ------------------------------------------------------------------------
 ## ------------------------------------------------------------------------
 
-if (readBasinRtout) {
+if (readMod & readBasinRtout) {
  
          ## ------------------------------------------------------------------------
          # Setup RTOUT files
@@ -206,7 +206,7 @@ if (readBasinRtout) {
 ## ------------------------------------------------------------------------
 ## ------------------------------------------------------------------------
 
-if (readBasinLdasout | readAmfLdasout | readSnoLdasout | readMetLdasout) {
+if (readMod & (readBasinLdasout | readAmfLdasout | readSnoLdasout | readMetLdasout)) {
  
  	## ------------------------------------------------------------------------
  	# Setup variables
@@ -229,7 +229,7 @@ if (readBasinLdasout | readAmfLdasout | readSnoLdasout | readMetLdasout) {
                 names(ldasoutVars) <- varLabels
                 ldasoutVariableList <- list( ldasout = ldasoutVars )
                 # INDEXES
-                genIndex_LdasoutSub <- function(pref, ldasoutVars) {
+                genIndex_LdasoutSub <- function(pref, ldasoutVars.=ldasoutVars) {
                         level0 <- get(paste0(pref, "Index_Lev0"))
                         level1 <- get(paste0(pref, "Index_Lev1"))
                         level2 <- get(paste0(pref, "Index_Lev2"))
@@ -241,22 +241,22 @@ if (readBasinLdasout | readAmfLdasout | readSnoLdasout | readMetLdasout) {
 					level0, level0, level0, level0,
                                         level1, level2, level3, level4,
                                         level0, level0 )
-                        names(ldasoutInd) <- names(ldasoutVars)
+                        names(ldasoutInd) <- names(ldasoutVars.)
                         ldasoutIndexList <- list( ldasout = ldasoutInd )
                         ldasoutIndexList
                 }
                 # Run through reads
                 if (readBasinLdasout) {
-                        ldasoutBasIndexList <- genIndex_LdasoutSub("basgeo", ldasoutVars)
+                        ldasoutBasIndexList <- genIndex_LdasoutSub("basgeo")
                         } # end runBasin
                 if (readAmfLdasout) {
-                        ldasoutAmfIndexList <- genIndex_LdasoutSub("amf", ldasoutVars)
+                        ldasoutAmfIndexList <- genIndex_LdasoutSub("amf")
                         } # end runAmf
                 if (readSnoLdasout) {
-                        ldasoutSnoIndexList <- genIndex_LdasoutSub("sno", ldasoutVars)
+                        ldasoutSnoIndexList <- genIndex_LdasoutSub("sno")
                         } # end runSno
                 if (readMetLdasout) {
-                        ldasoutMetIndexList <- genIndex_LdasoutSub("met", ldasoutVars)
+                        ldasoutMetIndexList <- genIndex_LdasoutSub("met")
                         } # end runMet
 
         } else { 
@@ -281,7 +281,7 @@ if (readBasinLdasout | readAmfLdasout | readSnoLdasout | readMetLdasout) {
  		names(ldasoutVars) <- varLabels
  		ldasoutVariableList <- list( ldasout = ldasoutVars )
  		# INDEXES
-		genIndex_LdasoutSub <- function(pref, ldasoutVars) {
+		genIndex_LdasoutSub <- function(pref, ldasoutVars.=ldasoutVars) {
 			level0 <- get(paste0(pref, "Index_Lev0"))
 			level1 <- get(paste0(pref, "Index_Lev1"))
 			level2 <- get(paste0(pref, "Index_Lev2"))
@@ -294,22 +294,22 @@ if (readBasinLdasout | readAmfLdasout | readSnoLdasout | readMetLdasout) {
                                         level0, level0, level0, level0, level0,
                                         level0, level0, 
                                         level0, level0 )
-                        names(ldasoutInd) <- names(ldasoutVars)
+                        names(ldasoutInd) <- names(ldasoutVars.)
                         ldasoutIndexList <- list( ldasout = ldasoutInd )
 			ldasoutIndexList
 		}
 		# Run through reads
  		if (readBasinLdasout) {
- 			ldasoutBasIndexList <- genIndex_LdasoutSub("basgeo", ldasoutVars)
+ 			ldasoutBasIndexList <- genIndex_LdasoutSub("basgeo")
  			} # end runBasin
                 if (readAmfLdasout) {
-                        ldasoutAmfIndexList <- genIndex_LdasoutSub("amf", ldasoutVars)
+                        ldasoutAmfIndexList <- genIndex_LdasoutSub("amf")
                         } # end runAmf
                 if (readSnoLdasout) {
-                        ldasoutSnoIndexList <- genIndex_LdasoutSub("sno", ldasoutVars)
+                        ldasoutSnoIndexList <- genIndex_LdasoutSub("sno")
                         } # end runSno
  		if (readMetLdasout) {
-                 	ldasoutMetIndexList <- genIndex_LdasoutSub("met", ldasoutVars)
+                 	ldasoutMetIndexList <- genIndex_LdasoutSub("met")
  			} # end runMet
  
  	} else {
@@ -354,7 +354,7 @@ if (readBasinLdasout | readAmfLdasout | readSnoLdasout | readMetLdasout) {
          	names(ldasoutVars) <- varLabels
          	ldasoutVariableList <- list( ldasout = ldasoutVars )
  		# INDEXES
-	        genIndex_LdasoutAll <- function(pref, ldasoutVars) {
+	        genIndex_LdasoutAll <- function(pref, ldasoutVars.=ldasoutVars) {
                         level0 <- get(paste0(pref, "Index_Lev0"))
 			level0 <- get(paste0(pref, "Index_Lev0"))
                         level0 <- get(paste0(pref, "Index_Lev0"))
@@ -378,22 +378,22 @@ if (readBasinLdasout | readAmfLdasout | readSnoLdasout | readMetLdasout) {
                                      level0, level0, level0, level0, level0, level0,
                                      level1, level2, level3,
                                      level0 )
-                        names(ldasoutInd) <- names(ldasoutVars)
+                        names(ldasoutInd) <- names(ldasoutVars.)
                         ldasoutIndexList <- list( ldasout = ldasoutInd )
 			ldasoutIndexList
 		}
 		# Run through reads
          	if (readBasinLdasout) {
-		        ldasoutBasIndexList <- genIndex_LdasoutAll("basgeo", ldasoutVars)
+		        ldasoutBasIndexList <- genIndex_LdasoutAll("basgeo")
  			} # end runBasin
          	if (readAmfLdasout) {
-                 	ldasoutAmfIndexList <- genIndex_LdasoutAll("amf", ldasoutVars)
+                 	ldasoutAmfIndexList <- genIndex_LdasoutAll("amf")
                  	} # end runAmf
                 if (readSnoLdasout) {
-                        ldasoutSnoIndexList <- genIndex_LdasoutAll("sno", ldasoutVars)
+                        ldasoutSnoIndexList <- genIndex_LdasoutAll("sno")
                         } # end runSno
                 if (readMetLdasout) {
-                        ldasoutMetIndexList <- genIndex_LdasoutAll("met", ldasoutVars)
+                        ldasoutMetIndexList <- genIndex_LdasoutAll("met")
                         } # end runMet
 
  	} # end ifelse vars subset
@@ -403,55 +403,102 @@ if (readBasinLdasout | readAmfLdasout | readSnoLdasout | readMetLdasout) {
  	# Get data and flatten files
  	## ------------------------------------------------------------------------
 	# GENERAL FUNCTION
-	genReads_Ldasout <- function(modPathList=modPathList, modTagList=modTagList,
-					ldasoutIndexList,
-					ldasoutVariableList=ldasoutVariableList, 
-					ldasoutFilesList=ldasoutFilesList, 
-					parallelFlag=parallelFlag,
-					readStart=readStart, readEnd=readEnd, ldas2dt=ldas2dt) {
+	genReads_Ldasout <- function(modPathList.=modPathList, modTagList.=modTagList,
+					ldasoutIndexList.,
+					ldasoutVariableList.=ldasoutVariableList, 
+					ldasoutFilesList.=ldasoutFilesList, 
+					parallelFlag.=parallelFlag,
+					readStart.=readStart, readEnd.=readEnd, ldas2dt.=ldas2dt) {
                 modLdasout_tmp <- data.frame()
-                for (i in 1:length(modPathList)) {
-                        modoutPath <- modPathList[i]
-                        modoutTag <- modTagList[i]
+		modLdasout.snoday_tmp <- data.frame()
+		modLdasout.utcday_tmp <- data.frame()
+                for (i in 1:length(modPathList.)) {
+                        modoutPath <- modPathList.[i]
+                        modoutTag <- modTagList.[i]
                         # Setup LDASOUT files
                         filesList <- list.files(path=modoutPath, pattern=glob2rx('*.LDASOUT_DOMAIN*'), full.names=TRUE)
-			if (!is.null(readStart) | !is.null(readEnd)) {
-                        	filesList <- subDates(filesList, readStart, readEnd, ldas2dt)
+			if (!is.null(readStart.) | !is.null(readEnd.)) {
+                        	filesList <- subDates(filesList, readStart., readEnd., ldas2dt.)
                 	}
                         ldasoutFilesList <- list( ldasout = filesList)
                         # Run basin means
-                        ldasoutDF <- GetMultiNcdf(indexList=ldasoutIndexList,
-                                           variableList=ldasoutVariableList,
-                                           filesList=ldasoutFilesList,
-                                           parallel=parallelFlag )
+                        ldasoutDF <- GetMultiNcdf(indexList=ldasoutIndexList.,
+                                           variableList=ldasoutVariableList.,
+                                           filesList=ldasoutFilesList.,
+                                           parallel=parallelFlag. )
                         modLdasout <- ReshapeMultiNcdf(ldasoutDF)
                         modLdasout <- CalcNoahmpFluxes(modLdasout, "statArg")
                         modLdasout$tag <- modoutTag
-                        modLdasout_tmp <- plyr::rbind.fill(modLdasout_tmp, modLdasout)
+			ts <- as.integer(difftime(modLdasout$POSIXct[2],modLdasout$POSIXct[1], units="secs"))
+			# Aggregate to daily if subdaily timestep
+			if (ts < (23*3600)) {
+                        	## ------------------------------------------------------------------------
+                        	# Calculate daily values
+                        	# Adjust to dates to match SNOTEL daily report.
+                        	# SNOTEL daily reports are derived from prior day's hourlies, and all 
+                        	# times are PST (no daylight savings).
+                        	# Adjust UTC to PST
+                        	modLdasout$PST_time <- modLdasout$POSIXct - 8*3600
+                        	# Calculate truncated date from PST time
+                        	modLdasout$PST_date <- CalcDateTrunc(modLdasout$PST_time)
+                        	# Shift by 1 day so aggregations match daily report
+                        	modLdasout$PST_dateP1 <- modLdasout$PST_date + 1
+                        	# Run daily aggs
+                        	modLdasout.snoday <- plyr::ddply(modLdasout, plyr::.(statArg, PST_dateP1), plyr::summarize,
+                                	 DEL_ACCPRCP=sum(DEL_ACCPRCP), SNEQV_mean=mean(SNEQV), SNOWH_mean=mean(SNOWH),
+                                 	.parallel=TRUE)
+                        	# Add dummy POSIXct for ease of plotting
+                        	modLdasout.snoday$POSIXct <- as.POSIXct(paste0(modLdasout.snoday$PST_dateP1, " 00:00"), tz="UTC")
+                        	# Calculate truncated date from UTC time
+                        	modLdasout$UTC_date <- CalcDateTrunc(modLdasout$POSIXct)
+                        	# Run daily aggs
+                        	modLdasout.utcday <- plyr::ddply(modLdasout, plyr::.(statArg, UTC_date), plyr::summarize,
+                                	 DEL_ACCPRCP=sum(DEL_ACCPRCP), DEL_ACCEDIR=sum(DEL_ACCEDIR), 
+					 DEL_ACCECAN=sum(DEL_ACCECAN), DEL_ACCETRAN=sum(DEL_ACCETRAN),
+				 	 SNEQV_mean=mean(SNEQV), SNOWH_mean=mean(SNOWH),
+                               		 SOIL_M1_mean=mean(SOIL_M1), SOIL_M2_mean=mean(SOIL_M2), 
+                                 	 SOIL_T1_mean=mean(SOIL_T1), SOIL_T2_mean=mean(SOIL_T2),
+                                 	 LH_mean=mean(LH), HFX_mean=mean(HFX), GRDFLX_mean=mean(GRDFLX),
+                                 	 FIRA_mean=mean(FIRA), FSA_mean=mean(FSA),
+                                 	 .parallel=TRUE)
+                        	# Add dummy POSIXct for ease of plotting
+                        	modLdasout.utcday$POSIXct <- as.POSIXct(paste0(modLdasout.utcday$UTC_date, " 00:00"), tz="UTC")
+                        	# Bind all
+                        	modLdasout.snoday_tmp <- plyr::rbind.fill(modLdasout.snoday_tmp, modLdasout.snoday)
+                        	modLdasout.utcday_tmp <- plyr::rbind.fill(modLdasout.utcday_tmp, modLdasout.utcday)
+			}
+			modLdasout_tmp <- plyr::rbind.fill(modLdasout_tmp, modLdasout)
                 }
-		modLdasout_tmp
+		if (exists("modLdasout.snoday_tmp") & exists("modLdasout.utcday_tmp")) {
+                	modLdasoutList <- list(modLdasout_tmp, modLdasout.snoday_tmp, modLdasout.utcday_tmp)
+			names(modLdasoutList) <- c("native", "snoday", "utcday")
+		} else {
+			modLdasoutList <- list(modLdasout_tmp)
+			names(modLdasoutList) <- c("native")
+		}
+		modLdasoutList
 	}
 	# BASIN
  	if (readBasinLdasout) {
-		modLdasout_BAS_tmp <- genReads_Ldasout(ldasoutIndexList=ldasoutBasIndexList)
+		modLdasout_BAS_tmp <- genReads_Ldasout(ldasoutIndexList.=ldasoutBasIndexList)
 		saveList <- c(saveList, "modLdasout_BAS_tmp")
          	save(list=saveList, file=tmpRimg)
  	}	
  	# AMERIFLUX
  	if (readAmfLdasout) {
-                modLdasout_AMF_tmp <- genReads_Ldasout(ldasoutIndexList=ldasoutAmfIndexList)
+                modLdasout_AMF_tmp <- genReads_Ldasout(ldasoutIndexList.=ldasoutAmfIndexList)
                 saveList <- c(saveList, "modLdasout_AMF_tmp")
                 save(list=saveList, file=tmpRimg)
 	}
 	# SNOTEL
         if (readSnoLdasout) {
-                modLdasout_SNO_tmp <- genReads_Ldasout(ldasoutIndexList=ldasoutSnoIndexList)
+                modLdasout_SNO_tmp <- genReads_Ldasout(ldasoutIndexList.=ldasoutSnoIndexList)
                 saveList <- c(saveList, "modLdasout_SNO_tmp")
                 save(list=saveList, file=tmpRimg)
         }
 	# MET
         if (readMetLdasout) {
-                modLdasout_MET_tmp <- genReads_Ldasout(ldasoutIndexList=ldasoutMetIndexList)
+                modLdasout_MET_tmp <- genReads_Ldasout(ldasoutIndexList.=ldasoutMetIndexList)
                 saveList <- c(saveList, "modLdasout_MET_tmp")
                 save(list=saveList, file=tmpRimg)
         }
@@ -466,7 +513,7 @@ if (readBasinLdasout | readAmfLdasout | readSnoLdasout | readMetLdasout) {
 ## ------------------------------------------------------------------------
 ## ------------------------------------------------------------------------
 
-if (readGwout) {
+if (readMod & readGwout) {
 
 	## Loop through model run output directories
 	modGwout_tmp <- data.frame()
@@ -481,6 +528,17 @@ if (readGwout) {
  		modGwout <- modGwout[!(duplicated(modGwout$uni)),]
  		modGwout$uni <- NULL
  		modGwout <- modGwout[nrow(modGwout):1,]
+		# Subset dates
+		if (!is.null(readStart) & !is.null(readEnd)) {
+			modGwout <- subset(modGwout, modGwout$POSIXct >= readStart & modGwout$POSIXct <= readEnd)
+		}
+		if (!is.null(readStart) & is.null(readEnd)) {
+			modGwout <- subset(modGwout, modGwout$POSIXct >= readStart)
+		}
+		if (is.null(readStart) & !is.null(readEnd)) {
+			modGwout <- subset(modGwout, modGwout$POSIXct <= readEnd)
+		}
+		# Tag and bind
 		modGwout$tag <- modoutTag
                 modGwout_tmp <- plyr::rbind.fill(modGwout_tmp, modGwout)
 		rm(modGwout)
@@ -498,7 +556,7 @@ if (readGwout) {
 ## ------------------------------------------------------------------------
 ## ------------------------------------------------------------------------
 
-if (readFrxstout) {
+if (readMod & readFrxstout) {
 
         ## Loop through model run output directories
         modFrxstout_tmp <- data.frame()
@@ -506,7 +564,7 @@ if (readFrxstout) {
                 modoutPath <- modPathList[i]
                 modoutTag <- modTagList[i]
                 # Read STR
-        	modFrxstout <- ReadFrxstPts(paste0(modoutPath, '/frxst_pts_out.txt'))
+        	modFrxstout <- ReadFrxstPts(paste0(modoutPath, '/frxst_pts_out.txt'), stIdType='integer')
         	# Filter out non-unique dates. Take values from latest run if dups.
         	modFrxstout <- modFrxstout[nrow(modFrxstout):1,]
         	modFrxstout$uni <- paste(modFrxstout$st_id, modFrxstout$timest, sep=",")
@@ -514,21 +572,33 @@ if (readFrxstout) {
         	modFrxstout$uni <- NULL
         	modFrxstout <- modFrxstout[nrow(modFrxstout):1,]
                 modFrxstout <- modFrxstout[nrow(modFrxstout):1,]
+                # Subset dates
+                if (!is.null(readStart) & !is.null(readEnd)) {
+                        modFrxstout <- subset(modFrxstout, modFrxstout$POSIXct >= readStart & modFrxstout$POSIXct <= readEnd)
+                }
+                if (!is.null(readStart) & is.null(readEnd)) {
+                        modFrxstout <- subset(modFrxstout, modFrxstout$POSIXct >= readStart)
+                }
+                if (is.null(readStart) & !is.null(readEnd)) {
+                        modFrxstout <- subset(modFrxstout, modFrxstout$POSIXct <= readEnd)
+                }
 		# Bring in basin IDs
   		modFrxstout <- plyr::join(modFrxstout, stid2gage, by="st_id")
   		# Calculate accumulated flow
   		modFrxstout$q_mm <- NA
-  		for (j in 1:nrow(modFrxstout)) {
-			ts <- modFrxstout$secs[j] - ifelse(j==1, 0, modFrxstout$secs[j-1])
-    			modFrxstout$q_mm[j] <- ifelse(is.na(modFrxstout$STAID[j]), NA,
-                                	modFrxstout$q_cms[j]/
-                                  	(mskhyd.areaList[[modFrxstout$STAID[j]]]
-                                   	*hydDX*hydDX)*1000*ts)
-    		}
   		modFrxstout <- modFrxstout[order(modFrxstout$st_id, modFrxstout$POSIXct),]
   		modFrxstout$ACCFLOW <- NA
   		for (j in unique(modFrxstout$STAID)[!is.na(unique(modFrxstout$STAID))]) {
     			tmp <- subset(modFrxstout, modFrxstout$STAID==j)
+			tmp$q_mm <- NA
+			for (k in 1:nrow(tmp)) {
+				ts <- ifelse(k==1, as.integer(difftime(tmp$POSIXct[k+1],tmp$POSIXct[k], units="secs")), 
+						as.integer(difftime(tmp$POSIXct[k],tmp$POSIXct[k-1], units="secs")))
+                        	tmp$q_mm[k] <- tmp$q_cms[k]/
+                                        (mskhyd.areaList[[j]]
+                                        *hydDX*hydDX)*1000*ts
+			}
+			modFrxstout$q_mm[modFrxstout$STAID==j & !is.na(modFrxstout$STAID)] <- tmp$q_mm
     			qaccum <- cumsum(tmp$q_mm)
     			modFrxstout$ACCFLOW[modFrxstout$STAID==j & !is.na(modFrxstout$STAID)] <- qaccum
   		}
@@ -551,7 +621,7 @@ if (readFrxstout) {
 ## ------------------------------------------------------------------------
 ## ------------------------------------------------------------------------
 
-if (readBasinLdasin | readAmfLdasin | readSnoLdasin | readMetLdasin) {
+if (readForc & (readBasinLdasin | readAmfLdasin | readSnoLdasin | readMetLdasin)) {
 
         ## ------------------------------------------------------------------------
         # Setup variables
@@ -563,10 +633,10 @@ if (readBasinLdasin | readAmfLdasin | readSnoLdasin | readMetLdasin) {
        
         # INDEXES
 	# GENERAL FUNCTION
-        genIndex_Ldasin <- function(pref, ldasinVars=ldasinVars) {
+        genIndex_Ldasin <- function(pref, ldasinVars.=ldasinVars) {
         	level0 <- get(paste0(pref, "Index_Lev0"))
 		ldasinInd <- list( level0, level0, level0, level0, level0, level0, level0, level0 )
-                names(ldasinInd) <- names(ldasinVars)
+                names(ldasinInd) <- names(ldasinVars.)
                 ldasinIndexList <- list( ldasin = ldasinInd )        
                 ldasinIndexList
                 }
@@ -588,55 +658,107 @@ if (readBasinLdasin | readAmfLdasin | readSnoLdasin | readMetLdasin) {
         # Get data and flatten files
         ## ------------------------------------------------------------------------
         # GENERAL FUNCTION
-        genReads_Ldasin <- function(forcPathList=forcPathList, forcTagList=forcTagList,
-                                        ldasinIndexList,
-                                        ldasinVariableList=ldasinVariableList,
-                                        ldasinFilesList=ldasinFilesList,
-                                        parallelFlag=parallelFlag,
-					readStart=readStart, readEnd=readEnd, ldas2dt=ldas2dt) {
+        genReads_Ldasin <- function(forcPathList.=forcPathList, forcTagList.=forcTagList,
+                                        ldasinIndexList.,
+                                        ldasinVariableList.=ldasinVariableList,
+                                        ldasinFilesList.=ldasinFilesList,
+                                        parallelFlag.=parallelFlag,
+					readStart.=readStart, readEnd.=readEnd, ldas2dt.=ldas2dt) {
                 modLdasin_tmp <- data.frame()
-                for (i in 1:length(forcPathList)) {
-                        forcPath <- forcPathList[i]
-                        forcTag <- forcTagList[i]
+		modLdasin.snoday_tmp <- data.frame()
+		modLdasin.utcday_tmp <- data.frame()
+                for (i in 1:length(forcPathList.)) {
+                        forcPath <- forcPathList.[i]
+                        forcTag <- forcTagList.[i]
                         # Setup LDASIN files
                         filesList <- list.files(path=forcPath, pattern=glob2rx('*.LDASIN_DOMAIN*'), full.names=TRUE)
-                        if (!is.null(readStart) | !is.null(readEnd)) {
-                                filesList <- subDates(filesList, readStart, readEnd, ldas2dt)
+                        if (!is.null(readStart.) | !is.null(readEnd.)) {
+                                filesList <- subDates(filesList, readStart., readEnd., ldas2dt.)
                         }                
         		ldasinFilesList <- list( ldasin = filesList)
                         # Run basin means
-                        ldasinDF <- GetMultiNcdf(indexList=ldasinIndexList,
-                                           variableList=ldasinVariableList,
-                                           filesList=ldasinFilesList,
-                                           parallel=parallelFlag )
+                        ldasinDF <- GetMultiNcdf(indexList=ldasinIndexList.,
+                                           variableList=ldasinVariableList.,
+                                           filesList=ldasinFilesList.,
+                                           parallel=parallelFlag. )
                         modLdasin <- ReshapeMultiNcdf(ldasinDF)
 			modLdasin <- modLdasin[order(modLdasin$statArg, modLdasin$POSIXct),]
                         modLdasin$tag <- forcTag
+  			## ------------------------------------------------------------------------
+  			# Calculate daily forcings
+  			# Adjust to dates to match SNOTEL daily report.
+  			# SNOTEL daily reports are derived from prior day's hourlies, and all 
+  			# times are PST (no daylight savings).
+  			# Adjust UTC to PST
+  			modLdasin$PST_time <- modLdasin$POSIXct - 8*3600
+  			# Calculate truncated date from PST time
+  			modLdasin$PST_date <- CalcDateTrunc(modLdasin$PST_time)
+  			# Shift by 1 day so aggregations match daily report
+  			modLdasin$PST_dateP1 <- modLdasin$PST_date + 1
+  			# Unit conversions
+  			modLdasin$RelHum <- 0.01 * with(modLdasin,
+                        		    0.263*PSFC*Q2D*(exp((17.67*(T2D-273.16))/(T2D-29.65)))^(-1))
+  			modLdasin$Wind <- with(modLdasin, sqrt(U2D^2 + V2D^2))
+  			# Run daily aggs
+  			modLdasin.snoday <- plyr::ddply(modLdasin, plyr::.(statArg, PST_dateP1), plyr::summarize,
+                                 T2D_mean=mean(T2D), T2D_min=min(T2D), T2D_max=max(T2D),
+                                 Q2D_mean=mean(Q2D), Q2D_min=min(Q2D), Q2D_max=max(Q2D),
+                                 U2D_mean=mean(U2D), U2D_min=min(U2D), U2D_max=max(U2D),
+                                 V2D_mean=mean(V2D), V2D_min=min(V2D), V2D_max=max(V2D),
+                                 PSFC_mean=mean(PSFC), PSFC_min=min(PSFC), PSFC_max=max(PSFC),
+                                 SWDOWN_mean=mean(SWDOWN), SWDOWN_min=min(SWDOWN), SWDOWN_max=max(SWDOWN),
+                                 LWDOWN_mean=mean(LWDOWN), LWDOWN_min=min(LWDOWN), LWDOWN_max=max(LWDOWN),
+                                 RelHum_mean=mean(RelHum), RelHum_min=min(RelHum), RelHum_max=max(RelHum),
+                                 Wind_mean=mean(Wind), Wind_min=min(Wind), Wind_max=max(Wind),
+                                 .parallel=TRUE)
+  			# Add dummy POSIXct for ease of plotting
+  			modLdasin.snoday$POSIXct <- as.POSIXct(paste0(modLdasin.snoday$PST_dateP1, " 00:00"), tz="UTC")
+  			# Calculate truncated date from UTC time
+  			modLdasin$UTC_date <- CalcDateTrunc(modLdasin$POSIXct)
+  			# Run daily aggs
+  			modLdasin.utcday <- plyr::ddply(modLdasin, plyr::.(statArg, UTC_date), plyr::summarize,
+                                 T2D_mean=mean(T2D), T2D_min=min(T2D), T2D_max=max(T2D),
+                                 Q2D_mean=mean(Q2D), Q2D_min=min(Q2D), Q2D_max=max(Q2D),
+                                 U2D_mean=mean(U2D), U2D_min=min(U2D), U2D_max=max(U2D),
+                                 V2D_mean=mean(V2D), V2D_min=min(V2D), V2D_max=max(V2D),
+                                 PSFC_mean=mean(PSFC), PSFC_min=min(PSFC), PSFC_max=max(PSFC),
+                                 SWDOWN_mean=mean(SWDOWN), SWDOWN_min=min(SWDOWN), SWDOWN_max=max(SWDOWN),
+                                 LWDOWN_mean=mean(LWDOWN), LWDOWN_min=min(LWDOWN), LWDOWN_max=max(LWDOWN),
+                                 RelHum_mean=mean(RelHum), RelHum_min=min(RelHum), RelHum_max=max(RelHum),
+                                 Wind_mean=mean(Wind), Wind_min=min(Wind), Wind_max=max(Wind),
+                                 .parallel=TRUE)
+  			# Add dummy POSIXct for ease of plotting
+  			modLdasin.utcday$POSIXct <- as.POSIXct(paste0(modLdasin.utcday$UTC_date, " 00:00"), tz="UTC")
+			# Bind all
                         modLdasin_tmp <- plyr::rbind.fill(modLdasin_tmp, modLdasin)
+			modLdasin.snoday_tmp <- plyr::rbind.fill(modLdasin.snoday_tmp, modLdasin.snoday)
+			modLdasin.utcday_tmp <- plyr::rbind.fill(modLdasin.utcday_tmp, modLdasin.utcday)
                 }
-                modLdasin_tmp
+                modLdasinList <- list(modLdasin_tmp, modLdasin.snoday_tmp, modLdasin.utcday_tmp)
+		names(modLdasinList) <- c("native", "snoday", "utcday")
+		modLdasinList
         }
         # BASIN
         if (readBasinLdasin) {
-                modLdasin_BAS_tmp <- genReads_Ldasin(ldasinIndexList=ldasinBasIndexList)
+                modLdasin_BAS_tmp <- genReads_Ldasin(ldasinIndexList.=ldasinBasIndexList)
                 saveList <- c(saveList, "modLdasin_BAS_tmp")
                 save(list=saveList, file=tmpRimg)
         }
         # AMERIFLUX
         if (readAmfLdasin) {
-                modLdasin_AMF_tmp <- genReads_Ldasin(ldasinIndexList=ldasinAmfIndexList)
+                modLdasin_AMF_tmp <- genReads_Ldasin(ldasinIndexList.=ldasinAmfIndexList)
                 saveList <- c(saveList, "modLdasin_AMF_tmp")
                 save(list=saveList, file=tmpRimg)
         }
         # SNOTEL
         if (readSnoLdasin) {
-                modLdasin_SNO_tmp <- genReads_Ldasin(ldasinIndexList=ldasinSnoIndexList)
+                modLdasin_SNO_tmp <- genReads_Ldasin(ldasinIndexList.=ldasinSnoIndexList)
                 saveList <- c(saveList, "modLdasin_SNO_tmp")
                 save(list=saveList, file=tmpRimg)
         }
         # MET
         if (readMetLdasin) {
-                modLdasin_MET_tmp <- genReads_Ldasin(ldasinIndexList=ldasinMetIndexList)
+                modLdasin_MET_tmp <- genReads_Ldasin(ldasinIndexList.=ldasinMetIndexList)
                 saveList <- c(saveList, "modLdasin_MET_tmp")
                 save(list=saveList, file=tmpRimg)
         }
@@ -651,147 +773,125 @@ if (readBasinLdasin | readAmfLdasin | readSnoLdasin | readMetLdasin) {
 
 saveList <- c()
 
-if (append2exist) {
-	load(modReadFileIn)
+# Read in existing files is available and append=TRUE
+if (modAppend) {
+	tempEnv <- new.env()
+	load(modReadFileOut, envir=tempEnv)
+	objNew <- ls(tempEnv)
+	for(n in ls(tempEnv, all.names=TRUE)) assign(n, get(n, tempEnv), .GlobalEnv)
+	rm(tempEnv)
+	saveList <- c(saveList, objNew)
+	rm(objNew)
+}
+if (forcAppend) {
+        tempEnv <- new.env()
+        load(forcReadFileOut, envir=tempEnv)
+        objNew <- ls(tempEnv)
+        for(n in ls(tempEnv, all.names=TRUE)) assign(n, get(n, tempEnv), .GlobalEnv)
+        rm(tempEnv)
+        saveList <- c(saveList, objNew)
+	rm(objNew)
+}
+
+# Model output reads
+if (readMod) {
 	if (readBasinLdasout) {
-		if (exists("modLdasout_BAS")) {
+		if (modAppend & exists("modLdasout_BAS")) {
 			modLdasout_BAS <- plyr::rbind.fill(modLdasout_BAS, modLdasout_BAS_tmp)
 		} else {
 			modLdasout_BAS <- modLdasout_BAS_tmp
+			saveList <- c(saveList, "modLdasout_BAS")
 		}
-		saveList <- c(saveList, "modLdasout_BAS")
 	}
-        if (readAmfdasout) {
-                if (exists("modLdasout_AMF")) {
+        if (readAmfLdasout) {
+                if (modAppend & exists("modLdasout_AMF")) {
                         modLdasout_AMF <- plyr::rbind.fill(modLdasout_AMF, modLdasout_AMF_tmp)
                 } else {
                         modLdasout_AMF <- modLdasout_AMF_tmp
-                }
-		saveList <- c(saveList, "modLdasout_AMF")
+			saveList <- c(saveList, "modLdasout_AMF")
+		}
         }
         if (readSnoLdasout) {
-                if (exists("modLdasout_SNO")) {
+                if (modAppend & exists("modLdasout_SNO")) {
                         modLdasout_SNO <- plyr::rbind.fill(modLdasout_SNO, modLdasout_SNO_tmp)
                 } else {
                         modLdasout_SNO <- modLdasout_SNO_tmp
-                }
-		saveList <- c(saveList, "modLdasout_SNO")
+			saveList <- c(saveList, "modLdasout_SNO")
+		}
         }
         if (readMetLdasout) {
-                if (exists("modLdasout_MET")) {
+                if (modAppend & exists("modLdasout_MET")) {
                         modLdasout_MET <- plyr::rbind.fill(modLdasout_MET, modLdasout_MET_tmp)
                 } else {
                         modLdasout_MET <- modLdasout_MET_tmp
-                }
-		saveList <- c(saveList, "modLdasout_MET")
+			saveList <- c(saveList, "modLdasout_MET")
+		}
         }
-        if (readBasinLdasin) {
-                if (exists("modLdasin_BAS")) {
-                        modLdasin_BAS <- plyr::rbind.fill(modLdasin_BAS, modLdasin_BAS_tmp)
-                } else {
-                        modLdasin_BAS <- modLdasin_BAS_tmp
-                }
-		saveList <- c(saveList, "modLdasin_BAS")
-        }
-        if (readAmfdasin) {
-                if (exists("modLdasin_AMF")) {
-                        modLdasin_AMF <- plyr::rbind.fill(modLdasin_AMF, modLdasin_AMF_tmp)
-                } else {
-                        modLdasin_AMF <- modLdasin_AMF_tmp
-                }
-		saveList <- c(saveList, "modLdasin_AMF")
-        }
-        if (readSnoLdasin) {
-                if (exists("modLdasin_SNO")) {
-                        modLdasin_SNO <- plyr::rbind.fill(modLdasin_SNO, modLdasin_SNO_tmp)
-                } else {
-                        modLdasin_SNO <- modLdasin_SNO_tmp
-                }
-		saveList <- c(saveList, "modLdasin_SNO")
-        }
-        if (readMetLdasin) {
-                if (exists("modLdasin_MET")) {
-                        modLdasin_MET <- plyr::rbind.fill(modLdasin_MET, modLdasin_MET_tmp)
-                } else {
-                        modLdasin_MET <- modLdasin_MET_tmp
-                }
-		saveList <- c(saveList, "modLdasin_MET")
-        }
-	if (readBasinRtout) {
-		if (exists("modRtout_BAS")) {
+        if (readBasinRtout) {
+                if (modAppend & exists("modRtout_BAS")) {
                         modRtout_BAS <- plyr::rbind.fill(modRtout_BAS, modRtout_BAS_tmp)
                 } else {
                         modRtout_BAS <- modRtout_BAS_tmp
-                }
-		saveList <- c(saveList, "modRtout_BAS")
-	}
+                	saveList <- c(saveList, "modRtout_BAS")
+		}
+        }
         if (readGwout) {
-                if (exists("modGwout")) {
+                if (modAppend & exists("modGwout")) {
                         modGwout <- plyr::rbind.fill(modGwout, modGwout_tmp)
                 } else {
                         modGwout <- modGwout_tmp
-                }
-		saveList <- c(saveList, "modGwout")
-        }
+                	saveList <- c(saveList, "modGwout")
+        	}
+	}
         if (readFrxstout) {
-                if (exists("modFrxstout")) {
+                if (modAppend & exists("modFrxstout")) {
                         modFrxstout <- plyr::rbind.fill(modFrxstout, modFrxstout_tmp)
                 } else {
                         modFrxstout <- modFrxstout_tmp
-                }
-		saveList <- c(saveList, "modFrxstout")
-        }
-
-} else {
-        if (readBasinLdasout) {
-                        modLdasout_BAS <- modLdasout_BAS_tmp
-			saveList <- c(saveList, "modLdasout_BAS")
-        }
-        if (readAmfdasout) {
-                        modLdasout_AMF <- modLdasout_AMF_tmp
-			saveList <- c(saveList, "modLdasout_AMF")
-        }
-        if (readSnoLdasout) {
-                        modLdasout_SNO <- modLdasout_SNO_tmp
-			saveList <- c(saveList, "modLdasout_SNO")
-        }
-        if (readMetLdasout) {
-                        modLdasout_MET <- modLdasout_MET_tmp
-			saveList <- c(saveList, "modLdasout_MET")
-        }
-        if (readBasinLdasin) {
-                        modLdasin_BAS <- modLdasin_BAS_tmp
-			saveList <- c(saveList, "modLdasin_BAS")
-        }
-        if (readAmfdasin) {
-                        modLdasin_AMF <- modLdasin_AMF_tmp
-			saveList <- c(saveList, "modLdasin_AMF")
-        }
-        if (readSnoLdasin) {
-                        modLdasin_SNO <- modLdasin_SNO_tmp
-			saveList <- c(saveList, "modLdasin_SNO")
-        }
-        if (readMetLdasin) {
-                        modLdasin_MET <- modLdasin_MET_tmp
-			saveList <- c(saveList, "modLdasin_MET")
-        }
-        if (readBasinRtout) {
-                        modRtout_BAS <- modRtout_BAS_tmp
-			saveList <- c(saveList, "modRtout_BAS")
-        }
-        if (readGwout) {
-                        modGwout <- modGwout_tmp
-			saveList <- c(saveList, "modGwout")
-        }
-        if (readFrxstout) {
-                        modFrxstout <- modFrxstout_tmp
-			saveList <- c(saveList, "modFrxstout")
+                	saveList <- c(saveList, "modFrxstout")
+		}
         }
 }
 
-save(saveList, file=modReadFileOut)
+if (readForc) {
+        if (readBasinLdasin) {
+                if (forcAppend & exists("modLdasin_BAS")) {
+                        modLdasin_BAS <- plyr::rbind.fill(modLdasin_BAS, modLdasin_BAS_tmp)
+                } else {
+                        modLdasin_BAS <- modLdasin_BAS_tmp
+			saveList <- c(saveList, "modLdasin_BAS")
+		}
+        }
+        if (readAmfLdasin) {
+                if (forcAppend & exists("modLdasin_AMF")) {
+                        modLdasin_AMF <- plyr::rbind.fill(modLdasin_AMF, modLdasin_AMF_tmp)
+                } else {
+                        modLdasin_AMF <- modLdasin_AMF_tmp
+			saveList <- c(saveList, "modLdasin_AMF")
+        	}
+	}
+        if (readSnoLdasin) {
+                if (forcAppend & exists("modLdasin_SNO")) {
+                        modLdasin_SNO <- plyr::rbind.fill(modLdasin_SNO, modLdasin_SNO_tmp)
+                } else {
+                        modLdasin_SNO <- modLdasin_SNO_tmp
+			saveList <- c(saveList, "modLdasin_SNO")
+		}
+        }
+        if (readMetLdasin) {
+                if (forcAppend & exists("modLdasin_MET")) {
+                        modLdasin_MET <- plyr::rbind.fill(modLdasin_MET, modLdasin_MET_tmp)
+                } else {
+                        modLdasin_MET <- modLdasin_MET_tmp
+			saveList <- c(saveList, "modLdasin_MET")
+		}
+        }
+}
+
+saveList <- unique(saveList)
+
+save(list=saveList, file=modReadFileOut)
 #file.remove(tmpRimg)
 
-quit("no")
 proc.time()
 

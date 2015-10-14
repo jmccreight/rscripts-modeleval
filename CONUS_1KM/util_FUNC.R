@@ -22,3 +22,18 @@ subDates <- function(filesList, startDate, endDate, func) {
 	filesList
 }
 
+# Subset object by dates
+subDf <- function(df, stdate=NULL, enddate=NULL) {
+  # Subset
+  if (!is.null(stdate) & !is.null(enddate)) {
+    df <- subset(df, df$POSIXct >= stdate & df$POSIXct <= enddate)
+  }
+  if (!is.null(stdate) & is.null(enddate)) {
+    df <- subset(df, df$POSIXct >= stdate)
+  }
+  if (is.null(stdate) & !is.null(enddate)) {
+    df <- subset(df, df$POSIXct <= enddate)
+  }
+  df
+}
+

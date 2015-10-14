@@ -8,24 +8,22 @@
 ncores <- 16
 
 ## Specify the high-resolution routing domain file
-hydFile <- '/glade/p/nral0008/zhangyx/CONUS1km_LSMOnly_daily_snowmods/DOMAIN/Fulldom_hires_netcdf_file.nc'
-hydFile <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande'
+hydFile <- '/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/DOMAIN/updated_Nov_5_2014/Fulldom_hires_netcdf_file.nc'
 
 ## Specify the low-resolution geogrid file
-geoFile <- '/glade/p/nral0008/zhangyx/CONUS1km_LSMOnly_daily_snowmods/DOMAIN/geo_em.d01.nc.conus_1km'
 geoFile <- '/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/DOMAIN/geo_em.d02.nc'
 
 ## Specify the aggregation factor between hydrogrid and geogrid
-aggfact <- 4
+aggfact <- 10
 
 ## Specify location of .Rdata file containing pre-processed mask objects
-maskFile <- '/glade/p/ral/RHAP/adugger/CONUS_1km/ANALYSIS/conus1km_masks.Rdata'
+maskFile <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/DOMAIN/urg_MASKS.Rdata'
 
 
 ################## Observations ###################
 
 ## Path to Ameriflux data .Rdata file
-AMFfile <- "/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/AMF/amf_URG.Rdata" 
+AMFfile <- NULL 
 
 ## Path to SNOTEl data .Rdata file
 SNOfile <- "/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/SNOTEL/snotel_URG.Rdata" 
@@ -47,13 +45,17 @@ readMod <- TRUE
 ## If TRUE, specify the following to read in model output:
 
 	# Specify the model run output directory or directories
-	modPathList <- c('/glade/p/nral0008/zhangyx/CONUS1km_LSMOnly_daily_snowmods')
+	modPathList <- c('/glade/p/ral/RHAP/adugger/Upper_RioGrande/RUN.NEWMP/OUTPUT_NLDAS_SPINUP',
+			'/glade/p/ral/RHAP/adugger/Upper_RioGrande/RUN.NEWMP/OUTPUT_NLDASDWNSC_SPINUP')
 
 	# Specify tags to identify the model run or runs (should be 1:1 with number of model output directories)
-	modTagList <- c('su2011_13_LSMonly_NLDASdwnsc_oldmodel')
+	modTagList <- c('su2013_15_NLDAS_newmodel', 
+			'su2013_15_NLDASdwnsc_newmodel')
 
 	# Specify the output .Rdata file to create
-	modReadFileOut <- 'conus1km_eval_raw.Rdata'
+	modReadFileOut <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/urg_spinup_eval_raw.Rdata'
+	# Append to existing file? FALSE = create new file (or overwrite existing!)
+	modAppend <- FALSE
 
 	# Select what aggregations/imports to run:
 
@@ -61,37 +63,43 @@ readMod <- TRUE
 		readBasinLdasout <- TRUE  
 		readBasinRtout <- FALSE
 		readGwout <- FALSE
-		readFrxstout <- FALSE
+		readFrxstout <- TRUE
 
 		# Snotel sites
 		readSnoLdasout <- TRUE
 
 		# Ameriflux sites
-		readAmfLdasout <- TRUE
+		readAmfLdasout <- FALSE
 
 		# MET sites
 		readMetLdasout <- TRUE
 
 	# Subset LDASOUT variables?
 	varsLdasoutSUB <- TRUE
+	varsLdasoutNFIE <- FALSE
 
 	# Specify start and end dates if you do NOT want to read all files
-	startRead <- NULL
-	endRead <- NULL
+	readStart <- NULL
+	readEnd <- NULL
 
 
 ################## Forcing Reads ##################
 
 ## Read forcing data?
-readForc <- TRUE
+readForc <- FALSE
 
 ## If TRUE, specify the following:
 
 	# Specify the path to the forcing data
-	forcPath <- '/glade/scratch/zhangyx/WRF-Hydro/CONUS1km.ForcingData'
+	forcPathList <- c('/glade/scratch/zhangyx/WRF-Hydro/RioGrande/NLDAS2.data')
+
+        # Specify tags to identify the forcings (should be 1:1 with number of model forcing directories)
+        forcTagList <- c('nldas2dwnsc')
 
 	# Specify the forcing output .Rdata file to create
-	forcReadFileOut <- 'conus1k_nldas2dwnsc.Rdata'
+	forcReadFileOut <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/urg_forcing_raw.Rdata'
+        # Append to existing file? FALSE = create new file (or overwrite existing!)
+        forcAppend <- FALSE
 
 	# Select what aggregations/imports to run:
 
@@ -102,7 +110,7 @@ readForc <- TRUE
 		readSnoLdasin <- TRUE
 
 		# Ameriflux sites
-		readAmfLdasin <- TRUE
+		readAmfLdasin <- FALSE
 
 		# MET sites
 		readMetLdasin <- TRUE
@@ -112,22 +120,27 @@ readForc <- TRUE
         endForc <- NULL
 
 
-############# Model Output Processing #############
+############# Model Performance Stats #############
 
-## Process basin data?
-basinProc <- TRUE
+## Calculate streamflow performance stats?
+strProc <- TRUE
 
-## Process point data?
-pointProc <- TRUE
+## Calculate SNOTEL performance stats?
+snoProc <- FALSE
 
-## If either is TRUE, specify the following:
+## Calculate Ameriflux performance stats?
+amfProc <- FALSE
+
+## Calculate MET performance stats?
+metProc <- FALSE
+
+## If any are TRUE, specify the following:
 
 	# If the raw data read .Rdata file exists (vs. created above), specify the file
 	modReadFileIn <- NULL
 
-	# Range dates to restrict analysis
-	stdate <- NULL
-	enddate <- as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
+        # Specify the stats output .Rdata file to create
+        statsFileOut <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/urg_stats_all.Rdata'
 
 	# Range dates for main stats
 	stdate_stats <- NULL
@@ -137,9 +150,10 @@ pointProc <- TRUE
 	stdate_stats_sub <- as.POSIXct("2015-04-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
 	enddate_stats_sub <- as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
 
-	# Calculate stats?
-	runStats <- TRUE
+	# Write stats tables?
 	writeStatsFile <- TRUE
+	# If TRUE, specify output directory
+	writeDir <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/EVAL_151013'
 
 
 
@@ -164,25 +178,25 @@ if (ncores>1) {
 }
 
 # Obs
-if (!isnull(AMFfile)) {
+if (!is.null(AMFfile)) {
 	if (file.exists(AMFfile)) {
 		load(AMFfile)
 		#stop(paste("Ameriflux obs file specified but does not exist:", AMFfile))
 	}
 }
-if (!isnull(SNOfile)) {
+if (!is.null(SNOfile)) {
         if (file.exists(SNOfile)) {
                 load(SNOfile)
                 #stop(paste("SNOTEL obs file specified but does not exist:", SNOfile))
         }
 }
-if (!isnull(METfile)) {
+if (!is.null(METfile)) {
         if (file.exists(METfile)) {
                 load(METfile)
                 #stop(paste("MET obs file specified but does not exist:", METfile))
         }
 }
-if (!isnull(STRfile)) {
+if (!is.null(STRfile)) {
         if (file.exists(STRfile)) {
                 load(STRfile)
                 #stop(paste("Streamflow obs file specified but does not exist:", STRfile))
@@ -190,18 +204,14 @@ if (!isnull(STRfile)) {
 }
 
 # Model Reads 
-if (readMod) {
+if (readMod | readForc) {
 	source("read_MODELOUT.R")
-} else {
-	if (file.exists(modReadFileIn)) {
-		load(modReadFileIn)
-		#stop(paste("Model read file specified but does not exist:", modReadFileIn))
-	}
 }
 
 # Model Output processing
-if (basinProc | pointProc) {
-	if (isnull(modReadFileOut)) {
+if (strProc | snoProc | amfProc | metProc) {
+	message("Calculating stats")
+	if (is.null(modReadFileOut)) {
 		if (file.exists(modReadFileIn)) {
 			load(modReadFileIn)
 		}
@@ -216,6 +226,6 @@ if (basinProc | pointProc) {
 			}
 		}
 	}
+	source("calc_PERFSTATS.R")
 }
-if (basinProc) {source("process_BASIN.R")}
-if (pointProc) {source("process_PTS.R")}
+

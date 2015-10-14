@@ -37,6 +37,7 @@ modoutPath <- '/glade/scratch/zhangyx/WRF-Hydro/RioGrande/spinup'
 
 # Forcing directory
 forcPath <- '/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/forcing' 
+#forcPath <- '/glade/scratch/zhangyx/WRF-Hydro/RioGrande/NLDAS2.data'
 
 # Where to save the R workspace
 #outImg <- 'urg_wy2015_NLDAS2dwnsc_fullrtng_ALL.Rdata'
@@ -53,7 +54,9 @@ forcPath <- '/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/forcing'
 #outImg <- 'urg_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_precipdwnsc_fullrtng_ALL.Rdata'
 #outImg <- 'urg_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_alldwnsc_fullrtng_ALL.Rdata'
 #outImg <- 'urg_spinup_NLDAS2_newmp.Rdata'
-outImg <- 'urg_spinup_NLDAS2dwnsc_newmp.Rdata'
+#outImg <- 'urg_spinup_NLDAS2dwnsc_newmp.Rdata'
+
+outImg <- 'urg_forcings_NLDAS2.Rdata'
 
 # Suffix to add to output objects
 #objSuffix <- '_wy2015_NLDAS2dwnsc_fullrtng'
@@ -74,13 +77,13 @@ objSuffix <- '_spinup_NLDAS2dwnsc_newmp'
 
 # Run flags for imports
 # Basin aggs
-runBasinLdasout <- TRUE
+runBasinLdasout <- FALSE
 runBasinRtout <- FALSE
 runGwout <- FALSE
-runFrxstout <- TRUE
+runFrxstout <- FALSE
 # Snotel sites
-runSnoLdasout <- TRUE
-runSnoLdasin <- FALSE
+runSnoLdasout <- FALSE
+runSnoLdasin <- TRUE
 
 # Subset ldasout variables?
 varsLdasoutSUB <- TRUE
