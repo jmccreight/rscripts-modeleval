@@ -2,12 +2,13 @@
 ##             MODEL OUTPUT READS                ##
 ###################################################
 
+library(plyr)
 
 ################## General Setup ##################
 
 # Setup temp file
 saveList <- c()
-tmpRimg <- tempfile(fileext=".Rdata")
+tmpRimg <- tempfile(fileext=".Rdata", tmpdir=".")
 message(paste0("Temp output file:", tmpRimg))
 
 # Setup lookups
@@ -19,6 +20,7 @@ ncid <- ncdf4::nc_open(geoFile)
 geoDX <- ncdf4::ncatt_get(ncid,varid=0,'DX')$value
 ncdf4::nc_close(ncid)
 hydDX <- geoDX/aggfact
+
 
 ## ------------------------------------------------------------------------
 ## ------------------------------------------------------------------------
@@ -147,12 +149,6 @@ if ((readMod & readMetLdasout) | (readForc & readMetLdasin)) {
 if (readMod & readBasinRtout) {
  
          ## ------------------------------------------------------------------------
-         # Setup RTOUT files
- 
-         filesList <- list.files(path=modoutPath, pattern=glob2rx('*.RTOUT_DOMAIN*'), full.names=TRUE)
-         rtoutFilesList <- list( rtout = filesList)
- 
-         ## ------------------------------------------------------------------------
          # Setup variables
  
          varNames <- c('QSTRMVOLRT','SFCHEADSUBRT','QBDRYRT')
@@ -178,8 +174,8 @@ if (readMod & readBasinRtout) {
         	modoutTag <- modTagList[i]
          	# Setup RTOUT files
          	filesList <- list.files(path=modoutPath, pattern=glob2rx('*.RTOUT_DOMAIN*'), full.names=TRUE)
-		if (!is.null(readStart) | !is.null(readEnd)) {		
-			filesList <- subDates(filesList, readStart, readEnd, rt2dt)
+		if (!is.null(readModStart) | !is.null(readModEnd)) {		
+			filesList <- subDates(filesList, readModStart, readModEnd, rt2dt)
 		}
          	rtoutFilesList <- list( rtout = filesList)
          	# Run basin means
@@ -216,13 +212,13 @@ if (readMod & (readBasinLdasout | readAmfLdasout | readSnoLdasout | readMetLdaso
                 varNames <- c('SWFORC', 'LWFORC', 'ALBEDO', 'GRDFLX',
                         'LH', 'HFX', 'ETRAN', 'UGDRNOFF',
                         'SFCRNOFF', 'CANLIQ', 'CANICE', 'ACCPRCP',
-			'ACCECAN', 'ACCEDIR', 'ACCETRAN', 'TRAD',
+			'ACCECAN', 'ACCEDIR', 'TRAD',
                          rep('SOIL_M',4),
                         'SNOWH', 'SNEQV')
                 varLabels <- c('SWFORC', 'LWFORC', 'ALBEDO', 'GRDFLX',
                         'LH', 'HFX', 'ETRAN', 'UGDRNOFF',
                         'SFCRNOFF', 'CANLIQ', 'CANICE', 'ACCPRCP',
-                        'ACCECAN', 'ACCEDIR', 'ACCETRAN', 'TRAD',
+                        'ACCECAN', 'ACCEDIR', 'TRAD',
                          paste0('SOIL_M',1:4),
                         'SNOWH', 'SNEQV')
                 ldasoutVars <- as.list( varNames )
@@ -238,7 +234,7 @@ if (readMod & (readBasinLdasout | readAmfLdasout | readSnoLdasout | readMetLdaso
                         ldasoutInd <- list( level0, level0, level0, level0,
                                         level0, level0, level0, level0,
                                         level0, level0, level0, level0,
-					level0, level0, level0, level0,
+					level0, level0, level0,
                                         level1, level2, level3, level4,
                                         level0, level0 )
                         names(ldasoutInd) <- names(ldasoutVars.)
@@ -263,20 +259,32 @@ if (readMod & (readBasinLdasout | readAmfLdasout | readSnoLdasout | readMetLdaso
  
  	if (varsLdasoutSUB) {
  		# SUBSET
- 		varNames <- c('ACCECAN', 'ACCEDIR', 'ETRAN', 'ACCPRCP', 
- 			'CANICE', 'CANLIQ',
- 			'SFCRNOFF','UGDRNOFF',
- 			 rep('SOIL_M',4),
- 			'GRDFLX', 'HFX', 'LH', 'LWFORC', 'SWFORC', 
- 			'ALBEDO','TRAD',
- 			'SNEQV', 'SNOWH')
- 		varLabels <- c('ACCECAN', 'ACCEDIR', 'ETRAN', 'ACCPRCP',
-                 	'CANICE', 'CANLIQ',
-                 	'SFCRNOFF','UGDRNOFF',
-                  	paste0('SOIL_M',1:4),
-                 	'GRDFLX', 'HFX', 'LH', 'LWFORC', 'SWFORC', 
-                 	'ALBEDO', 'TRAD',
-                 	'SNEQV', 'SNOWH')
+ 		varNames <- c('ALBEDO', 'GRDFLX', 'LH', 'HFX', 
+ 			'FIRA', 'FSA', 'TRAD', 'UGDRNOFF',
+ 			'SFCRNOFF','CANLIQ', 'CANICE', 'ACCPRCP',
+			'ACCECAN', 'ACCEDIR', 'ACCETRAN', 'ACCET',
+			'FVEG', 'LAI',
+ 			rep('SOIL_M',4),
+ 			rep('SOIL_T',4),
+			'ACSNOM', 'ACSNOW', 'ISNOW',
+			rep('SNLIQ', 3),
+ 			rep('SNOW_T', 3),
+			rep('SOILICE', 4),
+			'SOILSAT1', 'SOILSAT',
+ 			'FSNO', 'SNOWH', 'SNEQV')
+ 		varLabels <- c('ALBEDO', 'GRDFLX', 'LH', 'HFX',            
+                        'FIRA', 'FSA', 'TRAD', 'UGDRNOFF',
+                        'SFCRNOFF','CANLIQ', 'CANICE', 'ACCPRCP',
+                        'ACCECAN', 'ACCEDIR', 'ACCETRAN', 'ACCET', 
+			'FVEG', 'LAI',
+                        paste0('SOIL_M',1:4),
+                        paste0('SOIL_T',1:4),
+                        'ACSNOM', 'ACSNOW', 'ISNOW',
+			paste0('SNLIQ', 1:3), 
+                        paste0('SNOW_T', 1:3),
+			paste0('SOILICE', 1:4),
+			'SOILSAT1', 'SOILSAT',
+                        'FSNO', 'SNOWH', 'SNEQV')
  		ldasoutVars <- as.list( varNames )
  		names(ldasoutVars) <- varLabels
  		ldasoutVariableList <- list( ldasout = ldasoutVars )
@@ -288,12 +296,18 @@ if (readMod & (readBasinLdasout | readAmfLdasout | readSnoLdasout | readMetLdaso
 			level3 <- get(paste0(pref, "Index_Lev3"))
 			level4 <- get(paste0(pref, "Index_Lev4"))
 			ldasoutInd <- list( level0, level0, level0, level0,
-                                        level0, level0,
-                                        level0, level0,
+                                        level0, level0, level0, level0,
+                                        level0, level0, level0, level0,
+					level0, level0, level0, level0,
+					level0, level0,
                                         level1, level2, level3, level4,
-                                        level0, level0, level0, level0, level0,
-                                        level0, level0, 
-                                        level0, level0 )
+					level1, level2, level3, level4,                                        
+					level0, level0, level0,
+                                        level1, level2, level3,
+					level1, level2, level3,
+					level1, level2, level3, level4,
+					level0, level0, 
+                                        level0, level0, level0 )
                         names(ldasoutInd) <- names(ldasoutVars.)
                         ldasoutIndexList <- list( ldasout = ldasoutInd )
 			ldasoutIndexList
@@ -406,12 +420,11 @@ if (readMod & (readBasinLdasout | readAmfLdasout | readSnoLdasout | readMetLdaso
 	genReads_Ldasout <- function(modPathList.=modPathList, modTagList.=modTagList,
 					ldasoutIndexList.,
 					ldasoutVariableList.=ldasoutVariableList, 
-					ldasoutFilesList.=ldasoutFilesList, 
 					parallelFlag.=parallelFlag,
-					readStart.=readStart, readEnd.=readEnd, ldas2dt.=ldas2dt) {
-                modLdasout_tmp <- data.frame()
-		modLdasout.snoday_tmp <- data.frame()
-		modLdasout.utcday_tmp <- data.frame()
+					readStart.=readModStart, readEnd.=readModEnd, ldas2dt.=ldas2dt) {
+                modLdasout_FINAL <- data.frame()
+		modLdasout.snoday_FINAL <- data.frame()
+		modLdasout.utcday_FINAL <- data.frame()
                 for (i in 1:length(modPathList.)) {
                         modoutPath <- modPathList.[i]
                         modoutTag <- modTagList.[i]
@@ -420,7 +433,9 @@ if (readMod & (readBasinLdasout | readAmfLdasout | readSnoLdasout | readMetLdaso
 			if (!is.null(readStart.) | !is.null(readEnd.)) {
                         	filesList <- subDates(filesList, readStart., readEnd., ldas2dt.)
                 	}
-                        ldasoutFilesList <- list( ldasout = filesList)
+                        filesList <- filesList[1:10]
+			ldasoutFilesList. <- list( ldasout = filesList )
+			message(paste0("First: ", filesList[1], " Last: ", filesList[length(filesList)]))
                         # Run basin means
                         ldasoutDF <- GetMultiNcdf(indexList=ldasoutIndexList.,
                                            variableList=ldasoutVariableList.,
@@ -429,75 +444,77 @@ if (readMod & (readBasinLdasout | readAmfLdasout | readSnoLdasout | readMetLdaso
                         modLdasout <- ReshapeMultiNcdf(ldasoutDF)
                         modLdasout <- CalcNoahmpFluxes(modLdasout, "statArg")
                         modLdasout$tag <- modoutTag
-			ts <- as.integer(difftime(modLdasout$POSIXct[2],modLdasout$POSIXct[1], units="secs"))
-			# Aggregate to daily if subdaily timestep
-			if (ts < (23*3600)) {
-                        	## ------------------------------------------------------------------------
-                        	# Calculate daily values
-                        	# Adjust to dates to match SNOTEL daily report.
-                        	# SNOTEL daily reports are derived from prior day's hourlies, and all 
-                        	# times are PST (no daylight savings).
-                        	# Adjust UTC to PST
-                        	modLdasout$PST_time <- modLdasout$POSIXct - 8*3600
-                        	# Calculate truncated date from PST time
-                        	modLdasout$PST_date <- CalcDateTrunc(modLdasout$PST_time)
-                        	# Shift by 1 day so aggregations match daily report
-                        	modLdasout$PST_dateP1 <- modLdasout$PST_date + 1
-                        	# Run daily aggs
-                        	modLdasout.snoday <- plyr::ddply(modLdasout, plyr::.(statArg, PST_dateP1), plyr::summarize,
-                                	 DEL_ACCPRCP=sum(DEL_ACCPRCP), SNEQV_mean=mean(SNEQV), SNOWH_mean=mean(SNOWH),
-                                 	.parallel=TRUE)
-                        	# Add dummy POSIXct for ease of plotting
-                        	modLdasout.snoday$POSIXct <- as.POSIXct(paste0(modLdasout.snoday$PST_dateP1, " 00:00"), tz="UTC")
-                        	# Calculate truncated date from UTC time
-                        	modLdasout$UTC_date <- CalcDateTrunc(modLdasout$POSIXct)
-                        	# Run daily aggs
-                        	modLdasout.utcday <- plyr::ddply(modLdasout, plyr::.(statArg, UTC_date), plyr::summarize,
-                                	 DEL_ACCPRCP=sum(DEL_ACCPRCP), DEL_ACCEDIR=sum(DEL_ACCEDIR), 
-					 DEL_ACCECAN=sum(DEL_ACCECAN), DEL_ACCETRAN=sum(DEL_ACCETRAN),
-				 	 SNEQV_mean=mean(SNEQV), SNOWH_mean=mean(SNOWH),
-                               		 SOIL_M1_mean=mean(SOIL_M1), SOIL_M2_mean=mean(SOIL_M2), 
-                                 	 SOIL_T1_mean=mean(SOIL_T1), SOIL_T2_mean=mean(SOIL_T2),
-                                 	 LH_mean=mean(LH), HFX_mean=mean(HFX), GRDFLX_mean=mean(GRDFLX),
-                                 	 FIRA_mean=mean(FIRA), FSA_mean=mean(FSA),
-                                 	 .parallel=TRUE)
-                        	# Add dummy POSIXct for ease of plotting
-                        	modLdasout.utcday$POSIXct <- as.POSIXct(paste0(modLdasout.utcday$UTC_date, " 00:00"), tz="UTC")
-                        	# Bind all
-                        	modLdasout.snoday_tmp <- plyr::rbind.fill(modLdasout.snoday_tmp, modLdasout.snoday)
-                        	modLdasout.utcday_tmp <- plyr::rbind.fill(modLdasout.utcday_tmp, modLdasout.utcday)
-			}
-			modLdasout_tmp <- plyr::rbind.fill(modLdasout_tmp, modLdasout)
+			message("LDASOUT: Starting daily aggregations")
+                        ## ------------------------------------------------------------------------
+                        # Calculate daily values
+                        # Adjust to dates to match SNOTEL daily report.
+                        # SNOTEL daily reports are derived from prior day's hourlies, and all 
+                        # times are PST (no daylight savings).
+                        # Adjust UTC to PST
+                        modLdasout$PST_time <- modLdasout$POSIXct - 8*3600
+                        # Calculate truncated date from PST time
+                        modLdasout$PST_date <- CalcDateTrunc(modLdasout$PST_time)
+                        # Shift by 1 day so aggregations match daily report
+                        modLdasout$PST_dateP1 <- modLdasout$PST_date + 1
+                        # Run daily aggs
+			modLdasout <- modLdasout[order(modLdasout$statArg,modLdasout$POSIXct),]
+                        modLdasout.snoday <- plyr::ddply(modLdasout, plyr::.(statArg, PST_dateP1), plyr::summarize,
+                                	 DEL_ACCPRCP=.(sum(DEL_ACCPRCP)), SNEQV_last=.(tail(SNEQV,1)), SNOWH_last=.(tail(SNOWH,1)),
+                                 	.parallel=parallelFlag.)
+                        # Add dummy POSIXct for ease of plotting
+                        modLdasout.snoday$POSIXct <- as.POSIXct(paste0(modLdasout.snoday$PST_dateP1, " 00:00"), tz="UTC")
+                        # Calculate truncated date from UTC time
+                        modLdasout$UTC_date <- CalcDateTrunc(modLdasout$POSIXct)
+                        # Run daily aggs
+                        modLdasout.utcday <- plyr::ddply(modLdasout, plyr::.(statArg, UTC_date), plyr::summarize,
+                                	 DEL_ACCPRCP=.(sum(DEL_ACCPRCP)), DEL_ACCEDIR=.(sum(DEL_ACCEDIR)), 
+					 DEL_ACCECAN=.(sum(DEL_ACCECAN)), DEL_ACCETRAN=.(sum(DEL_ACCETRAN)),
+				 	 SNEQV_mean=.(mean(SNEQV)), SNOWH_mean=.(mean(SNOWH)),
+                               		 SOIL_M1_mean=.(mean(SOIL_M1)), SOIL_M2_mean=.(mean(SOIL_M2)), 
+                                 	 SOIL_T1_mean=.(mean(SOIL_T1)), SOIL_T2_mean=.(mean(SOIL_T2)),
+                                 	 LH_mean=.(mean(LH)), HFX_mean=.(mean(HFX)), GRDFLX_mean=.(mean(GRDFLX)),
+                                 	 FIRA_mean=.(mean(FIRA)), FSA_mean=.(mean(FSA)),
+                                 	 .parallel=parallelFlag.)
+                        # Add dummy POSIXct for ease of plotting
+                        modLdasout.utcday$POSIXct <- as.POSIXct(paste0(modLdasout.utcday$UTC_date, " 00:00"), tz="UTC")
+			# Add tags
+			modLdasout.snoday$tag <- modoutTag
+			modLdasout.utcday$tag <- modoutTag
+                        # Bind all
+                	modLdasout_FINAL <- plyr::rbind.fill(modLdasout_FINAL, modLdasout)
+		        modLdasout.snoday_FINAL <- plyr::rbind.fill(modLdasout.snoday_FINAL, modLdasout.snoday)
+                        modLdasout.utcday_FINAL <- plyr::rbind.fill(modLdasout.utcday_FINAL, modLdasout.utcday)
+			rm(modLdasout, modLdasout.snoday, modLdasout.utcday)
+			gc()
                 }
-		if (exists("modLdasout.snoday_tmp") & exists("modLdasout.utcday_tmp")) {
-                	modLdasoutList <- list(modLdasout_tmp, modLdasout.snoday_tmp, modLdasout.utcday_tmp)
-			names(modLdasoutList) <- c("native", "snoday", "utcday")
-		} else {
-			modLdasoutList <- list(modLdasout_tmp)
-			names(modLdasoutList) <- c("native")
-		}
+		modLdasoutList <- list(modLdasout_FINAL, modLdasout.snoday_FINAL, modLdasout.utcday_FINAL)
+		names(modLdasoutList) <- c("native", "snoday", "utcday")
 		modLdasoutList
 	}
 	# BASIN
  	if (readBasinLdasout) {
+		message("Read LDASOUT: Basin...")
 		modLdasout_BAS_tmp <- genReads_Ldasout(ldasoutIndexList.=ldasoutBasIndexList)
 		saveList <- c(saveList, "modLdasout_BAS_tmp")
          	save(list=saveList, file=tmpRimg)
  	}	
  	# AMERIFLUX
  	if (readAmfLdasout) {
+		message("Read LDASOUT: Ameriflux...")
                 modLdasout_AMF_tmp <- genReads_Ldasout(ldasoutIndexList.=ldasoutAmfIndexList)
                 saveList <- c(saveList, "modLdasout_AMF_tmp")
                 save(list=saveList, file=tmpRimg)
 	}
 	# SNOTEL
         if (readSnoLdasout) {
+		message("Read LDASOUT: SNOTEL...")
                 modLdasout_SNO_tmp <- genReads_Ldasout(ldasoutIndexList.=ldasoutSnoIndexList)
                 saveList <- c(saveList, "modLdasout_SNO_tmp")
                 save(list=saveList, file=tmpRimg)
         }
 	# MET
         if (readMetLdasout) {
+		message("Read LDASOUT: MET...")
                 modLdasout_MET_tmp <- genReads_Ldasout(ldasoutIndexList.=ldasoutMetIndexList)
                 saveList <- c(saveList, "modLdasout_MET_tmp")
                 save(list=saveList, file=tmpRimg)
@@ -529,14 +546,14 @@ if (readMod & readGwout) {
  		modGwout$uni <- NULL
  		modGwout <- modGwout[nrow(modGwout):1,]
 		# Subset dates
-		if (!is.null(readStart) & !is.null(readEnd)) {
-			modGwout <- subset(modGwout, modGwout$POSIXct >= readStart & modGwout$POSIXct <= readEnd)
+		if (!is.null(readModStart) & !is.null(readModEnd)) {
+			modGwout <- subset(modGwout, modGwout$POSIXct >= readModStart & modGwout$POSIXct <= readModEnd)
 		}
-		if (!is.null(readStart) & is.null(readEnd)) {
-			modGwout <- subset(modGwout, modGwout$POSIXct >= readStart)
+		if (!is.null(readModStart) & is.null(readModEnd)) {
+			modGwout <- subset(modGwout, modGwout$POSIXct >= readModStart)
 		}
-		if (is.null(readStart) & !is.null(readEnd)) {
-			modGwout <- subset(modGwout, modGwout$POSIXct <= readEnd)
+		if (is.null(readModStart) & !is.null(readModEnd)) {
+			modGwout <- subset(modGwout, modGwout$POSIXct <= readModEnd)
 		}
 		# Tag and bind
 		modGwout$tag <- modoutTag
@@ -573,14 +590,14 @@ if (readMod & readFrxstout) {
         	modFrxstout <- modFrxstout[nrow(modFrxstout):1,]
                 modFrxstout <- modFrxstout[nrow(modFrxstout):1,]
                 # Subset dates
-                if (!is.null(readStart) & !is.null(readEnd)) {
-                        modFrxstout <- subset(modFrxstout, modFrxstout$POSIXct >= readStart & modFrxstout$POSIXct <= readEnd)
+                if (!is.null(readModStart) & !is.null(readModEnd)) {
+                        modFrxstout <- subset(modFrxstout, modFrxstout$POSIXct >= readModStart & modFrxstout$POSIXct <= readModEnd)
                 }
-                if (!is.null(readStart) & is.null(readEnd)) {
-                        modFrxstout <- subset(modFrxstout, modFrxstout$POSIXct >= readStart)
+                if (!is.null(readModStart) & is.null(readModEnd)) {
+                        modFrxstout <- subset(modFrxstout, modFrxstout$POSIXct >= readModStart)
                 }
-                if (is.null(readStart) & !is.null(readEnd)) {
-                        modFrxstout <- subset(modFrxstout, modFrxstout$POSIXct <= readEnd)
+                if (is.null(readModStart) & !is.null(readModEnd)) {
+                        modFrxstout <- subset(modFrxstout, modFrxstout$POSIXct <= readModEnd)
                 }
 		# Bring in basin IDs
   		modFrxstout <- plyr::join(modFrxstout, stid2gage, by="st_id")
@@ -661,12 +678,12 @@ if (readForc & (readBasinLdasin | readAmfLdasin | readSnoLdasin | readMetLdasin)
         genReads_Ldasin <- function(forcPathList.=forcPathList, forcTagList.=forcTagList,
                                         ldasinIndexList.,
                                         ldasinVariableList.=ldasinVariableList,
-                                        ldasinFilesList.=ldasinFilesList,
                                         parallelFlag.=parallelFlag,
-					readStart.=readStart, readEnd.=readEnd, ldas2dt.=ldas2dt) {
+					readStart.=readForcStart, readEnd.=readForcEnd, ldas2dt.=ldas2dt) {
                 modLdasin_tmp <- data.frame()
 		modLdasin.snoday_tmp <- data.frame()
 		modLdasin.utcday_tmp <- data.frame()
+		message("Read LDASIN")
                 for (i in 1:length(forcPathList.)) {
                         forcPath <- forcPathList.[i]
                         forcTag <- forcTagList.[i]
@@ -675,8 +692,10 @@ if (readForc & (readBasinLdasin | readAmfLdasin | readSnoLdasin | readMetLdasin)
                         if (!is.null(readStart.) | !is.null(readEnd.)) {
                                 filesList <- subDates(filesList, readStart., readEnd., ldas2dt.)
                         }                
-        		ldasinFilesList <- list( ldasin = filesList)
+        		ldasinFilesList. <- list( ldasin = filesList)
+			message(paste0("First: ", filesList[1], " Last: ", filesList[length(filesList)]))
                         # Run basin means
+			message("LDASIN: Starting GetMultiNcdf")
                         ldasinDF <- GetMultiNcdf(indexList=ldasinIndexList.,
                                            variableList=ldasinVariableList.,
                                            filesList=ldasinFilesList.,
@@ -690,6 +709,7 @@ if (readForc & (readBasinLdasin | readAmfLdasin | readSnoLdasin | readMetLdasin)
   			# SNOTEL daily reports are derived from prior day's hourlies, and all 
   			# times are PST (no daylight savings).
   			# Adjust UTC to PST
+			message("LDASIN: Starting daily aggregations")
   			modLdasin$PST_time <- modLdasin$POSIXct - 8*3600
   			# Calculate truncated date from PST time
   			modLdasin$PST_date <- CalcDateTrunc(modLdasin$PST_time)
@@ -701,34 +721,37 @@ if (readForc & (readBasinLdasin | readAmfLdasin | readSnoLdasin | readMetLdasin)
   			modLdasin$Wind <- with(modLdasin, sqrt(U2D^2 + V2D^2))
   			# Run daily aggs
   			modLdasin.snoday <- plyr::ddply(modLdasin, plyr::.(statArg, PST_dateP1), plyr::summarize,
-                                 T2D_mean=mean(T2D), T2D_min=min(T2D), T2D_max=max(T2D),
-                                 Q2D_mean=mean(Q2D), Q2D_min=min(Q2D), Q2D_max=max(Q2D),
-                                 U2D_mean=mean(U2D), U2D_min=min(U2D), U2D_max=max(U2D),
-                                 V2D_mean=mean(V2D), V2D_min=min(V2D), V2D_max=max(V2D),
-                                 PSFC_mean=mean(PSFC), PSFC_min=min(PSFC), PSFC_max=max(PSFC),
-                                 SWDOWN_mean=mean(SWDOWN), SWDOWN_min=min(SWDOWN), SWDOWN_max=max(SWDOWN),
-                                 LWDOWN_mean=mean(LWDOWN), LWDOWN_min=min(LWDOWN), LWDOWN_max=max(LWDOWN),
-                                 RelHum_mean=mean(RelHum), RelHum_min=min(RelHum), RelHum_max=max(RelHum),
-                                 Wind_mean=mean(Wind), Wind_min=min(Wind), Wind_max=max(Wind),
-                                 .parallel=TRUE)
+                                 T2D_mean=.(mean(T2D)), T2D_min=.(min(T2D)), T2D_max=.(max(T2D)),
+                                 Q2D_mean=.(mean(Q2D)), Q2D_min=.(min(Q2D)), Q2D_max=.(max(Q2D)),
+                                 U2D_mean=.(mean(U2D)), U2D_min=.(min(U2D)), U2D_max=.(max(U2D)),
+                                 V2D_mean=.(mean(V2D)), V2D_min=.(min(V2D)), V2D_max=.(max(V2D)),
+                                 PSFC_mean=.(mean(PSFC)), PSFC_min=.(min(PSFC)), PSFC_max=.(max(PSFC)),
+                                 SWDOWN_mean=.(mean(SWDOWN)), SWDOWN_min=.(min(SWDOWN)), SWDOWN_max=.(max(SWDOWN)),
+                                 LWDOWN_mean=.(mean(LWDOWN)), LWDOWN_min=.(min(LWDOWN)), LWDOWN_max=.(max(LWDOWN)),
+                                 RelHum_mean=.(mean(RelHum)), RelHum_min=.(min(RelHum)), RelHum_max=.(max(RelHum)),
+                                 Wind_mean=.(mean(Wind)), Wind_min=.(min(Wind)), Wind_max=.(max(Wind)),
+                                 .parallel=parallelFlag.)
   			# Add dummy POSIXct for ease of plotting
   			modLdasin.snoday$POSIXct <- as.POSIXct(paste0(modLdasin.snoday$PST_dateP1, " 00:00"), tz="UTC")
   			# Calculate truncated date from UTC time
   			modLdasin$UTC_date <- CalcDateTrunc(modLdasin$POSIXct)
   			# Run daily aggs
   			modLdasin.utcday <- plyr::ddply(modLdasin, plyr::.(statArg, UTC_date), plyr::summarize,
-                                 T2D_mean=mean(T2D), T2D_min=min(T2D), T2D_max=max(T2D),
-                                 Q2D_mean=mean(Q2D), Q2D_min=min(Q2D), Q2D_max=max(Q2D),
-                                 U2D_mean=mean(U2D), U2D_min=min(U2D), U2D_max=max(U2D),
-                                 V2D_mean=mean(V2D), V2D_min=min(V2D), V2D_max=max(V2D),
-                                 PSFC_mean=mean(PSFC), PSFC_min=min(PSFC), PSFC_max=max(PSFC),
-                                 SWDOWN_mean=mean(SWDOWN), SWDOWN_min=min(SWDOWN), SWDOWN_max=max(SWDOWN),
-                                 LWDOWN_mean=mean(LWDOWN), LWDOWN_min=min(LWDOWN), LWDOWN_max=max(LWDOWN),
-                                 RelHum_mean=mean(RelHum), RelHum_min=min(RelHum), RelHum_max=max(RelHum),
-                                 Wind_mean=mean(Wind), Wind_min=min(Wind), Wind_max=max(Wind),
-                                 .parallel=TRUE)
+                                 T2D_mean=.(mean(T2D)), T2D_min=.(min(T2D)), T2D_max=.(max(T2D)),
+                                 Q2D_mean=.(mean(Q2D)), Q2D_min=.(min(Q2D)), Q2D_max=.(max(Q2D)),
+                                 U2D_mean=.(mean(U2D)), U2D_min=.(min(U2D)), U2D_max=.(max(U2D)),
+                                 V2D_mean=.(mean(V2D)), V2D_min=.(min(V2D)), V2D_max=.(max(V2D)),
+                                 PSFC_mean=.(mean(PSFC)), PSFC_min=.(min(PSFC)), PSFC_max=.(max(PSFC)),
+                                 SWDOWN_mean=.(mean(SWDOWN)), SWDOWN_min=.(min(SWDOWN)), SWDOWN_max=.(max(SWDOWN)),
+                                 LWDOWN_mean=.(mean(LWDOWN)), LWDOWN_min=.(min(LWDOWN)), LWDOWN_max=.(max(LWDOWN)),
+                                 RelHum_mean=.(mean(RelHum)), RelHum_min=.(min(RelHum)), RelHum_max=.(max(RelHum)),
+                                 Wind_mean=.(mean(Wind)), Wind_min=.(min(Wind)), Wind_max=.(max(Wind)),
+                                 .parallel=parallelFlag.)
   			# Add dummy POSIXct for ease of plotting
   			modLdasin.utcday$POSIXct <- as.POSIXct(paste0(modLdasin.utcday$UTC_date, " 00:00"), tz="UTC")
+			# Tag
+			modLdasin.snoday$tag <- forcTag
+			modLdasin.utcday$tag <- forcTag
 			# Bind all
                         modLdasin_tmp <- plyr::rbind.fill(modLdasin_tmp, modLdasin)
 			modLdasin.snoday_tmp <- plyr::rbind.fill(modLdasin.snoday_tmp, modLdasin.snoday)
@@ -740,24 +763,28 @@ if (readForc & (readBasinLdasin | readAmfLdasin | readSnoLdasin | readMetLdasin)
         }
         # BASIN
         if (readBasinLdasin) {
+		message("Read LDASIN: Basin...")
                 modLdasin_BAS_tmp <- genReads_Ldasin(ldasinIndexList.=ldasinBasIndexList)
                 saveList <- c(saveList, "modLdasin_BAS_tmp")
                 save(list=saveList, file=tmpRimg)
         }
         # AMERIFLUX
         if (readAmfLdasin) {
+		message("Read LDASIN: Ameriflux...")
                 modLdasin_AMF_tmp <- genReads_Ldasin(ldasinIndexList.=ldasinAmfIndexList)
                 saveList <- c(saveList, "modLdasin_AMF_tmp")
                 save(list=saveList, file=tmpRimg)
         }
         # SNOTEL
         if (readSnoLdasin) {
+		message("Read LDASIN: SNOTEL...")
                 modLdasin_SNO_tmp <- genReads_Ldasin(ldasinIndexList.=ldasinSnoIndexList)
                 saveList <- c(saveList, "modLdasin_SNO_tmp")
                 save(list=saveList, file=tmpRimg)
         }
         # MET
         if (readMetLdasin) {
+		message("Read LDASIN: MET...")
                 modLdasin_MET_tmp <- genReads_Ldasin(ldasinIndexList.=ldasinMetIndexList)
                 saveList <- c(saveList, "modLdasin_MET_tmp")
                 save(list=saveList, file=tmpRimg)
@@ -771,25 +798,27 @@ if (readForc & (readBasinLdasin | readAmfLdasin | readSnoLdasin | readMetLdasin)
 ## ------------------------------------------------------------------------
 ## ------------------------------------------------------------------------
 
-saveList <- c()
+saveListMod <- c()
+saveListForc <- c()
 
 # Read in existing files is available and append=TRUE
-if (modAppend) {
+if (readMod & modAppend) {
 	tempEnv <- new.env()
 	load(modReadFileOut, envir=tempEnv)
 	objNew <- ls(tempEnv)
 	for(n in ls(tempEnv, all.names=TRUE)) assign(n, get(n, tempEnv), .GlobalEnv)
 	rm(tempEnv)
-	saveList <- c(saveList, objNew)
+	saveListMod <- c(saveListMod, objNew)
 	rm(objNew)
 }
-if (forcAppend) {
+if (readForc & forcAppend) {
+	message("Save append")
         tempEnv <- new.env()
         load(forcReadFileOut, envir=tempEnv)
         objNew <- ls(tempEnv)
         for(n in ls(tempEnv, all.names=TRUE)) assign(n, get(n, tempEnv), .GlobalEnv)
         rm(tempEnv)
-        saveList <- c(saveList, objNew)
+        saveListForc <- c(saveListForc, objNew)
 	rm(objNew)
 }
 
@@ -800,7 +829,7 @@ if (readMod) {
 			modLdasout_BAS <- plyr::rbind.fill(modLdasout_BAS, modLdasout_BAS_tmp)
 		} else {
 			modLdasout_BAS <- modLdasout_BAS_tmp
-			saveList <- c(saveList, "modLdasout_BAS")
+			saveListMod <- c(saveListMod, "modLdasout_BAS")
 		}
 	}
         if (readAmfLdasout) {
@@ -808,7 +837,7 @@ if (readMod) {
                         modLdasout_AMF <- plyr::rbind.fill(modLdasout_AMF, modLdasout_AMF_tmp)
                 } else {
                         modLdasout_AMF <- modLdasout_AMF_tmp
-			saveList <- c(saveList, "modLdasout_AMF")
+			saveListMod <- c(saveListMod, "modLdasout_AMF")
 		}
         }
         if (readSnoLdasout) {
@@ -816,7 +845,7 @@ if (readMod) {
                         modLdasout_SNO <- plyr::rbind.fill(modLdasout_SNO, modLdasout_SNO_tmp)
                 } else {
                         modLdasout_SNO <- modLdasout_SNO_tmp
-			saveList <- c(saveList, "modLdasout_SNO")
+			saveListMod <- c(saveListMod, "modLdasout_SNO")
 		}
         }
         if (readMetLdasout) {
@@ -824,7 +853,7 @@ if (readMod) {
                         modLdasout_MET <- plyr::rbind.fill(modLdasout_MET, modLdasout_MET_tmp)
                 } else {
                         modLdasout_MET <- modLdasout_MET_tmp
-			saveList <- c(saveList, "modLdasout_MET")
+			saveListMod <- c(saveListMod, "modLdasout_MET")
 		}
         }
         if (readBasinRtout) {
@@ -832,7 +861,7 @@ if (readMod) {
                         modRtout_BAS <- plyr::rbind.fill(modRtout_BAS, modRtout_BAS_tmp)
                 } else {
                         modRtout_BAS <- modRtout_BAS_tmp
-                	saveList <- c(saveList, "modRtout_BAS")
+                	saveListMod <- c(saveListMod, "modRtout_BAS")
 		}
         }
         if (readGwout) {
@@ -840,7 +869,7 @@ if (readMod) {
                         modGwout <- plyr::rbind.fill(modGwout, modGwout_tmp)
                 } else {
                         modGwout <- modGwout_tmp
-                	saveList <- c(saveList, "modGwout")
+                	saveListMod <- c(saveListMod, "modGwout")
         	}
 	}
         if (readFrxstout) {
@@ -848,7 +877,7 @@ if (readMod) {
                         modFrxstout <- plyr::rbind.fill(modFrxstout, modFrxstout_tmp)
                 } else {
                         modFrxstout <- modFrxstout_tmp
-                	saveList <- c(saveList, "modFrxstout")
+                	saveListMod <- c(saveListMod, "modFrxstout")
 		}
         }
 }
@@ -859,7 +888,7 @@ if (readForc) {
                         modLdasin_BAS <- plyr::rbind.fill(modLdasin_BAS, modLdasin_BAS_tmp)
                 } else {
                         modLdasin_BAS <- modLdasin_BAS_tmp
-			saveList <- c(saveList, "modLdasin_BAS")
+			saveListForc <- c(saveListForc, "modLdasin_BAS")
 		}
         }
         if (readAmfLdasin) {
@@ -867,7 +896,7 @@ if (readForc) {
                         modLdasin_AMF <- plyr::rbind.fill(modLdasin_AMF, modLdasin_AMF_tmp)
                 } else {
                         modLdasin_AMF <- modLdasin_AMF_tmp
-			saveList <- c(saveList, "modLdasin_AMF")
+			saveListForc <- c(saveListForc, "modLdasin_AMF")
         	}
 	}
         if (readSnoLdasin) {
@@ -875,7 +904,7 @@ if (readForc) {
                         modLdasin_SNO <- plyr::rbind.fill(modLdasin_SNO, modLdasin_SNO_tmp)
                 } else {
                         modLdasin_SNO <- modLdasin_SNO_tmp
-			saveList <- c(saveList, "modLdasin_SNO")
+			saveListForc <- c(saveListForc, "modLdasin_SNO")
 		}
         }
         if (readMetLdasin) {
@@ -883,14 +912,21 @@ if (readForc) {
                         modLdasin_MET <- plyr::rbind.fill(modLdasin_MET, modLdasin_MET_tmp)
                 } else {
                         modLdasin_MET <- modLdasin_MET_tmp
-			saveList <- c(saveList, "modLdasin_MET")
+			saveListForc <- c(saveListForc, "modLdasin_MET")
 		}
         }
 }
 
-saveList <- unique(saveList)
+saveListMod <- unique(saveListMod)
+saveListForc <- unique(saveListForc)
 
-save(list=saveList, file=modReadFileOut)
+if ( (modReadFileOut == forcReadFileOut) & readMod & readForc ) {
+		saveListMod <- c(saveListMod, saveListForc)
+		save(list=saveListMod, file=modReadFileOut)
+} else {
+	if (readMod) save(list=saveListMod, file=modReadFileOut)
+	if (readForc) save(list=saveListForc, file=forcReadFileOut)
+}
 #file.remove(tmpRimg)
 
 proc.time()

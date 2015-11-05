@@ -11,11 +11,10 @@ geoFile <- '/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/DOMAIN/geo_em.d02.nc'
 
 # Basin masks:
 createBasMask <- TRUE
-
     # Specify the mask file
-    maskFile <- '/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/DOMAIN/updated_Nov_5_2014/Fulldom_hires_netcdf_file.nc'
+    maskFile <- '/glade/p/ral/RHAP/gochis/Col_SWCol_URG_UppGunn_Animas/DOMAIN/updated_Oct_25_2015/Fulldom_hires_netcdf_file.nc'
     # If relevant, specify variable name
-    maskVar <- NULL
+    maskVar <- "basn_msk"
     # Specify the aggregation factor between the input mask grid and geogrid
     aggfact <- 10
     # Reverse the y direction from N->S to S->N?
@@ -32,63 +31,37 @@ createBasMask <- TRUE
     metSites <- read.table("/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/MET/met.URG.sites4msk.txt", header=TRUE, sep="\t")
 
 # Streamflow gages:
-
-    # Lookup USGS gages by frxst_pt lat/lon?
-    usgsLookup <- TRUE
-    # FRXST points (must include columns: id, lat, lon)
-    frxstPts <- read.table("/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/STRFLOW/frxst_pts_coords.txt", header=TRUE, sep="\t")
-    # Search radius
-    searchRad <- 0.001 
-
-    # Otherwise, specify a lookup list to match high-res frxst pt ID to gage ID.
-    # EXAMPLE: stid2gageList <- list("21"="ALATERCO", "4"="CONMOGCO", "2"="SANORTCO")
-    stid2gageList <- list("9"="ALATERCO",
-                     "2"="CONMOGCO",
-                     "14"="RIODELCO",
-                     "17"="RIOSFKCO",
-                     "18"="RIOWAGCO",
-                     "21"="SAGSAGCO",
-                     "8"="SANORTCO",
-                     "27"="TRITURCO",
-                     "4"="LOSORTCO",
-                     "3"="CONPLACO")
-
-## If available, specify the list that matches basin ID to gage ID
-#  EXAMPLE: gage2basinList <- list("ALATERCO"=c(9,10,12), "CONMOGCO"=c(2,35,36,37,38,39,40,3,33,34), "SANORTCO"=c(8))
-gage2basinList <- list("ALATERCO"=c(9,10,12),
-               "CONMOGCO"=c(2,35,36,37,38,39,40,3,33,34),
-               "RIOSFKCO"=c(17),
-               "RIOWAGCO"=c(15,18),
-               "SAGSAGCO"=c(21),
-               "TRITURCO"=c(27),
-               "LOSORTCO"=c(4),
-               "CONPLACO"=c(3,33,34),
-               "RIODELCO"=c(14,15,17,18),
-               "SANORTCO"=c(8))
+    # Specify the FRXST points lookup table
+    # (must include columns: id, lat, lon, gageid, source, basnids)
+    # Example: id         lon       lat    gageid  source    basnids 
+    #           9  -106.33292  37.37602  ALATERCO   CODWR    9,10,12
+    #          49  -106.56661  38.86029  09107000    USGS         49
+    frxstPts <- read.table("/glade/p/ral/RHAP/adugger/Upper_RioGrande/DOMAIN/frxstpts_basinids_txt.txt", 
+			header=TRUE, sep="\t", stringsAsFactors=FALSE)
 
 # Specify the .Rdata file to create
-maskFileOut <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/DOMAIN/urg_MASKS_TEST.Rdata'
+maskFileOut <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/DOMAIN/urg_MASKS_NEWDOMAIN2.Rdata'
 
 ###################################################################################################
 ## Run 
 
 library(rwrfhydro)
-saveList <- c("gage2basinList", "basin2gageList")
+saveList <- c()
 
 if (is.null(maskVar)) maskVar <- "basn_msk"
 if (is.null(aggfact)) aggfact <- 1
-if (!is.null(stid2gageList)) saveList <- c(saveList, "stid2gageList")
 
-## Create gage lookup
-if (usgsLookup) {
-	stnID <- c()
-	for (i in 1:nrow(frxstPts)) {        
-		tmp <- tryCatch(suppressWarnings(FindUsgsStns(stnLon=frxstPts$lon[i], stnLat=frxstPts$lat[i], within=searchRad)), 
-                    error=function(cond) {message(cond); return(NA)})		
-		stnID[i] <- ifelse(is.na(tmp), NA, tmp$site_no)
-	}
-        stid2gageList <- as.list(stnID)
-        names(stid2gageList) <- frxstPts$id
+## Create gage lookup tables
+if (!is.null(frxstPts)) {
+	frxstPts <- subset(frxstPts, frxstPts$gageid!="")
+	stid2gageList <- as.list(frxstPts$gageid)
+	names(stid2gageList) <- frxstPts$id
+	stid2sourceList <- as.list(frxstPts$source)
+        names(stid2sourceList) <- frxstPts$id
+	frxstPts$basnids <- strsplit(frxstPts$basnids, split=",")
+        gage2basinList <- as.list(frxstPts$basnids)
+        names(gage2basinList) <- frxstPts$gageid
+	saveList <- c(saveList, "frxstPts", "stid2gageList", "gage2basinList")
 }
 
 ## Create masks for point obs
@@ -137,7 +110,7 @@ if (createBasMask) {
     } else {
         stop("Input mask must be NetCDF format.")
     }
-    mskvarAll[which(is.na(mskvarAll))] <- 0.0
+    mskvarAll[which(is.na(mskvarAll))] <- -9999
     if (ns2sn) {
         # Reverse y-direction for N->S hydro grids to S->N
         mskvarAll <- mskvarAll[,order(ncol(mskvarAll):1)]
@@ -145,7 +118,7 @@ if (createBasMask) {
     # Get unique ID list
     if (is.null(gage2basinList)) {
         mskidList <- na.exclude(unique(c(mskvarAll)))
-        mskidList <- subset(mskidList, mskidList>0)
+        mskidList <- subset(mskidList, mskidList>=0)
         mskidList <- mskidList[order(mskidList)]
         gage2basinList <- as.list(mskidList)
         names(gage2basinList) <- mskidList
@@ -158,6 +131,7 @@ if (createBasMask) {
             if (i %in% gage2basinList[[j]]) idlist <- c(idlist, j)
         }
         basin2gageList[[paste0(i)]] <- idlist
+	saveList <- c(saveList, "basin2gageList")
     }
     # Loop through basin masks
     if (length(gage2basinList) > 0) {
@@ -218,11 +192,6 @@ if (createBasMask) {
         }
 }
 
-if (usgsLookup) {
-	stnIDs <- FindUsgsStns(stnLon=frxstPts$lon, stnLat=frxstPts$lat, within=searchRad)	
-	stid2gageList <- as.list(stnIDs)
-	names(stid2gageList) <- frxstPts$id	
-}
 
 # Save all relevant objects
 save(list=saveList, file=maskFileOut)

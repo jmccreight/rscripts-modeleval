@@ -390,6 +390,68 @@ for (n in names(gage2basinList)) {
 }
 
 
+################################
+
+outPath <- "~/RHAP/Upper_RioGrande/ANALYSIS/EVAL_151013"
+
+# Acc Streamflow - 151013
+for (n in names(gage2basinList)) {
+        png(paste0(outPath, "/accstrflow_NLDASdwnsc_", n, ".png"), width=2100, height=1350, res=225)
+        if (n %in% c("CONMOGCO", "CONPLACO", "RIOWAGCO", "RIODELCO")) {
+                labObs <- "Observed (Naturalized)"
+        } else {
+                labObs <- "Observed"}
+        PlotAccFlow(n, modDfs=list(modFrxstout_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng,
+                                   subset(modFrxstout, modFrxstout$tag=="su2013_15_NLDAS_newmodel"), 
+				   subset(modFrxstout, modFrxstout$tag=="su2013_15_NLDASdwnsc_newmodel")),
+                        obs=obsStr.dy,
+                        stdate=as.POSIXct("2015-04-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+                        enddate=enddate,
+                        labMods=c("NLDAS-2 (oldmodel)", "NLDAS-2 (new model)", "NLDAS-2 Downscaled (new model)"),
+                        labObs=labObs,
+                        lnCols=c("dodgerblue", "darkorange1", "olivedrab"),
+                        lnTyps=c(1,1,1), lnWds=c(3,3,3),
+                        labTitle=paste0("Accumulated Flow: ", n, ", April-August 2015"), obsCol="cumqvol_mm_adj")
+        dev.off()
+}
+
+# Streamflow - 151013
+for (n in names(gage2basinList)) {
+        if (n %in% c("CONMOGCO", "CONPLACO", "RIOWAGCO", "RIODELCO")) {
+                labObs <- "Observed (Naturalized)"
+        } else {
+                labObs <- "Observed"}
+        png(paste0(outPath, "/strflow_NLDASdwnsc_", n, ".png"), width=2100, height=1350, res=225)
+        PlotFlow(n, modDfs=list(modFrxstout_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng,
+                                   subset(modFrxstout, modFrxstout$tag=="su2013_15_NLDAS_newmodel"),
+                                   subset(modFrxstout, modFrxstout$tag=="su2013_15_NLDASdwnsc_newmodel")),
+                        obs=obsStr.dy,
+                        labMods=c("NLDAS-2 (oldmodel)", "NLDAS-2 (new model)", "NLDAS-2 Downscaled (new model)"),
+                        labObs=labObs,
+                        lnCols=c("dodgerblue", "darkorange1", "olivedrab"),
+                        lnWds=c(3,3,3),
+                        labTitle=paste0("Streamflow: ", n, ", WY2015"),
+                        stdate=NULL, enddate=enddate, obsCol="mean_qcms_adj")
+        dev.off()
+}
+
+# Acc Precip - 151013
+for (n in names(gage2basinList)) {
+        png(paste0(outPath, "/accprecip_NLDAS_", n, ".png"), width=2100, height=1350, res=225)
+        PlotAccPrecip(n, modDfs=list(modLdasout_wy2015_NLDAS2dwnsc_snowmod_mikerec_snowresist50_fullrtng_BAS,
+                                   subset(modLdasout_BAS[["native"]], modLdasout_BAS[["native"]]$tag=="su2013_15_NLDAS_newmodel"),
+                                   subset(modLdasout_BAS[["native"]], modLdasout_BAS[["native"]]$tag=="su2013_15_NLDASdwnsc_newmodel")),
+                        stdate=as.POSIXct("2014-10-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC"),
+                        enddate=enddate,
+                        labMods=c("NLDAS-2 (oldmodel)", "NLDAS-2 (new model)", "NLDAS-2 Downscaled (new model)"),
+                        lnCols=c("dodgerblue", "darkorange1", "olivedrab"),
+                        lnTyps=c(1,1,1), lnWds=c(3,3,3),
+                        labTitle=paste0("Accumulated Precipitation: ", n, ", WY2015"))
+        dev.off()
+}
+
+
+
 ### EXIT
 
 quit("no")
