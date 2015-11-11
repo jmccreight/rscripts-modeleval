@@ -5,21 +5,20 @@
 ##################### Setup #######################
 
 ## Specify the low-resolution geogrid file
-geoFile <- '/glade/p/nral0008/zhangyx/CONUS1km_LSMOnly_daily_snowmods/DOMAIN/geo_em.d01.nc.conus_1km'
+geoFile <- '/glade/p/ral/RHAP/adugger/Front_Range/DOMAIN/geo_em.d03_nlcd11_glac2bare.nc'
 
 ## Select which masks/points to create:
 
 # Basin masks:
 createBasMask <- TRUE
-
     # Specify the mask file
-    maskFile <- '/glade/p/ral/RHAP/adugger/CONUS_1km/DOMAIN/gages2_1km.nc'
+    maskFile <- '/glade/scratch/gochis/CONUS_yxzhang/zhangyx/STEP_rerun_long/DOMAIN/Fulldom_hires_netcdf_file.nc'
     # If relevant, specify variable name
-    maskVar <- "Band1"
+    maskVar <- "basn_msk"
     # Specify the aggregation factor between the input mask grid and geogrid
-    aggfact <- 1
+    aggfact <- 10
     # Reverse the y direction from N->S to S->N?
-    ns2sn <- FALSE
+    ns2sn <- TRUE
 
 # Point masks:
     # Ameriflux points
@@ -29,28 +28,41 @@ createBasMask <- TRUE
     # MET station points
     createMetMask <- FALSE
     # MET station sites (must include columns: id, lat, lon)
-    metSites <- NULL
+    metSites <- read.table("/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/MET/met.URG.sites4msk.txt", header=TRUE, sep="\t")
 
-## If available, specify the list that matches basin ID to gage ID
-#  EXAMPLE: gage2basinList <- list("ALATERCO"=c(9,10,12), "CONMOGCO"=c(2,35,36,37,38,39,40,3,33,34), "SANORTCO"=c(8))
-gage2basinList <- NULL
-
-## If available, specify a lookup list to match high-res frxst pt ID to gage ID.
-#  EXAMPLE: stid2gageList <- list("21"="ALATERCO", "4"="CONMOGCO", "2"="SANORTCO")
-stid2gageList <- NULL
+# Streamflow gages:
+    # Specify the FRXST points lookup table
+    # (must include columns: id, lat, lon, gageid, source, basnids)
+    # Example: id         lon       lat    gageid  source    basnids 
+    #           9  -106.33292  37.37602  ALATERCO   CODWR    9,10,12
+    #          49  -106.56661  38.86029  09107000    USGS         49
+    frxstPts <- read.table("/glade/p/ral/RHAP/adugger/Upper_RioGrande/DOMAIN/frxstpts_basinids_txt.txt", 
+			header=TRUE, sep="\t", stringsAsFactors=FALSE)
 
 # Specify the .Rdata file to create
-maskFileOut <- "conus1km_masks.Rdata"
+maskFileOut <- '/glade/p/ral/RHAP/adugger/Front_Range/DOMAIN/frn_MASKS.Rdata'
 
 ###################################################################################################
 ## Run 
 
 library(rwrfhydro)
-saveList <- c("gage2basinList", "basin2gageList")
+saveList <- c()
 
 if (is.null(maskVar)) maskVar <- "basn_msk"
 if (is.null(aggfact)) aggfact <- 1
-if (!is.null(stid2gageList)) saveList <- c(saveList, "stid2gageList")
+
+## Create gage lookup tables
+if (!is.null(frxstPts)) {
+	frxstPts <- subset(frxstPts, frxstPts$gageid!="")
+	stid2gageList <- as.list(frxstPts$gageid)
+	names(stid2gageList) <- frxstPts$id
+	stid2sourceList <- as.list(frxstPts$source)
+        names(stid2sourceList) <- frxstPts$id
+	frxstPts$basnids <- strsplit(frxstPts$basnids, split=",")
+        gage2basinList <- as.list(frxstPts$basnids)
+        names(gage2basinList) <- frxstPts$gageid
+	saveList <- c(saveList, "stid2gageList", "gage2basinList")
+}
 
 ## Create masks for point obs
 if (createAmfMask) {
@@ -98,7 +110,7 @@ if (createBasMask) {
     } else {
         stop("Input mask must be NetCDF format.")
     }
-    mskvarAll[which(is.na(mskvarAll))] <- 0.0
+    mskvarAll[which(is.na(mskvarAll))] <- -9999
     if (ns2sn) {
         # Reverse y-direction for N->S hydro grids to S->N
         mskvarAll <- mskvarAll[,order(ncol(mskvarAll):1)]
@@ -106,7 +118,7 @@ if (createBasMask) {
     # Get unique ID list
     if (is.null(gage2basinList)) {
         mskidList <- na.exclude(unique(c(mskvarAll)))
-        mskidList <- subset(mskidList, mskidList>0)
+        mskidList <- subset(mskidList, mskidList>=0)
         mskidList <- mskidList[order(mskidList)]
         gage2basinList <- as.list(mskidList)
         names(gage2basinList) <- mskidList
@@ -119,6 +131,7 @@ if (createBasMask) {
             if (i %in% gage2basinList[[j]]) idlist <- c(idlist, j)
         }
         basin2gageList[[paste0(i)]] <- idlist
+	saveList <- c(saveList, "basin2gageList")
     }
     # Loop through basin masks
     if (length(gage2basinList) > 0) {
@@ -178,6 +191,7 @@ if (createBasMask) {
             warning("No basins specified in the high-res domain file.")
         }
 }
+
 
 # Save all relevant objects
 save(list=saveList, file=maskFileOut)

@@ -5,7 +5,7 @@ PlotAccPrecipFlow <- function(n, str1=modFrxstout_wy2015_NLDAS2dwnsc_fullrtng,
                         lsm2=modLdasout_wy2015_NLDAS2dwnsc_NSSL_fullrtng_BAS) {
   str1 <- subset(str1, str1$STAID==n)
   lsm1 <- subset(lsm1, lsm1$STAID==n)
-  obsstr <- subset(obsstr, obsstr$Station==n)
+  obsstr <- subset(obsstr, obsstr$site_no==n)
   str2 <- subset(str2, str2$STAID==n)
   lsm2 <- subset(lsm2, lsm2$STAID==n)
   with(lsm1, plot(POSIXct, ACCPRCP, typ='l', col='darkmagenta'))
@@ -92,7 +92,7 @@ PlotAccFlow <- function(n, modDfs, obs,
   if (is.null(stdate)) stdate <- min(str1$POSIXct)
   if (is.null(enddate)) enddate <- max(str1$POSIXct)
   str1 <- subset(str1, str1$STAID==n & str1$POSIXct>=stdate & str1$POSIXct<=enddate)
-  obs <- subset(obs, obs$Station==n & obs$POSIXct>=stdate & obs$POSIXct<=enddate)
+  obs <- subset(obs, obs$site_no==n & obs$POSIXct>=stdate & obs$POSIXct<=enddate)
   # Calculate maximum y val for plot limits
   ymax <- max(str1[nrow(str1),modCol]-str1[1,modCol], obs[nrow(obs),obsCol]-obs[1,obsCol], na.rm=TRUE)
   if (!is.data.frame(modDfs) & is.list(modDfs) & length(modDfs)>1) {
@@ -129,7 +129,7 @@ PlotAccFlow <- function(n, modDfs, obs,
 PlotFlow <- function(n, modDfs, obs,
                         labMods=NULL,
                         labObs="Observed",
-                        labTitle="Streamflow with Basin-Mean SWE",
+                        labTitle="Streamflow",
                         lnCols=NULL, lnWds=NULL, lnTyps=NULL,
                         stdate=NULL,
                         enddate=NULL,
@@ -148,7 +148,7 @@ PlotFlow <- function(n, modDfs, obs,
   if (is.null(stdate)) stdate <- min(str1$POSIXct)
   if (is.null(enddate)) enddate <- max(str1$POSIXct)
   str1 <- subset(str1, str1$STAID==n & str1$POSIXct>=stdate & str1$POSIXct<=enddate)
-  obs <- subset(obs, obs$Station==n & obs$POSIXct>=stdate & obs$POSIXct<=enddate)
+  obs <- subset(obs, obs$site_no==n & obs$POSIXct>=stdate & obs$POSIXct<=enddate)
   # Calculate maximum y val for plot limits
   ymax <- max(str1[,modCol], obs[,obsCol], na.rm=TRUE)
   if (!is.data.frame(modDfs) & is.list(modDfs) & length(modDfs)>1) {
@@ -166,7 +166,7 @@ PlotFlow <- function(n, modDfs, obs,
   # Create plot
   plot(str1$POSIXct, str1[,modCol], typ='l', ylim=c(0, ymax),
         xlim=c(stdate, enddate), col=lnCols[1], lty=lnTyps[1], lwd=lnWds[1],
-        xlab="", ylab="Streamflow (m3/s) or SWE (cm)", cex.axis=1.2, cex.lab=1.2)
+        xlab="", ylab="Streamflow (m3/s)", cex.axis=1.2, cex.lab=1.2)
   if (!is.data.frame(modDfs) & is.list(modDfs) & length(modDfs)>1) {
         for (j in 2:length(modDfs)) {
                 stri <- modDfs[[j]]
@@ -216,16 +216,23 @@ PlotFlowSwe <- function(n, modDfs, lsmDfs, obs,
   if (is.null(stdate)) stdate <- min(str1$POSIXct)
   if (is.null(enddate)) enddate <- max(str1$POSIXct)
   str1 <- subset(str1, str1$STAID==n & str1$POSIXct>=stdate & str1$POSIXct<=enddate)
-  lsm1 <- subset(lsm1, lsm1$statArg==n)
-  obs <- subset(obs, obs$Station==n & obs$POSIXct>=stdate & obs$POSIXct<=enddate)
+  lsm1 <- subset(lsm1, lsm1$statArg==n & lsm1$POSIXct>=stdate & lsm1$POSIXct<=enddate)
+  obs <- subset(obs, obs$site_no==n & obs$POSIXct>=stdate & obs$POSIXct<=enddate)
   # Calculate maximum y val for plot limits
   ymax <- max(str1[,modCol], obs[,obsCol], na.rm=TRUE)
+  ymax_lsm <- max(lsm1[,lsmCol], na.rm=TRUE)
   if (!is.data.frame(modDfs) & is.list(modDfs) & length(modDfs)>1) {
         for (stri in modDfs) {
                 stri <- subset(stri, stri$STAID==n & stri$POSIXct>=stdate & stri$POSIXct<=enddate)
                 ymax <- max(ymax, stri[,modCol], na.rm=TRUE)
                 }   
         }   
+  if (!is.data.frame(lsmDfs) & is.list(lsmDfs) & length(lsmDfs)>1) {
+        for (lsmi in lsmDfs) {
+                lsmi <- subset(lsmi, lsmi$statArg==n & lsmi$POSIXct>=stdate & lsmi$POSIXct<=enddate)
+                ymax_lsm <- max(ymax_lsm, lsmi[,lsmCol], na.rm=TRUE)
+                }
+        }
   # Set colors, widths, types
   if (is.null(lnCols)) lnCols <- sample(colours(), strcnt)
   if (is.null(lnWds)) lnWds <- rep(1, strcnt)
@@ -233,23 +240,33 @@ PlotFlowSwe <- function(n, modDfs, lsmDfs, obs,
   # Set labels
   if (is.null(labMods)) labMods <- paste0("Model", 1:strcnt)
   # Create plot
+  par(mar=c(5,4,4,5)+.1)
   plot(str1$POSIXct, str1[,modCol], typ='l', ylim=c(0, ymax),
         xlim=c(stdate, enddate), col=lnCols[1], lty=lnTyps[1], lwd=lnWds[1],
-        xlab="", ylab="Streamflow (m3/s) or SWE (cm)", cex.axis=1.2, cex.lab=1.2)
-  lines(lsm1$POSIXct, lsm1[,lsmCol]/10, col=lnCols[1], lty=2, lwd=lnWds[1])
+        xlab="", ylab="Streamflow (m3/s)", cex.axis=1.2, cex.lab=1.2)
   if (!is.data.frame(modDfs) & is.list(modDfs) & length(modDfs)>1) {
         for (j in 2:length(modDfs)) {
                 stri <- modDfs[[j]]
-                lsmi <- lsmDfs[[j]]
                 stri <- subset(stri, stri$STAID==n & stri$POSIXct>=stdate & stri$POSIXct<=enddate)
-                lsmi <- subset(lsmi, lsmi$statArg==n)
                 lines(stri$POSIXct, stri[,modCol], col=lnCols[j], lty=lnTyps[j], lwd=lnWds[j])
-                lines(lsmi$POSIXct, lsmi[,lsmCol]/10, col=lnCols[j], lty=2, lwd=lnWds[j])
                 }   
         }   
   lines(obs$POSIXct, obs[,obsCol], col='black', lwd=2, lty=1)
+  par(new=TRUE)
+  plot(lsm1$POSIXct, lsm1[,lsmCol], col=lnCols[1], lty=2, lwd=lnWds[1], typ='l',
+        ylim=c(0, ymax_lsm),
+        xaxt="n", yaxt="n", xlab="", ylab="")
+  axis(4)
+  mtext("SWE (mm)", side=4, line=3)
+  if (!is.data.frame(lsmDfs) & is.list(lsmDfs) & length(lsmDfs)>1) {
+        for (j in 2:length(lsmDfs)) {
+                lsmi <- lsmDfs[[j]]
+                lsmi <- subset(lsmi, lsmi$statArg==n)
+                lines(lsmi$POSIXct, lsmi[,lsmCol], col=lnCols[j], lty=2, lwd=lnWds[j])
+                }
+        }
   title(labTitle, cex.main=1.6)
-  legend("topleft", c(labMods[1:strcnt], labObs, "", "Streamflow (m3/s)", "SWE (cm)"),
+  legend("topleft", c(labMods[1:strcnt], labObs, "", "Streamflow (m3/s)", "SWE (mm)"),
                 lty=c(lnTyps[1:strcnt],1,1,1,2), lwd=c(lnWds[1:strcnt],2,1,2,2),
                 col=c(lnCols[1:strcnt], 'black','white','grey40','grey40'), cex=1.2,
                 bg="white")

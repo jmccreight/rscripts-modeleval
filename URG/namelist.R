@@ -5,7 +5,7 @@
 ################## General Setup ##################
 
 ## Number of cores to use? Must have the doMC package installed
-ncores <- 16
+ncores <- 15
 
 ## Specify the high-resolution routing domain file
 hydFile <- '/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/DOMAIN/updated_Nov_5_2014/Fulldom_hires_netcdf_file.nc'
@@ -27,7 +27,7 @@ AMFfile <- NULL
 
 ## Path to SNOTEl data .Rdata file
 #SNOfile <- "/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/SNOTEL/snotel_URG_NEW.Rdata" 
-SNOfile <- "/glade/p/ral/RHAP/adugger/CONUS_1km/OBS/SNOTEL/obs_SNOTEL_1998_current.Rdata"
+SNOfile <- "/glade/p/ral/RHAP/adugger/CONUS_IOC/OBS/SNOTEL/obs_SNOTEL_1998_current.Rdata"
 
 ## Path to meteorological station data .Rdata file
 METfile <- "/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/MET/met_URG_NEW.Rdata"
@@ -36,31 +36,23 @@ METfile <- "/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/MET/met_URG_NEW.Rdata"
 #STRfile <- "/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/STRFLOW/strflow_URG_NEW.Rdata"
 STRfile <- "/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/STRFLOW/obsStrData.Rdata"
 
-## Do these need updated? TRUE/FALSE ...to be worked on later
-
 
 ################ Model Output Reads ###############
 
 ## Read model output?
-readMod <- TRUE
+readMod <- FALSE
 
 ## If TRUE, specify the following to read in model output:
 
 	# Specify the model run output directory or directories
-#	modPathList <- c('/glade/p/ral/RHAP/adugger/Upper_RioGrande/RUN.NEWMP/OUTPUT_NLDAS_SPINUP',
-#			'/glade/p/ral/RHAP/adugger/Upper_RioGrande/RUN.NEWMP/OUTPUT_NLDASDWNSC_SPINUP',
-#			'/glade/p/ral/RHAP/gochis/Col_SWCol_URG_UppGunn_Animas/results/spinup_WY_2014_thru_2015_cold_start_full_rtng')
 	modPathList <- c('/glade/p/ral/RHAP/gochis/Col_SWCol_URG_UppGunn_Animas/results/spinup_WY_2014_thru_2015_cold_start_full_rtng',
 			'/glade/scratch/karsten/Col_SWCol_URG_UppGunn_Animas_NSSL')
 
 	# Specify tags to identify the model run or runs (should be 1:1 with number of model output directories)
-#	modTagList <- c('su2013_15_NLDAS_newmodel', 
-#			'su2013_15_NLDASdwnsc_newmodel',
-#			'su2013_15_NLDASdwnsc_newmodel_newdomain')
 	modTagList <- c('NLDAS2-Downscaled', 'NSSL')
 
 	# Specify the output .Rdata file to create
-	modReadFileOut <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/urg_spinup_eval_new_TMP.Rdata'
+	modReadFileOut <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/aTest_urg_modelreads.Rdata'
 	# Append to existing file? FALSE = create new file (or overwrite existing!)
 	modAppend <- FALSE
 
@@ -93,21 +85,18 @@ readMod <- TRUE
 ################## Forcing Reads ##################
 
 ## Read forcing data?
-readForc <- FALSE
+readForc <- TRUE
 
 ## If TRUE, specify the following:
 
 	# Specify the path to the forcing data
-	#forcPathList <- c('/glade/scratch/zhangyx/WRF-Hydro/RioGrande/NLDAS2.data')
-	forcPathList <- c('/glade/p/ral/RHAP/gochis/Col_Upp_Rio_Grande/forcing', 
-			'/glade/scratch/zhangyx/WRF-Hydro/RioGrande/NLDAS2.data')
+	forcPathList <- c('/glade/scratch/zhangyx/WRF-Hydro/RioGrande/NLDAS2.data')
 
         # Specify tags to identify the forcings (should be 1:1 with number of model forcing directories)
-        #forcTagList <- c('nldas2dwnsc')
-	forcTagList <- c('nldas2', 'nldas2dwnsc')
+	forcTagList <- c('NLDAS2-Downscaled')
 
 	# Specify the forcing output .Rdata file to create
-	forcReadFileOut <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/urg_forcing_raw2.Rdata'
+	forcReadFileOut <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/aTest_urg_forcingreads.Rdata'
         # Append to existing file? FALSE = create new file (or overwrite existing!)
         forcAppend <- FALSE
 
@@ -150,10 +139,11 @@ calcStats <- FALSE
 ## If any are TRUE, specify the following:
 
 	# If the raw data read .Rdata file exists (vs. created above), specify the file
-	modReadFileIn <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/urg_spinup_eval_new_PART1.Rdata'
+	modReadFileIn <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/aTest_urg_modelreads.Rdata'
+	forcReadFileIn <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/aTest_urg_forcingreads.Rdata'
 
         # Specify the stats output .Rdata file to create
-        statsFileOut <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/EVAL_151102/urg_stats_all.Rdata'
+        statsFileOut <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/aTest_urg_stats.Rdata'
 
 	# Range dates for main stats
 	stdate_stats <- NULL
@@ -166,7 +156,7 @@ calcStats <- FALSE
 	# Write stats tables?
 	writeStatsFile <- TRUE
 	# If TRUE, specify output directory
-	writeDir <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/EVAL_151102'
+	writeDir <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/aTest_PLOTS'
 
 
 
@@ -175,8 +165,11 @@ calcStats <- FALSE
 ## Create plots and/or maps?
 createPlots <- FALSE
 
+## Create HTML files?
+writeHtml <- TRUE
+
 ## If TRUE, specify output directory
-writePlotDir <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/EVAL_151102'
+writePlotDir <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/aTest_PLOTS'
 
 	######### TIME SERIES PLOTS ###########
 
@@ -205,7 +198,7 @@ writePlotDir <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/EVAL_151102'
         	hydroEndDate <- NULL
 
 	## Generate accumulated precip plots?
-	accprecipPlot <- FALSE
+	accprecipPlot <- TRUE
 
         	# Specify which run tags to plot
         	accprecipTags <- NULL
@@ -217,7 +210,7 @@ writePlotDir <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/EVAL_151102'
         	accprecipEndDate <- NULL
 
 	## Generate Streamflow and Basin-mean SWE plots?
-	flowswePlot <- FALSE
+	flowswePlot <- TRUE
 
         	# Specify which run tags to plot
         	flowsweTags <- NULL
@@ -239,6 +232,19 @@ writePlotDir <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/EVAL_151102'
 
         	# Specify end date
         	sweEndDate <- NULL
+
+        ## Generate MET station plots?
+        metPlot <- TRUE
+
+                # Specify which run tags to plot
+                metTags <- NULL
+
+                # Specify start date
+                metStartDate <- as.POSIXct("2014-10-01", format="%Y-%m-%d", tz="UTC")
+
+                # Specify end date
+                metEndDate <- NULL
+
 
 	########### MAPS #############
 
@@ -283,120 +289,5 @@ writePlotDir <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/EVAL_151102'
 ###########################################################################################
 ## RUN (do not change anything below this line)
 
-library(rwrfhydro)
-
-load(maskFile)
-source("util_FUNC.R")
-
-# Multi-core
-parallelFlag <- FALSE
-if (ncores>1) {
-	library(doParallel)
-	cl <- makeForkCluster(ncores)
-	registerDoParallel(cl)
-	parallelFlag <- TRUE
-}
-
-# Obs
-if (!is.null(AMFfile) & amfProc & exists("ptgeo.amf")) {
-	if (file.exists(AMFfile)) {
-		load(AMFfile)
-		obsAmfData <- subset(obsAmfData, obsAmfData$site_id %in% ptgeo.amf$id)
-	} else {
-		stop(paste("Ameriflux obs file specified but does not exist:", AMFfile))
-	}
-}
-if (!is.null(SNOfile) & (snoProc | swePlot) & exists("ptgeo.sno")) {
-        if (file.exists(SNOfile)) {
-                load(SNOfile)
-		obsSnoData <- subset(obsSnoData, obsSnoData$site_id %in% ptgeo.sno$id)
-	} else {
-                stop(paste("SNOTEL obs file specified but does not exist:", SNOfile))
-        }
-}
-if (!is.null(METfile) & metProc & exists("ptgeo.met")) {
-        if (file.exists(METfile)) {
-                load(METfile)
-		obsMetData <- subset(obsMetData, obsMetData$site_id %in% ptgeo.met$id)
-	} else {
-                stop(paste("MET obs file specified but does not exist:", METfile))
-        }
-}
-if (!is.null(STRfile) & (strProc | accflowPlot | hydroPlot | flowswePlot) & exists("stid2gageList")) {
-	obsStrData_FINAL <- data.frame()
-	obsStrMeta_FINAL <- data.frame()
-	for (i in STRfile) {
-		if (file.exists(i)) {
-			load(i)
-			obsStrData <- remapData(obsStrData, obsStrData.map)
-			obsStrMeta <- remapData(obsStrMeta, obsStrMeta.map)
-			#if (!("site_no" %in% names(obsStrData))) names(obsStrData)[which(names(obsStrData)=="Station")] <- "site_no"
-			#if (!("site_no" %in% names(obsStrMeta))) names(obsStrMeta)[which(names(obsStrMeta)=="Station")] <- "site_no"
-			obsStrData_TMP <- subset(obsStrData, obsStrData$site_no %in% stid2gageList)
-			obsStrData_FINAL <- plyr::rbind.fill(obsStrData_FINAL, obsStrData_TMP)
-			obsStrMeta_TMP <- subset(obsStrMeta, obsStrMeta$site_no %in% stid2gageList)
-                        obsStrMeta_FINAL <- plyr::rbind.fill(obsStrMeta_FINAL, obsStrMeta_TMP)
-		} else {
-			stop(paste("Streamflow obs file specified but does not exist:", STRfile))
-		}
-	}
-	obsStrData <- obsStrData_FINAL
-	obsStrMeta <- obsStrMeta_FINAL
-	rm(obsStrData_FINAL, obsStrMeta_FINAL, obsStrData_TMP, obsStrMeta_TMP)
-}
-
-stop()
-# Model Reads 
-if (readMod | readForc) {
-	source("read_MODELOUT.R")
-}
-
-# Stats Calculations
-if (calcStats & (strProc | snoProc | amfProc | metProc)) {
-	message("Calculating stats")
-	if (is.null(modReadFileOut)) {
-		if (file.exists(modReadFileIn)) {
-			load(modReadFileIn)
-		}
-	} else {
-		if (is.null(modReadFileIn)) {
-			if (file.exists(modReadFileOut)) {
-				load(modReadFileOut)
-			}
-		} else {
-			if (file.exists(modReadFileIn)) {
-				load(modReadFileIn)
-			}
-		}
-	}
-	source("calc_PERFSTATS.R")
-}
-
-# Plots
-if (createPlots & (accflowPlot | hydroPlot | accprecipPlot | swePlot | 
-	strBiasMap | strCorrMap | 
-	snosweErrMap | snoprecipErrMap)) {
-        message("Generating plots")
-	load(statsFileOut)
-        if (is.null(modReadFileOut)) {
-                if (file.exists(modReadFileIn)) {
-                        load(modReadFileIn)
-                }
-        } else {
-                if (is.null(modReadFileIn)) {
-                        if (file.exists(modReadFileOut)) {
-                                load(modReadFileOut)
-                        }
-                } else {
-                        if (file.exists(modReadFileIn)) {
-                                load(modReadFileIn)
-                        }
-                }
-        }
-        source("calc_PLOTS.R")
-}
-
-# EXIT
-stopCluster(cl)
-quit("no")
+source("run_CONFIG.R")
 
