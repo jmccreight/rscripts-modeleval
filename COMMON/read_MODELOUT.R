@@ -222,13 +222,13 @@ if (readMod & (readBasinLdasout | readAmfLdasout | readSnoLdasout | readMetLdaso
         if (varsLdasoutNFIE) {
                 # SUBSET
                 varNames <- c('SWFORC', 'LWFORC', 'ALBEDO', 'GRDFLX',
-                        'LH', 'HFX', 'ETRAN', 'UGDRNOFF',
+                        'LH', 'HFX', 'ACCETRAN', 'UGDRNOFF',
                         'SFCRNOFF', 'CANLIQ', 'CANICE', 'ACCPRCP',
 			'ACCECAN', 'ACCEDIR', 'TRAD',
                          rep('SOIL_M',4),
                         'SNOWH', 'SNEQV')
                 varLabels <- c('SWFORC', 'LWFORC', 'ALBEDO', 'GRDFLX',
-                        'LH', 'HFX', 'ETRAN', 'UGDRNOFF',
+                        'LH', 'HFX', 'ACCETRAN', 'UGDRNOFF',
                         'SFCRNOFF', 'CANLIQ', 'CANICE', 'ACCPRCP',
                         'ACCECAN', 'ACCEDIR', 'TRAD',
                          paste0('SOIL_M',1:4),
@@ -466,6 +466,14 @@ if (readMod & (readBasinLdasout | readAmfLdasout | readSnoLdasout | readMetLdaso
                         # Calculate truncated date from UTC time
                         modLdasout$UTC_date <- CalcDateTrunc(modLdasout$POSIXct)
                         # Run daily aggs
+			if (varsLdasoutNFIE) {
+                        modLdasout.utcday <- modLdasout[, list(DEL_ACCPRCP=sum(DEL_ACCPRCP), DEL_ACCEDIR=sum(DEL_ACCEDIR),
+                                         DEL_ACCECAN=sum(DEL_ACCECAN), DEL_ACCETRAN=sum(DEL_ACCETRAN),
+                                         SNEQV_mean=mean(SNEQV), SNOWH_mean=mean(SNOWH),
+                                         SOIL_M1_mean=mean(SOIL_M1), SOIL_M2_mean=mean(SOIL_M2),
+                                         LH_mean=mean(LH), HFX_mean=mean(HFX), GRDFLX_mean=mean(GRDFLX)),
+                                         by = "statArg,UTC_date"]
+			} else {
 			modLdasout.utcday <- modLdasout[, list(DEL_ACCPRCP=sum(DEL_ACCPRCP), DEL_ACCEDIR=sum(DEL_ACCEDIR),
                                          DEL_ACCECAN=sum(DEL_ACCECAN), DEL_ACCETRAN=sum(DEL_ACCETRAN),
                                          SNEQV_mean=mean(SNEQV), SNOWH_mean=mean(SNOWH),
@@ -474,6 +482,7 @@ if (readMod & (readBasinLdasout | readAmfLdasout | readSnoLdasout | readMetLdaso
                                          LH_mean=mean(LH), HFX_mean=mean(HFX), GRDFLX_mean=mean(GRDFLX),
                                          FIRA_mean=mean(FIRA), FSA_mean=mean(FSA)),
 					 by = "statArg,UTC_date"]
+			}
                         # Add dummy POSIXct for ease of plotting
                         modLdasout.utcday$POSIXct <- as.POSIXct(paste0(modLdasout.utcday$UTC_date, " 00:00"), tz="UTC")
 			# Add tags
@@ -554,7 +563,8 @@ if (readMod & readFrxstout) {
                 modoutPath <- modPathList[i]
                 modoutTag <- modTagList[i]
                 # Read STR
-        	modFrxstout <- ReadFrxstPts(paste0(modoutPath, '/frxst_pts_out.txt'), stIdType='integer')
+        	#modFrxstout <- ReadFrxstPts(paste0(modoutPath, '/frxst_pts_out.txt'), stIdType='integer')
+		modFrxstout <- ReadFrxstPts(paste0(modoutPath, '/frxst_pts_out.txt'))
         	# Filter out non-unique dates. Take values from latest run if dups.
         	modFrxstout <- modFrxstout[nrow(modFrxstout):1,]
         	modFrxstout$uni <- paste(modFrxstout$st_id, modFrxstout$timest, sep=",")
@@ -573,13 +583,19 @@ if (readMod & readFrxstout) {
                         modFrxstout <- subset(modFrxstout, modFrxstout$POSIXct <= readModEnd)
                 }
 		# Bring in basin IDs
-  		modFrxstout <- plyr::join(modFrxstout, stid2gage, by="st_id")
+		if (is.integer(modFrxstout$st_id[1])) {
+  			modFrxstout <- plyr::join(modFrxstout, stid2gage, by="st_id")
+		} else {
+			modFrxstout$st_id <- stringr::str_trim(modFrxstout$st_id)
+			modFrxstout$STAID <- modFrxstout$st_id
+		}
+		names(modFrxstout)[names(modFrxstout)=="STAID"] <- "site_no"
   		# Calculate accumulated flow
   		modFrxstout$q_mm <- NA
   		modFrxstout <- modFrxstout[order(modFrxstout$st_id, modFrxstout$POSIXct),]
   		modFrxstout$ACCFLOW <- NA
-  		for (j in unique(modFrxstout$STAID)[!is.na(unique(modFrxstout$STAID))]) {
-    			tmp <- subset(modFrxstout, modFrxstout$STAID==j)
+  		for (j in unique(modFrxstout$site_no)[!is.na(unique(modFrxstout$site_no))]) {
+    			tmp <- subset(modFrxstout, modFrxstout$site_no==j)
 			tmp$q_mm <- NA
 			for (k in 1:nrow(tmp)) {
 				ts <- ifelse(k==1, as.integer(difftime(tmp$POSIXct[k+1],tmp$POSIXct[k], units="secs")), 
@@ -588,9 +604,9 @@ if (readMod & readFrxstout) {
                                         (mskhyd.areaList[[j]]
                                         *hydDX*hydDX)*1000*ts
 			}
-			modFrxstout$q_mm[modFrxstout$STAID==j & !is.na(modFrxstout$STAID)] <- tmp$q_mm
+			modFrxstout$q_mm[modFrxstout$site_no==j & !is.na(modFrxstout$site_no)] <- tmp$q_mm
     			qaccum <- cumsum(tmp$q_mm)
-    			modFrxstout$ACCFLOW[modFrxstout$STAID==j & !is.na(modFrxstout$STAID)] <- qaccum
+    			modFrxstout$ACCFLOW[modFrxstout$site_no==j & !is.na(modFrxstout$site_no)] <- qaccum
   		}
 		# Add model run tag and bind
                 modFrxstout$tag <- modoutTag
@@ -603,6 +619,54 @@ if (readMod & readFrxstout) {
 
 } # end frxstout processing
 
+
+## ------------------------------------------------------------------------
+## ------------------------------------------------------------------------
+# CHRTOUT PROCESSING
+## ------------------------------------------------------------------------
+## ------------------------------------------------------------------------
+
+if (readMod & readChrtout) {
+
+	## Loop through model run output directories
+        modChrtout_tmp <- data.table()
+        for (i in 1:length(modPathList)) {
+                modoutPath <- modPathList[i]
+                modoutTag <- modTagList[i]
+                # Read STR
+		filesList <- list.files(path=modoutPath, pattern=glob2rx('*.CHRTOUT_DOMAIN*'), full.names=TRUE)
+		idlist <- unique(subset(rtLinks$link, !(rtLinks$gages=="")))
+		#filesList<-filesList[1:10]
+        	outList <- list()
+        	outList <- foreach(j=filesList, .packages = c("ncdf4","data.table"), .combine=c) %dopar% {
+                	ncid <- nc_open(j)
+                	q <- ncvar_get(ncid, "streamflow")
+                	nc_close(ncid)
+			link <- rtLinks$link
+                	dtstr <- basename(j)
+                	dtstr <- unlist(strsplit(dtstr, "[.]"))[1]
+                	dtstr <- as.POSIXct(dtstr, format="%Y%m%d%H%M", tz="UTC")
+                	out <- data.table(link=link, POSIXct=dtstr, q_cms=q)
+                	#out <- out[link %in% idlist,]
+                	list(out)
+                	}
+		modChrtout <- rbindlist(outList)
+		# Add model run tag and bind
+                modChrtout$tag <- modoutTag
+                modChrtout_tmp <- rbindlist(list(modChrtout_tmp, modChrtout))
+                rm(modChrtout)
+                gc()
+	}
+        setkey(modChrtout_tmp, link)
+        #modChrtout_tmp <- modChrtout_tmp[rtLinks,]
+	rtLinks_tmp <- data.table(rtLinks[,c("link","gages")])
+	names(rtLinks_tmp) <- c("link","site_no")
+	setkey(rtLinks_tmp, link)
+	modChrtout_tmp <- modChrtout_tmp[rtLinks_tmp,]
+	saveList <- c(saveList, "modChrtout_tmp")
+        save(list=saveList, file=tmpRimg)
+
+} # end modchrtout processing
 
 
 ## ------------------------------------------------------------------------
@@ -754,6 +818,8 @@ if (readForc & (readBasinLdasin | readAmfLdasin | readSnoLdasin | readMetLdasin)
 
  } # end LDASIN
 
+
+
 ## ------------------------------------------------------------------------
 ## ------------------------------------------------------------------------
 # SAVE DATA
@@ -819,6 +885,14 @@ if (readMod) {
                         modFrxstout <- modFrxstout_tmp
                 	saveListMod <- c(saveListMod, "modFrxstout")
 		}
+        }
+        if (readChrtout) {
+                if (modAppend & exists("modChrtout")) {
+                        modChrtout <- rbindlist(list(modChrtout, modChrtout_tmp))
+                } else {
+                        modChrtout <- modChrtout_tmp
+                        saveListMod <- c(saveListMod, "modChrtout")
+                }
         }
 }
 

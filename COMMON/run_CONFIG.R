@@ -6,6 +6,7 @@
 ## RUN (do not change anything below this line)
 
 library(rwrfhydro)
+library(data.table)
 
 load(maskFile)
 source("util_FUNC.R")
@@ -60,6 +61,9 @@ if (calcStats | createPlots) {
 		}
 		obsStrData <- obsStrData_FINAL
 		obsStrMeta <- obsStrMeta_FINAL
+		if (exists("link2gage.man")) {
+			obsStrData <- plyr::join(obsStrData, link2gage.man, by="site_no")
+		}
 		rm(obsStrData_FINAL, obsStrMeta_FINAL, obsStrData_TMP, obsStrMeta_TMP)
 	}
 }
@@ -108,7 +112,7 @@ if (createPlots) {
 			strBiasMap | strCorrMap | 
 			snosweErrMap | snoprecipErrMap) {
         	message("Generating plots")
-		load(statsFileOut)
+		#load(statsFileOut)
         	if (is.null(modReadFileOut)) {
                 	if (file.exists(modReadFileIn)) {
                         	load(modReadFileIn)

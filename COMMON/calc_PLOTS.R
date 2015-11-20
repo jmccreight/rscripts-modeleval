@@ -15,6 +15,11 @@ lineColors <- c("dodgerblue", "darkorange1", "olivedrab", "chocolate", "darkmage
 lineTyp <- 1
 lineWd <- 3
 
+if (!exists("link2gage") & exists("rtLinks")) {
+	link2gage<-subset(rtLinks[c("link","gages")], rtLinks$gages!="")
+	names(link2gage)[names(link2gage)=="gages"]<-"site_no"
+}
+stop()
 if (writeHtml) {
 	library(knitr)
 	library(pander)
@@ -107,39 +112,59 @@ if (hydroPlot) {
 message("Generating hydrograph plots...")
 # Setup
 hydroList <- list()
-if (is.null(hydroTags)) hydroTags <- unique(modFrxstout$tag)
+if (is.null(hydroTags)) {
+	if (exists("modFrxstout")) {
+		hydroTags <- unique(modFrxstout$tag)
+		gageNames <- names(gage2basinList)
+		idCol <- "site_no"
+	} else if (exists("modChrtout")) {
+		hydroTags <- unique(modChrtout$tag)
+		if (exists("link2gage.man")) {
+			gageNames <- unique(link2gage.man$link)
+		} else {
+			gageNames <- unique(obsStrData$link)
+		}
+		idCol <- "link"
+	}
+}
 for (i in 1:length(hydroTags)) {
-        hydroList[[i]] <- subset(modFrxstout, modFrxstout$tag==hydroTags[i])
+	if (exists("modFrxstout")) {
+        	hydroList[[i]] <- subset(modFrxstout, modFrxstout$tag==hydroTags[i])
+	} else if (exists("modChrtout")) {
+		hydroList[[i]] <- subset(modChrtout, modChrtout$tag==hydroTags[i])
+	} else {
+		stop()
+	}
 }
 hydroColors <- lineColors[1:length(hydroList)]
 hydroTypes <- rep(lineTyp, length(hydroList))
 hydroWidths <- rep(lineWd, length(hydroList))
 # Loop plots
-for (n in names(gage2basinList)) {
+for (n in gageNames) {
         png(paste0(writePlotDir, "/hydrogr_", n, ".png"), width=2100, height=1350, res=225)
         PlotFlow(n, modDfs=hydroList,
-                        obs=obsStrData.dy,
+                        obs=obsStrData,
                         labMods=hydroTags,
                         labObs="Observed",
                         lnCols=hydroColors,
                         lnWds=hydroWidths,
                         labTitle=paste0("Streamflow: ", n, " (", obsStrMeta$site_name[obsStrMeta$site_no==n], ")"),
-                        stdate=hydroStartDate, enddate=hydroEndDate, obsCol="mean_qcms")
+                        stdate=hydroStartDate, enddate=hydroEndDate, obsCol="q_cms", idCol=idCol)
         dev.off()
 }
 if (writeHtml) {
         cat('## Hydrographs\n', file=paste0(writePlotDir,"/plots_hydro.Rmd"), append=TRUE)
-        for (n in names(gage2basinList)) {
+        for (n in gageNames) {
                 cat(paste0("```{r hydro_", n, ", fig.width = 12, fig.height = 6, out.width='700', out.height='350', echo=FALSE}\n"), 
 			file=paste0(writePlotDir,"/plots_hydro.Rmd"), append=TRUE)
                 plottxt <- knitr::knit_expand(text='PlotFlow("{{n}}", modDfs=hydroList,
-                        obs=obsStrData.dy,
+                        obs=obsStrData,
                         labMods=hydroTags,
                         labObs="Observed",
                         lnCols=hydroColors,
                         lnWds=hydroWidths,
                         labTitle=paste0("Streamflow: ", "{{n}}", " (", obsStrMeta$site_name[obsStrMeta$site_no=="{{n}}"], ")"),
-                        stdate=hydroStartDate, enddate=hydroEndDate, obsCol="mean_qcms")\n')
+                        stdate=hydroStartDate, enddate=hydroEndDate, obsCol="q_cms")\n')
                 cat(plottxt, file=paste0(writePlotDir,"/plots_hydro.Rmd"), append=TRUE)
                 cat('```\n', file=paste0(writePlotDir,"/plots_hydro.Rmd"), append=TRUE)
         }

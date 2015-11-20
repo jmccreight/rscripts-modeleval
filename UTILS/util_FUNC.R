@@ -41,10 +41,12 @@ subDf <- function(df, stdate=NULL, enddate=NULL) {
 remapData <- function(inObj, mapObj) {
 first <- TRUE
 for (i in names(mapObj)) {
-	out <- data.frame(x=inObj[,mapObj[[i]]], stringsAsFactors=FALSE)
-	names(out) <- i
-	if(first) {outDf <- out} else {outDf <- cbind(outDf, out)}
-	first <- FALSE
+	if ( mapObj[[i]] %in% names(inObj) ) {
+		out <- data.frame(x=inObj[,mapObj[[i]]], stringsAsFactors=FALSE)
+		names(out) <- i
+		if(first) {outDf <- out} else {outDf <- cbind(outDf, out)}
+		first <- FALSE
+	}
 }
 outDf
 }

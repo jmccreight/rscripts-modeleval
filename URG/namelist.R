@@ -45,14 +45,14 @@ readMod <- FALSE
 ## If TRUE, specify the following to read in model output:
 
 	# Specify the model run output directory or directories
-	modPathList <- c('/glade/p/ral/RHAP/gochis/Col_SWCol_URG_UppGunn_Animas/results/spinup_WY_2014_thru_2015_cold_start_full_rtng',
-			'/glade/scratch/karsten/Col_SWCol_URG_UppGunn_Animas_NSSL')
+	modPathList <- c('/glade/p/ral/RHAP/gochis/Col_SWCol_URG_UppGunn_Animas/test_debug',
+			'/glade/p/ral/RHAP/karsten/Col_SWCol_URG_UppGunn_Animas_NSSL')
 
 	# Specify tags to identify the model run or runs (should be 1:1 with number of model output directories)
 	modTagList <- c('NLDAS2-Downscaled', 'NSSL')
 
 	# Specify the output .Rdata file to create
-	modReadFileOut <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/aTest_urg_modelreads.Rdata'
+	modReadFileOut <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/151111_urg_modelreads.Rdata'
 	# Append to existing file? FALSE = create new file (or overwrite existing!)
 	modAppend <- FALSE
 
@@ -85,7 +85,7 @@ readMod <- FALSE
 ################## Forcing Reads ##################
 
 ## Read forcing data?
-readForc <- TRUE
+readForc <- FALSE
 
 ## If TRUE, specify the following:
 
@@ -96,7 +96,7 @@ readForc <- TRUE
 	forcTagList <- c('NLDAS2-Downscaled')
 
 	# Specify the forcing output .Rdata file to create
-	forcReadFileOut <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/aTest_urg_forcingreads.Rdata'
+	forcReadFileOut <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/151111_urg_forcingreads.Rdata'
         # Append to existing file? FALSE = create new file (or overwrite existing!)
         forcAppend <- FALSE
 
@@ -139,31 +139,31 @@ calcStats <- FALSE
 ## If any are TRUE, specify the following:
 
 	# If the raw data read .Rdata file exists (vs. created above), specify the file
-	modReadFileIn <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/aTest_urg_modelreads.Rdata'
-	forcReadFileIn <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/aTest_urg_forcingreads.Rdata'
+	modReadFileIn <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/151111_urg_modelreads.Rdata'
+	forcReadFileIn <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/151111_urg_forcingreads.Rdata'
 
         # Specify the stats output .Rdata file to create
-        statsFileOut <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/aTest_urg_stats.Rdata'
+        statsFileOut <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/151111_urg_stats.Rdata'
 
 	# Range dates for main stats
 	stdate_stats <- NULL
-	enddate_stats <- as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
+	enddate_stats <- as.POSIXct("2015-09-30 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
 
 	# Range dates for seasonal stats (e.g., spring)
 	stdate_stats_sub <- as.POSIXct("2015-04-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
-	enddate_stats_sub <- as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
+	enddate_stats_sub <- as.POSIXct("2015-09-30 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
 
 	# Write stats tables?
 	writeStatsFile <- TRUE
 	# If TRUE, specify output directory
-	writeDir <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/aTest_PLOTS'
+	writeDir <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/151111_PLOTS'
 
 
 
 ################### Plotting ######################
 
 ## Create plots and/or maps?
-createPlots <- FALSE
+createPlots <- TRUE
 
 ## Create HTML files?
 writeHtml <- TRUE

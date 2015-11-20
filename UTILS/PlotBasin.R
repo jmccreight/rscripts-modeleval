@@ -3,11 +3,11 @@ PlotAccPrecipFlow <- function(n, str1=modFrxstout_wy2015_NLDAS2dwnsc_fullrtng,
                         obsstr=obsStr.dy,
                         str2=modFrxstout_wy2015_NLDAS2dwnsc_NSSL_fullrtng,
                         lsm2=modLdasout_wy2015_NLDAS2dwnsc_NSSL_fullrtng_BAS) {
-  str1 <- subset(str1, str1$STAID==n)
-  lsm1 <- subset(lsm1, lsm1$STAID==n)
+  str1 <- subset(str1, str1$site_no==n)
+  lsm1 <- subset(lsm1, lsm1$site_no==n)
   obsstr <- subset(obsstr, obsstr$site_no==n)
-  str2 <- subset(str2, str2$STAID==n)
-  lsm2 <- subset(lsm2, lsm2$STAID==n)
+  str2 <- subset(str2, str2$site_no==n)
+  lsm2 <- subset(lsm2, lsm2$site_no==n)
   with(lsm1, plot(POSIXct, ACCPRCP, typ='l', col='darkmagenta'))
   with(str1, lines(POSIXct, ACCFLOW, col='deepskyblue'))
   with(lsm1, lines(POSIXct, ACCECAN+ACCEDIR+ACCETRAN, col='darkolivegreen3'))
@@ -91,13 +91,13 @@ PlotAccFlow <- function(n, modDfs, obs,
   # Subset by dates
   if (is.null(stdate)) stdate <- min(str1$POSIXct)
   if (is.null(enddate)) enddate <- max(str1$POSIXct)
-  str1 <- subset(str1, str1$STAID==n & str1$POSIXct>=stdate & str1$POSIXct<=enddate)
+  str1 <- subset(str1, str1$site_no==n & str1$POSIXct>=stdate & str1$POSIXct<=enddate)
   obs <- subset(obs, obs$site_no==n & obs$POSIXct>=stdate & obs$POSIXct<=enddate)
   # Calculate maximum y val for plot limits
   ymax <- max(str1[nrow(str1),modCol]-str1[1,modCol], obs[nrow(obs),obsCol]-obs[1,obsCol], na.rm=TRUE)
   if (!is.data.frame(modDfs) & is.list(modDfs) & length(modDfs)>1) {
         for (stri in modDfs) {
-                stri <- subset(stri, stri$STAID==n & stri$POSIXct>=stdate & stri$POSIXct<=enddate)
+                stri <- subset(stri, stri$site_no==n & stri$POSIXct>=stdate & stri$POSIXct<=enddate)
                 ymax <- max(ymax, stri[nrow(stri),modCol]-stri[1,modCol], na.rm=TRUE)
                 }
         }
@@ -114,7 +114,7 @@ PlotAccFlow <- function(n, modDfs, obs,
   if (!is.data.frame(modDfs) & is.list(modDfs) & length(modDfs)>1) {
         for (j in 2:length(modDfs)) {
                 stri <- modDfs[[j]]
-                stri <- subset(stri, stri$STAID==n & stri$POSIXct>=stdate & stri$POSIXct<=enddate)
+                stri <- subset(stri, stri$site_no==n & stri$POSIXct>=stdate & stri$POSIXct<=enddate)
                 lines(stri$POSIXct, stri[,modCol]-stri[1,modCol], col=lnCols[j], lty=lnTyps[j], lwd=lnWds[j])
                 }
         }
@@ -133,7 +133,8 @@ PlotFlow <- function(n, modDfs, obs,
                         lnCols=NULL, lnWds=NULL, lnTyps=NULL,
                         stdate=NULL,
                         enddate=NULL,
-                        modCol="q_cms", obsCol="mean_qcms") {
+                        modCol="q_cms", obsCol="mean_qcms",
+			idCol="site_no") {
   # Parse type of input for model data (dataframe or list of multiple dataframes)
   if (is.data.frame(modDfs)) {
         str1 <- modDfs
@@ -144,17 +145,23 @@ PlotFlow <- function(n, modDfs, obs,
   } else {
         stop("modDfs must be a dataframe or a list of dataframes")
   }
+  if (is.data.table(str1)) str1<-data.frame(str1)
   # Subset by dates
   if (is.null(stdate)) stdate <- min(str1$POSIXct)
   if (is.null(enddate)) enddate <- max(str1$POSIXct)
-  str1 <- subset(str1, str1$STAID==n & str1$POSIXct>=stdate & str1$POSIXct<=enddate)
-  obs <- subset(obs, obs$site_no==n & obs$POSIXct>=stdate & obs$POSIXct<=enddate)
+  str1 <- subset(str1, str1[idCol]==n & str1$POSIXct>=stdate & str1$POSIXct<=enddate)
+  if (is.data.table(obs)) {
+        obs <- obs[get(idCol)==as.integer(n) & POSIXct>=stdate & POSIXct<=enddate,]
+  	obs <- data.frame(obs)
+  } else {
+  	obs <- subset(obs, obs[idCol]==n & obs$POSIXct>=stdate & obs$POSIXct<=enddate)
+  }
   # Calculate maximum y val for plot limits
   ymax <- max(str1[,modCol], obs[,obsCol], na.rm=TRUE)
   if (!is.data.frame(modDfs) & is.list(modDfs) & length(modDfs)>1) {
         for (stri in modDfs) {
-                stri <- subset(stri, stri$STAID==n & stri$POSIXct>=stdate & stri$POSIXct<=enddate)
-                ymax <- max(ymax, stri[,modCol], na.rm=TRUE)
+        	stri <- subset(stri, stri[idCol]==n & stri$POSIXct>=stdate & stri$POSIXct<=enddate)
+		ymax <- max(ymax, stri[,modCol], na.rm=TRUE)
                 }
         }
   # Set colors, widths, types
@@ -170,7 +177,8 @@ PlotFlow <- function(n, modDfs, obs,
   if (!is.data.frame(modDfs) & is.list(modDfs) & length(modDfs)>1) {
         for (j in 2:length(modDfs)) {
                 stri <- modDfs[[j]]
-                stri <- subset(stri, stri$STAID==n & stri$POSIXct>=stdate & stri$POSIXct<=enddate)
+		if (is.data.table(stri)) stri<-data.frame(stri)
+                stri <- subset(stri, stri[idCol]==n & stri$POSIXct>=stdate & stri$POSIXct<=enddate)
                 lines(stri$POSIXct, stri[,modCol], col=lnCols[j], lty=lnTyps[j], lwd=lnWds[j])
                 }
         }
@@ -215,15 +223,15 @@ PlotFlowSwe <- function(n, modDfs, lsmDfs, obs,
   # Subset by dates
   if (is.null(stdate)) stdate <- min(str1$POSIXct)
   if (is.null(enddate)) enddate <- max(str1$POSIXct)
-  str1 <- subset(str1, str1$STAID==n & str1$POSIXct>=stdate & str1$POSIXct<=enddate)
+  str1 <- subset(str1, str1[idCol]==n & str1$POSIXct>=stdate & str1$POSIXct<=enddate)
   lsm1 <- subset(lsm1, lsm1$statArg==n & lsm1$POSIXct>=stdate & lsm1$POSIXct<=enddate)
-  obs <- subset(obs, obs$site_no==n & obs$POSIXct>=stdate & obs$POSIXct<=enddate)
+  obs <- subset(obs, obs[idCol]==n & obs$POSIXct>=stdate & obs$POSIXct<=enddate)
   # Calculate maximum y val for plot limits
   ymax <- max(str1[,modCol], obs[,obsCol], na.rm=TRUE)
   ymax_lsm <- max(lsm1[,lsmCol], na.rm=TRUE)
   if (!is.data.frame(modDfs) & is.list(modDfs) & length(modDfs)>1) {
         for (stri in modDfs) {
-                stri <- subset(stri, stri$STAID==n & stri$POSIXct>=stdate & stri$POSIXct<=enddate)
+                stri <- subset(stri, stri[idCol]==n & stri$POSIXct>=stdate & stri$POSIXct<=enddate)
                 ymax <- max(ymax, stri[,modCol], na.rm=TRUE)
                 }   
         }   
@@ -247,7 +255,7 @@ PlotFlowSwe <- function(n, modDfs, lsmDfs, obs,
   if (!is.data.frame(modDfs) & is.list(modDfs) & length(modDfs)>1) {
         for (j in 2:length(modDfs)) {
                 stri <- modDfs[[j]]
-                stri <- subset(stri, stri$STAID==n & stri$POSIXct>=stdate & stri$POSIXct<=enddate)
+                stri <- subset(stri, stri[idCol]==n & stri$POSIXct>=stdate & stri$POSIXct<=enddate)
                 lines(stri$POSIXct, stri[,modCol], col=lnCols[j], lty=lnTyps[j], lwd=lnWds[j])
                 }   
         }   
