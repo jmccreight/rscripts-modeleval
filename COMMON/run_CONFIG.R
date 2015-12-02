@@ -43,17 +43,40 @@ if (calcStats | createPlots) {
                 	stop(paste("MET obs file specified but does not exist:", METfile))
         	}
 	}
-	if (!is.null(STRfile) & (strProc | accflowPlot | hydroPlot | flowswePlot) & exists("stid2gageList")) {
+	if (!is.null(STRfile) & (strProc | accflowPlot | hydroPlot | flowswePlot | flowlsmPlot) ) {
 		obsStrData_FINAL <- data.frame()
 		obsStrMeta_FINAL <- data.frame()
+		# Gridded routing case w/ subset
+		if ( !reachRting & exists("stid2gageList") ) {
+			if (is.list(stid2gageList)) {
+				gageList <- data.frame(st_id=names(stid2gageList), site_no=unlist(stid2gageList), stringsAsFactors=FALSE)
+			} else {
+				gageList <- stid2gageList
+			}
+		# Reach routing case w/ subset
+		} else if (reachRting) {
+			if ( exists("statsLink2gage") & !is.null(statsLink2gage) ) {
+				gageList <- statsLink2gage[,c("link","site_no")]
+			} else {
+				gageList <- subset(rtLinks[,c("link","site_no")], !(rtLinks$site_no == ''))
+			}
+		# No subset
+		} else {
+			gageList <- NULL
+		} 
 		for (i in STRfile) {
 			if (file.exists(i)) {
 				load(i)
-				obsStrData <- remapData(obsStrData, obsStrData.map)
-				obsStrMeta <- remapData(obsStrMeta, obsStrMeta.map)
-				obsStrData_TMP <- subset(obsStrData, obsStrData$site_no %in% stid2gageList)
+				if (exists("obsStrData.map")) obsStrData <- remapData(obsStrData, obsStrData.map)
+				if (exists("obsStrMeta.map")) obsStrMeta <- remapData(obsStrMeta, obsStrMeta.map)
+				if ( !is.null(gageList) ) { 
+					obsStrData_TMP <- subset(obsStrData, obsStrData$site_no %in% unique(gageList$site_no))
+					obsStrMeta_TMP <- subset(obsStrMeta, obsStrMeta$site_no %in% unique(gageList$site_no))
+				} else {
+					obsStrData_TMP <- obsStrData
+					obsStrMeta_TMP <- obsStrMeta
+				}
 				obsStrData_FINAL <- plyr::rbind.fill(obsStrData_FINAL, obsStrData_TMP)
-				obsStrMeta_TMP <- subset(obsStrMeta, obsStrMeta$site_no %in% stid2gageList)
                         	obsStrMeta_FINAL <- plyr::rbind.fill(obsStrMeta_FINAL, obsStrMeta_TMP)
 			} else {
 				stop(paste("Streamflow obs file specified but does not exist:", STRfile))
@@ -61,8 +84,8 @@ if (calcStats | createPlots) {
 		}
 		obsStrData <- obsStrData_FINAL
 		obsStrMeta <- obsStrMeta_FINAL
-		if (exists("link2gage.man")) {
-			obsStrData <- plyr::join(obsStrData, link2gage.man, by="site_no")
+		if ( reachRting & !is.null(gageList) ) {
+			obsStrData <- plyr::join(obsStrData, gageList, by="site_no")
 		}
 		rm(obsStrData_FINAL, obsStrMeta_FINAL, obsStrData_TMP, obsStrMeta_TMP)
 	}
@@ -108,11 +131,14 @@ if (calcStats & (strProc | snoProc | amfProc | metProc)) {
 
 # Plots
 if (createPlots) {
-	if (accflowPlot | hydroPlot | accprecipPlot | swePlot | 
+	if (accflowPlot | hydroPlot | accprecipPlot | 
+			flowswePlot | flowlsmPlot | swePlot | 
 			strBiasMap | strCorrMap | 
 			snosweErrMap | snoprecipErrMap) {
         	message("Generating plots")
-		#load(statsFileOut)
+		if (strBiasMap | strCorrMap | snosweErrMap | snoprecipErrMap) {
+			load(statsFileOut)
+		}
         	if (is.null(modReadFileOut)) {
                 	if (file.exists(modReadFileIn)) {
                         	load(modReadFileIn)
@@ -150,5 +176,5 @@ if (createPlots) {
 }
 
 # EXIT
-quit("no")
+#quit("no")
 

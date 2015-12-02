@@ -17,6 +17,7 @@ PlotAccPrecipFlow <- function(n, str1=modFrxstout_wy2015_NLDAS2dwnsc_fullrtng,
   with(obsstr, lines(POSIXct, cumqvol_mm, col='blue', lwd=2, lty=1))
 }
 
+
 PlotAccPrecip <- function(n, modDfs,
                         labMods=NULL,
                         labTitle="Accumulated Precipitation",
@@ -277,6 +278,55 @@ PlotFlowSwe <- function(n, modDfs, lsmDfs, obs,
   legend("topleft", c(labMods[1:strcnt], labObs, "", "Streamflow (m3/s)", "SWE (mm)"),
                 lty=c(lnTyps[1:strcnt],1,1,1,2), lwd=c(lnWds[1:strcnt],2,1,2,2),
                 col=c(lnCols[1:strcnt], 'black','white','grey40','grey40'), cex=1.2,
+                bg="white")
+}
+
+
+PlotFlowLsm <- function(n, modDf, lsmDf, obs, 
+                        labMods=NULL,
+                        labObs="Observed",
+                        labTitle="Streamflow",
+                        lnCols=NULL, lnWds=NULL, lnTyps=NULL,
+                        stdate=NULL,
+                        enddate=NULL,
+                        modCol="q_cms", obsCol="mean_qcms",
+                        idCol="site_no", tsSecs=86400, areaSqKm, ngage=NULL) {
+  # Parse type of input for model data (dataframe or list of multiple dataframes)
+  str1 <- modDf
+  lsm1 <- lsmDf
+  if (is.data.table(str1)) str1<-data.frame(str1)
+  if (is.data.table(lsm1)) lsm1<-data.frame(lsm1)
+  # Subset by dates
+  if (is.null(stdate)) stdate <- min(str1$POSIXct)
+  if (is.null(enddate)) enddate <- max(str1$POSIXct)
+  ngage <- ifelse(!is.null(ngage), ngage, n)
+  str1 <- subset(str1, str1[idCol]==n & str1$POSIXct>=stdate & str1$POSIXct<=enddate)
+  lsm1 <- subset(lsm1, lsm1["statArg"]==ngage & lsm1$POSIXct>=stdate & lsm1$POSIXct<=enddate)
+  if (is.data.table(obs)) {
+        obs <- obs[get(idCol)==n & POSIXct>=stdate & POSIXct<=enddate,]
+        obs <- data.frame(obs)
+  } else {
+        obs <- subset(obs, obs[idCol]==n & obs$POSIXct>=stdate & obs$POSIXct<=enddate)
+  }
+  # Calculate maximum y val for plot limits
+  ymax <- max(str1[,modCol], obs[,obsCol], na.rm=TRUE)
+  # Set colors, widths, types
+  if (is.null(lnCols)) lnCols <- sample(colours(), 2)
+  if (is.null(lnWds)) lnWds <- rep(1, 2)
+  if (is.null(lnTyps)) lnTyps <- rep(1, 2)
+  # Set labels
+  if (is.null(labMods)) labMods <- paste0("Model", 1)
+  # Create plot
+  plot(str1$POSIXct, str1[,modCol], typ='l', ylim=c(0, ymax),
+        xlim=c(stdate, enddate), col=lnCols[1], lty=lnTyps[1], lwd=lnWds[1],
+        xlab="", ylab="Streamflow (m3/s)", cex.axis=1.2, cex.lab=1.2)
+  with(lsm1, lines(POSIXct, (DEL_UGDRNOFF+DEL_SFCRNOFF)/tsSecs/1000*areaSqKm*1000*1000, 
+	col=lnCols[2], lty=lnTyps[2], lwd=lnWds[2]))
+  lines(obs$POSIXct, obs[,obsCol], col='black', lwd=2, lty=1)
+  title(labTitle, cex.main=1.6)
+  legend("topleft", c(labMods, "LSM Runoff", labObs),
+                lty=c(lnTyps, 1), lwd=c(lnWds, 2),
+                col=c(lnCols, 'black'), cex=1.2,
                 bg="white")
 }
 

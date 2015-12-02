@@ -15,16 +15,22 @@ lineColors <- c("dodgerblue", "darkorange1", "olivedrab", "chocolate", "darkmage
 lineTyp <- 1
 lineWd <- 3
 
-if (!exists("link2gage") & exists("rtLinks")) {
-	link2gage<-subset(rtLinks[c("link","gages")], rtLinks$gages!="")
-	names(link2gage)[names(link2gage)=="gages"]<-"site_no"
+# Get needed geo info
+ncid <- ncdf4::nc_open(geoFile)
+geoDX <- ncdf4::ncatt_get(ncid,varid=0,'DX')$value
+ncdf4::nc_close(ncid)
+hydDX <- geoDX/aggfact
+
+if (!exists("gageList") & exists("rtLinks")) {
+	gageList<-subset(rtLinks[c("link","site_no")], rtLinks$gages!="")
+	#names(link2gage)[names(link2gage)=="gages"]<-"site_no"
 }
-stop()
+
 if (writeHtml) {
 	library(knitr)
 	library(pander)
 	library(xtable)
-	if (accflowPlot | hydroPlot) {
+	if (accflowPlot | hydroPlot | flowlsmPlot) {
 		writeLines('```{r set-options, echo=FALSE, cache=FALSE}\noptions(width=1600)\nopts_chunk$set(comment = "", warning = FALSE, message = FALSE, echo = TRUE, tidy = FALSE, size="small")\n```', con=paste0(writePlotDir,"/plots_hydro.Rmd"))
 		cat('# MODEL OUTPUT: HYDROLOGY\n', file=paste0(writePlotDir,"/plots_hydro.Rmd"), append=TRUE)
 	}
@@ -45,7 +51,7 @@ if (writeHtml) {
 ## -----------------------------------------------------------------------
 # Generate Plots
 
-if (accprecipPlot | flowswePlot) {
+if (accprecipPlot | flowswePlot | flowlsmPlot) {
 	modLdasout_BAS <- list(native=subset(modLdasout[["native"]], modLdasout[["native"]]$fileGroup=="ldasout.basgeo"),
                        snoday=subset(modLdasout[["snoday"]], modLdasout[["snoday"]]$fileGroup=="ldasout.basgeo"),
                        utcday=subset(modLdasout[["utcday"]], modLdasout[["utcday"]]$fileGroup=="ldasout.basgeo"))
@@ -119,8 +125,8 @@ if (is.null(hydroTags)) {
 		idCol <- "site_no"
 	} else if (exists("modChrtout")) {
 		hydroTags <- unique(modChrtout$tag)
-		if (exists("link2gage.man")) {
-			gageNames <- unique(link2gage.man$link)
+		if (exists("gageList")) {
+			gageNames <- unique(gageList$link)
 		} else {
 			gageNames <- unique(obsStrData$link)
 		}
@@ -256,6 +262,90 @@ if (writeHtml) {
                 cat(plottxt, file=paste0(writePlotDir,"/plots_snow.Rmd"), append=TRUE)
                 cat('```\n', file=paste0(writePlotDir,"/plots_snow.Rmd"), append=TRUE)
         }
+}
+}
+
+# Flow and basin mean LSM runoff
+if (flowlsmPlot) {
+message("Generating flow + basin runoff plots...")
+# Setup
+if (is.null(flowlsmTags)) {
+        if (exists("modFrxstout")) {
+                flowlsmTags <- unique(modFrxstout$tag)
+                gageNames <- names(gage2basinList)
+                idCol <- "site_no"
+        } else if (exists("modChrtout")) {
+                flowlsmTags <- unique(modChrtout$tag)
+                if (!is.null(gageList)) {
+                        gageNames <- unique(gageList$link)
+                } else {
+                        gageNames <- unique(obsStrData$link)
+                }
+                idCol <- "link"
+        }
+}
+flowlsmColors <- lineColors[1:2]
+flowlsmTypes <- rep(lineTyp, 2)
+flowlsmWidths <- rep(lineWd, 2)
+# Loop plots
+for (i in 1:length(flowlsmTags)) {
+        if (exists("modFrxstout")) {
+                strDf <- subset(modFrxstout, modFrxstout$tag==flowlsmTags[i])
+        } else if (exists("modChrtout")) {
+                strDf <- subset(modChrtout, modChrtout$tag==flowlsmTags[i])
+        } else {
+                stop()
+        }
+        lsmDf <- subset(modLdasout_BAS[["native"]], modLdasout_BAS[["native"]]$tag==flowlsmTags[i])
+	ts <- as.integer(difftime(lsmDf$POSIXct[2],lsmDf$POSIXct[1], units="secs"))
+	for (n in gageNames) {
+		ngage <- ifelse(idCol=="link", as.integer(subset(gageList$site_no, gageList$link==n)), n)
+		ngageChar <- ifelse(nchar(as.character(ngage))==7, paste0("0", as.character(ngage)), as.character(ngage))
+        	png(paste0(writePlotDir, "/flowlsm_", n, ".png"), width=2100, height=1350, res=225)
+        	PlotFlowLsm(n, modDf=strDf, lsmDf=lsmDf, 
+                        obs=obsStrData,
+                        labMods=flowlsmTags,
+                        labObs="Observed",
+                        lnCols=flowlsmColors,
+                        lnWds=flowlsmWidths,
+                        labTitle=paste0("Streamflow: ", ngageChar, " (", obsStrMeta$site_name[obsStrMeta$site_no==ngageChar], ")"),
+                        stdate=flowlsmStartDate, enddate=flowlsmEndDate, obsCol="q_cms", idCol=idCol,
+			tsSecs=ts, areaSqKm=mskgeo.areaList[[as.character(ngage)]]*geoDX/1000, ngage=ngage)
+        	dev.off()
+	}
+}
+if (writeHtml) {
+for (i in 1:length(flowlsmTags)) {
+        if (exists("modFrxstout")) {
+                strDf <- subset(modFrxstout, modFrxstout$tag==flowlsmTags[i])
+        } else if (exists("modChrtout")) {
+                strDf <- subset(modChrtout, modChrtout$tag==flowlsmTags[i])
+        } else {
+                stop()
+        }
+        lsmDf <- subset(modLdasout_BAS[["native"]], modLdasout_BAS[["native"]]$tag==flowlsmTags[i])
+        ts <- as.integer(difftime(lsmDf$POSIXct[2],lsmDf$POSIXct[1], units="secs"))
+        cat(paste0('## Streamflow & Basin-mean LSM Runoff Plots:', i, '\n'), file=paste0(writePlotDir,"/plots_hydro.Rmd"), append=TRUE)
+        for (n in gageNames) {
+                cat(paste0("```{r flowlsm_", n, ", fig.width = 12, fig.height = 6, out.width='700', out.height='350', echo=FALSE}\n"),
+                        file=paste0(writePlotDir,"/plots_hydro.Rmd"), append=TRUE)
+                plottxt <- knitr::knit_expand(text='ngage <- ifelse(idCol=="link", 
+					as.integer(subset(gageList$site_no, gageList$link=="{{n}}")), "{{n}}");
+			ngageChar <- ifelse(nchar(as.character(ngage))==7, paste0("0", as.character(ngage)), as.character(ngage));
+			PlotFlowLsm("{{n}}", modDf=strDf,
+			lsmDf=lsmDf,
+                        obs=obsStrData,
+                        labMods=flowlsmTags,
+                        labObs="Observed",
+                        lnCols=flowlsmColors,
+                        lnWds=flowlsmWidths,
+                        labTitle=paste0("Streamflow: ", ngageChar, " (", obsStrMeta$site_name[obsStrMeta$site_no==ngageChar], ")"),
+                        stdate=flowlsmStartDate, enddate=flowlsmEndDate, obsCol="q_cms", idCol=idCol,
+			tsSecs=ts, areaSqKm=mskgeo.areaList[[as.character(ngage)]]*geoDX/1000, ngage=ngage)\n')
+                cat(plottxt, file=paste0(writePlotDir,"/plots_hydro.Rmd"), append=TRUE)
+                cat('```\n', file=paste0(writePlotDir,"/plots_hydro.Rmd"), append=TRUE)
+        }
+}
 }
 }
    
@@ -405,11 +495,16 @@ if (strBiasMap | strCorrMap | snosweErrMap | snoprecipErrMap ) {
 	library(ggplot2)
 	library(ggmap)
 	library(gridExtra)
+	if (reachRting) {
+		modStrout <- modChrtout
+	} else {
+		modStrout <- modFrxstout
+	}
 	# Setup date ranges
-	stdate_stats_PRINT <- ifelse(is.null(stdate_stats), min(modFrxstout$POSIXct), stdate_stats)
-	enddate_stats_PRINT <- ifelse(is.null(enddate_stats), max(modFrxstout$POSIXct), enddate_stats)
-	stdate_stats_sub_PRINT <- ifelse(is.null(stdate_stats_sub), min(modFrxstout$POSIXct), stdate_stats_sub)
-	enddate_stats_sub_PRINT <- ifelse(is.null(enddate_stats_sub), max(modFrxstout$POSIXct), enddate_stats_sub)
+	stdate_stats_PRINT <- ifelse(is.null(stdate_stats), min(modStrout$POSIXct), stdate_stats)
+	enddate_stats_PRINT <- ifelse(is.null(enddate_stats), max(modStrout$POSIXct), enddate_stats)
+	stdate_stats_sub_PRINT <- ifelse(is.null(stdate_stats_sub), min(modStrout$POSIXct), stdate_stats_sub)
+	enddate_stats_sub_PRINT <- ifelse(is.null(enddate_stats_sub), max(modStrout$POSIXct), enddate_stats_sub)
 	statsDateList <- list("Full" = paste0(format(as.POSIXct(stdate_stats_PRINT, origin="1970-01-01 00:00.00 UTC", tz="UTC"), "%Y-%m-%d %H:%M"), 
 			" to ", format(as.POSIXct(enddate_stats_PRINT, origin="1970-01-01 00:00.00 UTC", tz="UTC"), "%Y-%m-%d %H:%M")), 
 			"Sub" = paste0(format(as.POSIXct(stdate_stats_sub_PRINT, origin="1970-01-01 00:00.00 UTC", tz="UTC"), "%Y-%m-%d %H:%M"), 
@@ -435,19 +530,26 @@ if (strBiasMap) {
                         	statsTag=i, statsVar=NULL, statsSeas=j,
                         	plotTitle="Modeled Streamflow Bias at CODWR Gages",
 				plotSubTitle=paste0(i, ", ", statsDateList[[j]]),
-                        	sizeVar="t_bias", colorVar="t_bias",
-                        	sizeLab="Bias (%)", colorLab="Bias (%)")
+                        	sizeVar="t_mae", colorVar="t_bias",
+                        	sizeLab="Mean Abs Error (cms)", colorLab="Bias (%)",
+				minThreshSize=0, maxThreshSize=100,
+				minThreshCol=(-100), maxThreshCol=100,
+				minPtsize=2, maxPtsize=8,
+				colBreaks=c("#0571b0", "#92c5de", "#f7f7f7", "#f4a582", "#ca0020"), 
+                        	valBreaks=c((-1000),(-50),(-10),10,50,1000))
                 	ggplot2::ggsave(filename=paste0(writePlotDir, "/str_bias_map_", i, "_", j, ".png"),
                         	plot=gg, units="in", width=8, height=6, dpi=100)
 			if (writeHtml) {
 				strBias.ggList <- c(strBias.ggList, list(gg))
-				tbltmp <- subset(stats_str, stats_str$tag==i & stats_str$seas==j)
-				tbltmp <- tbltmp[order(tbltmp$STAID),]
-                                tbltmp <- data.frame(site_no=tbltmp$STAID, lat=tbltmp$st_lat, lon=tbltmp$st_lon, n=tbltmp$t_n, 
+				if (statsMapTables) {
+					tbltmp <- subset(stats_str, stats_str$tag==i & stats_str$seas==j)
+					tbltmp <- tbltmp[order(tbltmp$site_no),]
+                                	tbltmp <- data.frame(site_no=tbltmp$site_no, lat=tbltmp$lat, lon=tbltmp$lon, n=tbltmp$t_n, 
                                                 bias=tbltmp$t_bias, mae=tbltmp$t_mae,
                                                 corr=tbltmp$t_cor, daily_corr=tbltmp$dy_cor, mo_corr=tbltmp$mo_cor,
                                                 nse=tbltmp$t_nse, daily_nse=tbltmp$dy_nse, mo_nse=tbltmp$mo_nse)
-				strBias.tblList <- c(strBias.tblList, list(tbltmp))
+					strBias.tblList <- c(strBias.tblList, list(tbltmp))
+				}
 			}
 		}
 	}
@@ -469,12 +571,14 @@ if (strBiasMap) {
 			cat(plottxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
 			cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
 			# Table
-			cat(paste0("```{r strbiastbl_", i, ", fig.width = 8, fig.height = 6, out.width='800', out.height='600', echo=FALSE, results='asis'}\n"),
+			if (statsMapTables) {
+				cat(paste0("```{r strbiastbl_", i, ", fig.width = 8, fig.height = 6, out.width='800', out.height='600', echo=FALSE, results='asis'}\n"),
                                 file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
-			#tbltxt <- knitr::knit_expand(text='pandoc.table(strBias.tblList[[{{i}}]], style = "simple", split.table=160)\n')
-			tbltxt <- knitr::knit_expand(text='print(xtable(strBias.tblList[[{{i}}]]), type="html", comment=FALSE)\n')
-			cat(tbltxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
-			cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+				#tbltxt <- knitr::knit_expand(text='pandoc.table(strBias.tblList[[{{i}}]], style = "simple", split.table=160)\n')
+				tbltxt <- knitr::knit_expand(text='print(xtable(strBias.tblList[[{{i}}]]), type="html", comment=FALSE)\n')
+				cat(tbltxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+				cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+			}
 			#i <- i + 2
 		}
            }
@@ -499,19 +603,26 @@ if (strCorrMap) {
 				plotSubTitle=paste0(i, ", ", statsDateList[[j]]),
                         	sizeVar="dy_cor", colorVar="dy_cor",
                         	sizeLab="Correlation", colorLab="Correlation",
-				colorLow="orange", colorMid="yellow", colorHigh="cyan4")
+				colorLow="orange", colorMid="yellow", colorHigh="cyan4",
+				minThreshSize=0, maxThreshSize=1,
+                                minThreshCol=0, maxThreshCol=1,
+				minPtsize=0.5, maxPtsize=6,
+                                colBreaks=c("#f7f7f7", "#ffffcc", "#c2e699", "#78c679", "#238443"),
+                                valBreaks=c(-1, 0.2, 0.4, 0.6, 0.8, 1.0))
                 	ggplot2::ggsave(filename=paste0(writePlotDir, "/str_corr_map_", i, "_", j, ".png"),
                         	plot=gg, units="in", width=8, height=6, dpi=100)
                 	if (writeHtml) {
                         	strCorr.ggList <- c(strCorr.ggList, list(gg))
-                                tbltmp <- subset(stats_str, stats_str$tag==i & stats_str$seas==j)
-				tbltmp <- tbltmp[order(tbltmp$STAID),]
-                                tbltmp <- data.frame(site_no=tbltmp$STAID, lat=tbltmp$st_lat, lon=tbltmp$st_lon, n=tbltmp$t_n, 
+				if (statsMapTables) {
+                                	tbltmp <- subset(stats_str, stats_str$tag==i & stats_str$seas==j)
+					tbltmp <- tbltmp[order(tbltmp$site_no),]
+                                	tbltmp <- data.frame(site_no=tbltmp$site_no, lat=tbltmp$lat, lon=tbltmp$lon, n=tbltmp$t_n, 
 						bias=tbltmp$t_bias, mae=tbltmp$t_mae,
 						corr=tbltmp$t_cor, daily_corr=tbltmp$dy_cor, mo_corr=tbltmp$mo_cor, 
 						nse=tbltmp$t_nse, daily_nse=tbltmp$dy_nse, mo_nse=tbltmp$mo_nse)
-                                strCorr.tblList <- c(strCorr.tblList, list(tbltmp))
-                	}
+                                	strCorr.tblList <- c(strCorr.tblList, list(tbltmp))
+                		}
+			}
           	}
    	}
 	if (writeHtml) {
@@ -523,12 +634,14 @@ if (strCorrMap) {
                 	cat(plottxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
                         cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
 			# Table
-                        cat(paste0("```{r strcorrtbl_", i, ", fig.width = 8, fig.height = 6, out.width='800', out.height='600', echo=FALSE, results='asis'}\n"),
-                                file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
-                        #tbltxt <- knitr::knit_expand(text='pandoc.table(strCorr.tblList[[{{i}}]], style = "simple", split.table=160)\n')
-			tbltxt <- knitr::knit_expand(text='print(xtable(strCorr.tblList[[{{i}}]]), type="html", comment=FALSE)\n')
-                        cat(tbltxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
-			cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+			if (statsMapTables) {
+                        	cat(paste0("```{r strcorrtbl_", i, ", fig.width = 8, fig.height = 6, out.width='800', out.height='600', echo=FALSE, results='asis'}\n"),
+                                	file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        	#tbltxt <- knitr::knit_expand(text='pandoc.table(strCorr.tblList[[{{i}}]], style = "simple", split.table=160)\n')
+				tbltxt <- knitr::knit_expand(text='print(xtable(strCorr.tblList[[{{i}}]]), type="html", comment=FALSE)\n')
+                        	cat(tbltxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+				cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+			}
                 }
         }
 }
@@ -643,7 +756,7 @@ if (snoprecipErrMap) {
 
 # Output HTML
 if (writeHtml) {
-	if (accflowPlot | hydroPlot) {
+	if (accflowPlot | hydroPlot | flowlsmPlot) {
 		knit2html(paste0(writePlotDir,"/plots_hydro.Rmd"), paste0(writePlotDir,"/plots_hydro.html"))
 		file.remove("plots_hydro.md")
 	}

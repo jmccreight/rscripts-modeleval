@@ -12,7 +12,7 @@ geoFile <- '/glade/p/ral/RHAP/gochis/WRF_Hydro_code/WRF-Hydro_NCEP_test_version_
 # Basin masks:
 createBasMask <- TRUE
     # Specify the mask file
-    maskFile <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/DOMAIN/basn_bigrivs.nc'
+    maskFile <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/DOMAIN/gages2_1km.nc'
     # If relevant, specify variable name
     maskVar <- "Band1"
     # Specify the aggregation factor between the input mask grid and geogrid
@@ -22,13 +22,13 @@ createBasMask <- TRUE
 
 # Point masks:
     # Ameriflux points
-    createAmfMask <- FALSE
+    createAmfMask <- TRUE
     # SNOTEL points
-    createSnoMask <- FALSE
+    createSnoMask <- TRUE
     # MET station points
     createMetMask <- FALSE
     # MET station sites (must include columns: id, lat, lon)
-    metSites <- read.table("/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/MET/met.URG.sites4msk.txt", header=TRUE, sep="\t")
+    metSites <- NULL 
 
 # Streamflow gages:
     # Specify the FRXST points lookup table
@@ -44,7 +44,7 @@ createRouteLink <- TRUE
         rtLinkFile <- "/glade/p/ral/RHAP/gochis/WRF_Hydro_code/WRF-Hydro_NCEP_test_version_Oct_27_2015/DOMAIN/RouteLink_IOC_2015_09_21.nc"
 
 # Specify the .Rdata file to create
-maskFileOut <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/DOMAIN/bigrivs_MASKS.Rdata'
+maskFileOut <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/DOMAIN/gagesII_MASKS.Rdata'
 
 ###################################################################################################
 ## Run 
@@ -200,7 +200,7 @@ if (createBasMask) {
 if (createRouteLink) {
         rtLinks <- GetNcdfFile(rtLinkFile, variables=c("time"), exclude=TRUE, quiet=TRUE)
         #rtLinks <- subset(rtLinks, !(stringr::str_trim(rtLinks$gages)==""))
-        rtLinks$gages <- stringr::str_trim(rtLinks$gages)
+        rtLinks$site_no <- stringr::str_trim(rtLinks$gages)
         saveList <- c(saveList, "rtLinks")
 }
 

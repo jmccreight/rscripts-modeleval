@@ -5,26 +5,26 @@
 ##################### Setup #######################
 
 ## Specify the low-resolution geogrid file
-geoFile <- '/glade/p/ral/RHAP/gochis/WRF_Hydro_code/WRF-Hydro_NCEP_test_version_Oct_27_2015/DOMAIN/geo_em.d01.nc.conus_1km'
+geoFile <- '/glade/p/ral/RHAP/adugger/FRNG_MASTER_15Min_LONG_16Cores/DOMAIN/AD_KS_151117/geo_em.d02_151117.nc'
 
 ## Select which masks/points to create:
 
 # Basin masks:
 createBasMask <- TRUE
     # Specify the mask file
-    maskFile <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/DOMAIN/basn_bigrivs.nc'
+    maskFile <- '/glade/p/ral/RHAP/adugger/FRNG_MASTER_15Min_LONG_16Cores/DOMAIN/AD_KS_151117/Fulldom_hires_netcdf_file_151117.nc'
     # If relevant, specify variable name
-    maskVar <- "Band1"
+    maskVar <- "basn_msk"
     # Specify the aggregation factor between the input mask grid and geogrid
-    aggfact <- 1
+    aggfact <- 10
     # Reverse the y direction from N->S to S->N?
-    ns2sn <- FALSE
+    ns2sn <- TRUE
 
 # Point masks:
     # Ameriflux points
-    createAmfMask <- FALSE
+    createAmfMask <- TRUE
     # SNOTEL points
-    createSnoMask <- FALSE
+    createSnoMask <- TRUE
     # MET station points
     createMetMask <- FALSE
     # MET station sites (must include columns: id, lat, lon)
@@ -36,15 +36,15 @@ createBasMask <- TRUE
     # Example: id         lon       lat    gageid  source    basnids 
     #           9  -106.33292  37.37602  ALATERCO   CODWR    9,10,12
     #          49  -106.56661  38.86029  09107000    USGS         49
-    frxstPts <- NULL 
+    frxstPts <- "/glade/p/ral/RHAP/adugger/FRNG_MASTER_15Min_LONG_16Cores/DOMAIN/AD_KS_151117/frxstptsMeta.Rdata"
 
 # Link to gage:
 createRouteLink <- TRUE
-        # If running reach-based routing, specify routelink file:
-        rtLinkFile <- "/glade/p/ral/RHAP/gochis/WRF_Hydro_code/WRF-Hydro_NCEP_test_version_Oct_27_2015/DOMAIN/RouteLink_IOC_2015_09_21.nc"
+	# If running reach-based routing, specify routelink file:
+	rtLinkFile <- "/glade/p/ral/RHAP/adugger/FRNG_MASTER_15Min_LONG_16Cores/DOMAIN/Route_Link_2.nc"	
 
 # Specify the .Rdata file to create
-maskFileOut <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/DOMAIN/bigrivs_MASKS.Rdata'
+maskFileOut <- '/glade/p/ral/RHAP/adugger/FRNG_MASTER_15Min_LONG_16Cores/DOMAIN/AD_KS_151117/frn_4basns_MASKS.Rdata'
 
 ###################################################################################################
 ## Run 
@@ -55,6 +55,8 @@ saveList <- c()
 if (is.null(maskVar)) maskVar <- "basn_msk"
 if (is.null(aggfact)) aggfact <- 1
 gage2basinList <- NULL
+
+if (file.exists(frxstPts)) load(frxstPts)
 
 ## Create gage lookup tables
 if (!is.null(frxstPts)) {
@@ -198,10 +200,10 @@ if (createBasMask) {
 }
 
 if (createRouteLink) {
-        rtLinks <- GetNcdfFile(rtLinkFile, variables=c("time"), exclude=TRUE, quiet=TRUE)
-        #rtLinks <- subset(rtLinks, !(stringr::str_trim(rtLinks$gages)==""))
-        rtLinks$gages <- stringr::str_trim(rtLinks$gages)
-        saveList <- c(saveList, "rtLinks")
+	rtLinks <- GetNcdfFile(rtLinkFile, variables=c("time"), exclude=TRUE, quiet=TRUE)
+	#rtLinks <- subset(rtLinks, !(stringr::str_trim(rtLinks$gages)==""))
+	rtLinks$gages <- stringr::str_trim(rtLinks$gages)
+	saveList <- c(saveList, "rtLinks")
 }
 
 # Save all relevant objects

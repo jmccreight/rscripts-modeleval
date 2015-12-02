@@ -22,43 +22,45 @@ if (writeStatsFile) {
 ## ------------------------------------------------------------------------
 # Setup processing functions
 
-CalcStrStats <- function(modDf, obsDf, stid2gageList.=stid2gageList, 
+CalcStrStats <- function(modDf, obsDf, obsMeta, stid2gageList.=gageList, 
                       stdate=NULL, enddate=NULL,
 		      idCol.obs="site_no", idCol.mod="st_id", 
 			parallel=FALSE) {
-  sites <- names(stid2gageList.)
-  stnIDs <- unique(modDf[c("st_id", "st_lat", "st_lon")])
+  sites <- stid2gageList.[,idCol.mod]
+  stnIDs <- unique(obsMeta[c(idCol.obs, "lat", "lon")])
   results <- data.frame()
   if (parallel) {
   	results <- foreach(n=1:length(sites), .combine=rbind, .inorder=FALSE, .errorhandling='remove') %dopar% {
-  			out <- tryCatch(suppressWarnings( CalcModPerfMulti( subset(modDf, modDf[,idCol.mod]==sites[n]), 
-                                                      subset(obsDf, obsDf[,idCol.obs]==stid2gageList[[sites[n]]]), 
+			gageID <- subset(stid2gageList.[,idCol.obs],stid2gageList.[,idCol.mod]==sites[n])
+  			out <- tryCatch(suppressWarnings( CalcModPerfMulti( modDf[get(idCol.mod)==sites[n],], 
+                                                      subset(obsDf, obsDf[,idCol.obs]==gageID), 
                                                       flxCol.obs="q_cms", flxCol.mod="q_cms",
                                                       stdate=stdate,
                                                       enddate=enddate) ), 
                   		error=function(cond) {message(cond); return(NA)})
 			if ( !is.na(out) ) {
-      				out$st_id <- sites[n]
-      				out$STAID <- stid2gageList.[[sites[n]]]
+      				out[,idCol.mod] <- sites[n]
+      				out[,idCol.obs] <- gageID
       				out
       			}
   		}
   } else {
 	for (n in 1:length(sites)) {
-		       out <- tryCatch(suppressWarnings( CalcModPerfMulti( subset(modDf, modDf[,idCol.mod]==sites[n]),
-                                                      subset(obsDf, obsDf[,idCol.obs]==stid2gageList[[sites[n]]]),
+			gageID <- subset(stid2gageList.[,idCol.obs],stid2gageList.[,idCol.mod]==sites[n])
+		       out <- tryCatch(suppressWarnings( CalcModPerfMulti( modDf[get(idCol.mod)==sites[n],],
+                                                      subset(obsDf, obsDf[,idCol.obs]==gageID),
                                                       flxCol.obs="q_cms", flxCol.mod="q_cms",
                                                       stdate=stdate,
                                                       enddate=enddate) ),
                                 error=function(cond) {message(cond); return(NA)})
                         if ( !is.na(out) ) {
-                                out$st_id <- sites[n]
-                                out$STAID <- stid2gageList.[[sites[n]]]
+                                out[,idCol.mod] <- sites[n]
+                                out[,idCol.obs] <- gageID
                                 results <- rbind(results, out)
                         }
 	}
   }
-  results <- plyr::join(results, stnIDs, by="st_id")
+  results <- plyr::join(results, stnIDs, by=idCol.obs)
   results[results=="Inf"]<-NA
   results[results=="-Inf"]<-NA
   results
@@ -124,18 +126,34 @@ if (strProc) {
 	message("Calculating streamflow stats...")
 	# Initialize
 	stats_str <- data.frame()
-	runTagList <- unique(modFrxstout$tag)
+	if (reachRting) {
+		runTagList <- unique(modChrtout$tag)
+		idCol.mod <- "link"	
+	} else {
+		runTagList <- unique(modFrxstout$tag)
+		idCol.mod <- "st_id"
+	}
 	# Loop through runs
 	for (j in 1:length(runTagList)) {
 		runTag <- runTagList[j]
 		# Subset
-		modFrxstout_tmp <- subset(modFrxstout, modFrxstout$tag==runTag)
+		if (reachRting) {
+			modFrxstout_tmp <- subset(modChrtout, modChrtout$tag==runTag)
+		} else {
+			modFrxstout_tmp <- subset(modFrxstout, modFrxstout$tag==runTag)
+		}
 		# Stats
-		results <- CalcStrStats(modFrxstout_tmp, obsStrData, stid2gageList, stdate=stdate_stats, enddate=enddate_stats, parallel=parallelFlag)
+		results <- CalcStrStats(modFrxstout_tmp, obsStrData, obsStrMeta, gageList,
+					idCol.mod=idCol.mod, 
+					stdate=stdate_stats, enddate=enddate_stats,
+					parallel=parallelFlag)
 		results$tag <- runTag
 		results$seas <- "Full"
 		stats_str <- rbind(stats_str, results)
-		results <- CalcStrStats(modFrxstout_tmp, obsStrData, stid2gageList, stdate=stdate_stats_sub, enddate=enddate_stats_sub, parallel=parallelFlag)
+		results <- CalcStrStats(modFrxstout_tmp, obsStrData, obsStrMeta, gageList,
+					idCol.mod=idCol.mod, 
+					stdate=stdate_stats_sub, enddate=enddate_stats_sub, 
+					parallel=parallelFlag)
 		results$tag <- runTag
 		results$seas <- "Sub"
 		stats_str <- rbind(stats_str, results)

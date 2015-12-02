@@ -17,7 +17,12 @@ geoFile <- '/glade/p/ral/RHAP/gochis/WRF_Hydro_code/WRF-Hydro_NCEP_test_version_
 aggfact <- 1
 
 ## Specify location of .Rdata file containing pre-processed mask objects
-maskFile <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/DOMAIN/bigrivs_MASKS.Rdata'
+#maskFile <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/DOMAIN/bigrivs_MASKS.Rdata'
+maskFile <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/DOMAIN/gagesII_MASKS.Rdata'
+
+## Specify whether the model run used NHD reach-based routing (otherwise gridded routing assumed)
+# If TRUE, mask file should also contain rtLinks dataframe.
+reachRting <- TRUE
 
 
 ################## Observations ###################
@@ -32,28 +37,33 @@ SNOfile <- "/glade/p/ral/RHAP/adugger/CONUS_IOC/OBS/SNOTEL/obs_SNOTEL_1998_curre
 METfile <- NULL
 
 ## Path to streamflow data .Rdata file
-STRfile <- "/glade/p/ral/RHAP/adugger/CONUS_IOC/OBS/USGS/obsStrData_BIGRIVSAMPLE.Rdata"
-
+#STRfile <- "/glade/p/ral/RHAP/adugger/CONUS_IOC/OBS/USGS/obsStrData_BIGRIVSAMPLE.Rdata"
+STRfile <- "/glade/p/ral/RHAP/adugger/CONUS_IOC/OBS/USGS/obsStrData_GAGESII_2010_2014_DV.Rdata"
 
 ################ Model Output Reads ###############
 
 ## Read model output?
-readMod <- TRUE
+readMod <- FALSE
 
 ## If TRUE, specify the following to read in model output:
 
         # Specify the model run output directory or directories
         #modPathList <- c('/glade/p/ral/RHAP/gochis/WRF_Hydro_code/WRF-Hydro_NCEP_test_version_Oct_27_2015/NHDPLUS_Run/output_new/cold_start_no_terr_rtg_pass_through/'
         #modPathList <- c('/glade/p/ral/RHAP/gochis/WRF_Hydro_code/WRF-Hydro_NCEP_test_version_Oct_27_2015/NHDPLUS_Run/output_new/cold_start_no_terr_rtg_pass_through_order1fix/')
-	modPathList <- c("/glade/p/ral/RHAP/gochis/WRF_Hydro_code/WRF-Hydro_NCEP_test_version_Oct_27_2015/NHDPLUS_Run/")
+	#modPathList <- c("/glade/p/ral/RHAP/gochis/WRF_Hydro_code/WRF-Hydro_NCEP_test_version_Oct_27_2015/NHDPLUS_Run/output_new/cold_start_no_terr_rtg_pass_through_bucket_fix_order1fix_SLOPE_1.0/")
+	#modPathList <- c('/glade/p/ral/RHAP/adugger/CONUS_IOC/RUN.WBTEST')
+	modPathList <- c('/glade/p/ral/RHAP/gochis/WRF_Hydro_code/WRF-Hydro_NCEP_test_version_Oct_27_2015/NHDPLUS_Run/')
 
         # Specify tags to identify the model run or runs (should be 1:1 with number of model output directories)
         #modTagList <- c('SPINUP2013_GWPT', 'SPINUP2013_GWPT_ORDER1FIX')
 	#modTagList <- c('SPINUP2013_GWPT_ORDER1FIX')
-	modTagList <- c('SPINUP2013_GWPT_ORDER1FIX2')
+	#modTagList <- c('SPINUP2013_GWPT_ORDER1FIX2')
+	#modTagList <- c('SPINUP2013: GW Buck, No Terr Rt')
+	#modTagList <- c('SPINUP2013: GW PT, No Terr Rt, J Fix')
+	modTagList <- c('SPINUP2010: GW Buck, All Routing')
 
         # Specify the output .Rdata file to create
-        modReadFileOut <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/conus_spinup2013_modelout_PT3.Rdata'
+        modReadFileOut <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/151128_conus_gagesII_su2010allrt_modelout_AMF.Rdata'
         # Append to existing file? FALSE = create new file (or overwrite existing!)
         modAppend <- FALSE
 
@@ -66,20 +76,26 @@ readMod <- TRUE
 		readFrxstout <- FALSE
 
 		# Channel routing
-		readChrtout <- TRUE
+		readChrtout <- FALSE
+			# Read only links with gages?
+			readChrtout_GAGES <- FALSE
+			# Read specified subset? Provide object with link and site_no columns
+			#link2gage.man <- read.table("/glade/p/ral/RHAP/adugger/CONUS_IOC/DOMAIN/link2gage_bigrivs.txt", sep="\t", header=TRUE)
+			readLink2gage <- read.table("/glade/p/ral/RHAP/adugger/CONUS_IOC/DOMAIN/link2gage_gagesII.txt", sep="\t", header=TRUE)
 
 		# Snotel sites
 		readSnoLdasout <- FALSE
 
 		# Ameriflux sites
-		readAmfLdasout <- FALSE
+		readAmfLdasout <- TRUE
 
 		# MET sites
 		readMetLdasout <- FALSE
 
 	# Subset LDASOUT variables?
-	varsLdasoutSUB <- TRUE
+	varsLdasoutSUB <- FALSE
 	varsLdasoutNFIE <- FALSE
+	varsLdasoutIOC0 <- TRUE
 
 	# Specify start and end dates if you do NOT want to read all files
 	readModStart <- NULL
@@ -89,18 +105,18 @@ readMod <- TRUE
 ################## Forcing Reads ##################
 
 ## Read forcing data?
-readForc <- FALSE
+readForc <- TRUE
 
 ## If TRUE, specify the following:
 
 	# Specify the path to the forcing data
-	forcPathList <- c('/glade/scratch/zhangyx/WRF-Hydro/CONUS1km.ForcingData/2013') 
+	forcPathList <- c('/glade/p/ral/RHAP/gochis/WRF_Hydro_code/WRF-Hydro_NCEP_test_version_Oct_27_2015/forcing/') 
 
         # Specify tags to identify the forcings (should be 1:1 with number of model forcing directories)
 	forcTagList <- c('NLDAS2-Downscaled')
 
 	# Specify the forcing output .Rdata file to create
-	forcReadFileOut <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/conus_spinup2013_forcings.Rdata'
+	forcReadFileOut <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/conus_spinup2010_2015_forcings.Rdata'
         # Append to existing file? FALSE = create new file (or overwrite existing!)
         forcAppend <- FALSE
 
@@ -119,7 +135,7 @@ readForc <- FALSE
 		readMetLdasin <- FALSE
 
         # Specify start and end dates if you do NOT want to read all files
-        readForcStart <- as.POSIXct("2013-01-01", format="%Y-%m-%d", tz="UTC")
+        readForcStart <- NULL
         readForcEnd <- NULL
 
 
@@ -129,13 +145,16 @@ readForc <- FALSE
 calcStats <- FALSE
 
 	## Calculate streamflow performance stats?
-	strProc <- TRUE
+	strProc <- FALSE
+		# Read specified subset? Provide object with link and site_no columns
+		statsLink2gage <- read.table("/glade/p/ral/RHAP/adugger/CONUS_IOC/DOMAIN/link2gage_gagesII.txt", 
+					sep="\t", header=TRUE, colClasses=c("integer","character"))
 
 	## Calculate SNOTEL performance stats?
 	snoProc <- FALSE
 
 	## Calculate Ameriflux performance stats?
-	amfProc <- FALSE
+	amfProc <- TRUE
 
 	## Calculate MET performance stats?
 	metProc <- FALSE
@@ -143,23 +162,23 @@ calcStats <- FALSE
 ## If any are TRUE, specify the following:
 
 	# If the raw data read .Rdata file exists (vs. created above), specify the file
-	modReadFileIn <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/conus_spinup2013_modelout.Rdata'
+	modReadFileIn <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/151128_conus_gagesII_su2010allrt_modelout_AMF.Rdata'
 
         # Specify the stats output .Rdata file to create
-        statsFileOut <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/conus_spinup2013_stats.Rdata'
+        statsFileOut <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/151128_conus_gagesII_su2010allrt_stats_AMF.Rdata'
 
 	# Range dates for main stats
 	stdate_stats <- NULL
 	enddate_stats <- NULL
 
 	# Range dates for seasonal stats (e.g., spring)
-	stdate_stats_sub <- as.POSIXct("2014-04-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
-	enddate_stats_sub <- as.POSIXct("2014-10-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
+	stdate_stats_sub <- as.POSIXct("2011-04-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
+	enddate_stats_sub <- as.POSIXct("2011-10-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
 
 	# Write stats tables?
 	writeStatsFile <- TRUE
 	# If TRUE, specify output directory
-	writeDir <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/spinup2013_PLOTS'
+	writeDir <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/151128_gagesII_su2010allrt_PLOTS'
 
 
 
@@ -172,7 +191,7 @@ createPlots <- FALSE
 writeHtml <- TRUE
 
 ## If TRUE, specify output directory
-writePlotDir <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/spinup2013_PLOTS'
+writePlotDir <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/151128_gagesII_su2010allrt_PLOTS'
 
 	######### TIME SERIES PLOTS ###########
 
@@ -189,13 +208,13 @@ writePlotDir <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/spinup2013_PLOTS'
 		accflowEndDate <- NULL
 
 	## Generate hydrographs?
-	hydroPlot <- TRUE
+	hydroPlot <- FALSE
 
         	# Specify which run tags to plot
         	hydroTags <- NULL
         
         	# Specify start date
-        	hydroStartDate <- as.POSIXct("2013-10-01", format="%Y-%m-%d", tz="UTC")
+        	hydroStartDate <- NULL
         
         	# Specify end date
         	hydroEndDate <- NULL
@@ -224,6 +243,18 @@ writePlotDir <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/spinup2013_PLOTS'
         	# Specify end date
         	flowsweEndDate <- NULL
 
+        ## Generate Streamflow and Basin-mean LSM Runoff plots?
+        flowlsmPlot <- FALSE
+
+                # Specify which run tags to plot
+                flowlsmTags <- NULL
+
+                # Specify start date
+                flowlsmStartDate <- NULL
+
+                # Specify end date
+                flowlsmEndDate <- NULL
+
 	## Generate SWE station plots?
 	swePlot <- FALSE
 
@@ -236,10 +267,23 @@ writePlotDir <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/spinup2013_PLOTS'
         	# Specify end date
         	sweEndDate <- NULL
 
+        ## Generate MET station plots?
+        metPlot <- FALSE
+
+                # Specify which run tags to plot
+                metTags <- NULL
+
+                # Specify start date
+                metStartDate <- as.POSIXct("2014-10-01", format="%Y-%m-%d", tz="UTC")
+
+                # Specify end date
+                metEndDate <- NULL
+
+
 	########### MAPS #############
 
 	## Generate STRFLOW bias maps?
-	strBiasMap <- FALSE
+	strBiasMap <- TRUE
 
         	# Specify which run tags to plot
         	strBiasTags <- NULL
@@ -248,7 +292,7 @@ writePlotDir <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/spinup2013_PLOTS'
         	strBiasSeas <- NULL
 
 	## Generate STRFLOW correlation maps?
-	strCorrMap <- FALSE
+	strCorrMap <- TRUE
 
         	# Specify which run tags to plot
         	strCorrTags <- NULL
@@ -274,6 +318,8 @@ writePlotDir <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/spinup2013_PLOTS'
         	# Specify which run seasons to plot
         	snoprecipErrSeas <- NULL
 
+	## Include summary stats tables?
+	statsMapTables <- FALSE
 
 
 ###########################################################################################

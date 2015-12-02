@@ -13,18 +13,34 @@ PlotMapErrors <- function(myMap, statsObj,
 			plotTitle="Model Errors", plotSubTitle="",
 			sizeVar="t_mae", colorVar="t_msd",
 			sizeLab="Mean Absolute Error", colorLab="Mean Signed Deviation",
-			colorLow="blue", colorMid="white", colorHigh="red") {
+			colorLow="blue", colorMid="white", colorHigh="red",
+			minThreshSize=NULL, maxThreshSize=NULL,
+			minThreshCol=NULL, maxThreshCol=NULL,
+			minPtsize=1, maxPtsize=8,
+			exclVar="t_n", exclThresh=0.8,
+			colBreaks, 
+			valBreaks) {
 	if (is.null(statsVar)) {
 		myData <- subset(statsObj, statsObj$tag==statsTag & statsObj$seas==statsSeas)
 	} else {
 		myData <- subset(statsObj, statsObj$tag==statsTag & statsObj$var==statsVar & statsObj$seas==statsSeas)
 	}
+	maxCnt <- max(myData[,exclVar], na.rm=TRUE)
+	myData <- subset(myData, myData[,exclVar] >= exclThresh*maxCnt)
+	#myData <- subset(myData, myData[,sizeVar]>quantile(myData[,sizeVar], 0.05, na.rm=TRUE) & 
+	#		myData[,sizeVar]<quantile(myData[,sizeVar], 0.95, na.rm=TRUE))
+	if (is.null(minThreshSize)) minThreshSize <- min(myData[,sizeVar], na.rm=TRUE)
+	if (is.null(maxThreshSize)) maxThreshSize <- max(myData[,sizeVar], na.rm=TRUE)
+	if (is.null(minThreshCol)) minThreshCol <- min(myData[,colorVar], na.rm=TRUE)
+	if (is.null(maxThreshCol)) maxThreshCol <- max(myData[,colorVar], na.rm=TRUE)
 	xCol <- ifelse("lon" %in% names(statsObj), "lon", "st_lon")
 	yCol <- ifelse("lat" %in% names(statsObj), "lat", "st_lat")
+	valBreaksScaled <- scales::rescale(valBreaks, from=range(myData[,colorVar], na.rm = TRUE, finite = TRUE))
 	gg <- ggmap::ggmap(myMap) + 
 		ggplot2::geom_point(aes_string(x=xCol, y=yCol, size=sizeVar, fill=colorVar), data=myData, alpha=0.8, shape=21) + 
-		ggplot2::scale_size(sizeLab, range=c(2,10)) + 
-		ggplot2::scale_fill_gradient2(colorLab, low=colorLow, mid=colorMid, high=colorHigh, midpoint=0) +
+		ggplot2::scale_size(sizeLab, range=c(minPtsize, maxPtsize), limits=c(minThreshSize, maxThreshSize)) + 
+		ggplot2::scale_fill_gradient2(colorLab, low=colorLow, mid=colorMid, high=colorHigh, midpoint=0, limits=c(minThreshCol, maxThreshCol)) +
+		#ggplot2::scale_fill_gradientn(colorLab, colours = colBreaks, values = valBreaksScaled) +
 		ggplot2::ggtitle(bquote(atop(.(plotTitle), atop(italic(.(plotSubTitle)), "")))) +
 		ggplot2::theme(plot.title = element_text(size=18, face="bold", vjust=-1))
 	gg
