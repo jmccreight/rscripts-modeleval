@@ -42,7 +42,7 @@ STRfile <- "/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/STRFLOW/obsStrData.Rda
 ################ Model Output Reads ###############
 
 ## Read model output?
-readMod <- TRUE
+readMod <- FALSE
 
 ## If TRUE, specify the following to read in model output:
 
@@ -126,19 +126,19 @@ readForc <- FALSE
 ############# Model Performance Stats #############
 
 ## Calculate stats?
-calcStats <- FALSE
+calcStats <- TRUE
 
 	## Calculate streamflow performance stats?
-	strProc <- TRUE
+	strProc <- FALSE
 
 	## Calculate SNOTEL performance stats?
-	snoProc <- TRUE
+	snoProc <- FALSE
 
 	## Calculate Ameriflux performance stats?
-	amfProc <- FALSE
+	amfProc <- TRUE
 
 	## Calculate MET performance stats?
-	metProc <- TRUE
+	metProc <- FALSE
 
 ## If any are TRUE, specify the following:
 
@@ -149,12 +149,12 @@ calcStats <- FALSE
         statsFileOut <- NULL
 
 	# Range dates for main stats
-	stdate_stats <- NULL
-	enddate_stats <- as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
+	stdate_stats <- as.POSIXct("2011-01-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
+	enddate_stats <- as.POSIXct("2014-12-31 23:00", format="%Y-%m-%d %H:%M", tz="UTC")
 
 	# Range dates for seasonal stats (e.g., spring)
 	stdate_stats_sub <- as.POSIXct("2015-04-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
-	enddate_stats_sub <- as.POSIXct("2015-08-27 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
+	enddate_stats_sub <- as.POSIXct("2015-10-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
 
 	# Write stats tables?
 	writeStatsFile <- TRUE

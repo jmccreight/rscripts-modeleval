@@ -488,6 +488,16 @@ if (readMod & (readBasinLdasout | readAmfLdasout | readSnoLdasout | readMetLdaso
 		for (j in fileGroups) {
 			if (length(fileGroups)==1) { modLdasout <- modLdasout_ALL } else { modLdasout <- modLdasout_ALL[[j]] }
                         modLdasout <- CalcNoahmpFluxes(modLdasout, "statArg")
+			# Add derived variables
+			if ( ("ACCEDIR" %in% names(modLdasout)) & ("ACCECAN" %in% names(modLdasout)) & ("ACCETRAN" %in% names(modLdasout)) ) {
+				 modLdasout$ACCET <- with(modLdasout, ACCEDIR + ACCECAN + ACCETRAN) }
+			if ( ("DEL_ACCEDIR" %in% names(modLdasout)) & ("DEL_ACCECAN" %in% names(modLdasout)) & ("DEL_ACCETRAN" %in% names(modLdasout)) ) {
+				modLdasout$DEL_ET <- with(modLdasout, DEL_ACCEDIR + DEL_ACCECAN + DEL_ACCETRAN) }
+			if ( ("FSA" %in% names(modLdasout)) & ("FIRA" %in% names(modLdasout)) ) {
+				modLdasout$RadNet <- with(modLdasout, FSA-FIRA) }
+			if ( ("LH" %in% names(modLdasout)) & ("HFX" %in% names(modLdasout)) ) {
+				modLdasout$TurbNet <- with(modLdasout, LH+HFX) }
+			# Data mgmt
                         modLdasout$tag <- modoutTag
 			modLdasout$fileGroup <- j
 			modLdasout <- data.table(modLdasout)
@@ -556,22 +566,30 @@ if (readMod & (readBasinLdasout | readAmfLdasout | readSnoLdasout | readMetLdaso
 			} else if (varsLdasoutIOC0) {
 			        modLdasout.utcday <- modLdasout[, list(DEL_ACCEDIR=sum(DEL_ACCEDIR),
                                          DEL_ACCECAN=sum(DEL_ACCECAN), DEL_ACCETRAN=sum(DEL_ACCETRAN),
+					 DEL_ET=sum(DEL_ET), ACCEDIR=tail(ACCEDIR, 1),
+                                         ACCECAN=tail(ACCECAN, 1), ACCETRAN=tail(ACCETRAN, 1),
+                                         ACCET=tail(ACCET, 1),
                                          SNEQV_mean=mean(SNEQV), SNOWH_mean=mean(SNOWH),
                                          SOIL_M1_mean=mean(SOIL_M1), SOIL_M2_mean=mean(SOIL_M2),
                                          SOIL_T1_mean=mean(SOIL_T1), SOIL_T2_mean=mean(SOIL_T2),
                                          LH_mean=mean(LH), HFX_mean=mean(HFX), GRDFLX_mean=mean(GRDFLX),
-                                         FIRA_mean=mean(FIRA), FSA_mean=mean(FSA)),
+                                         FIRA_mean=mean(FIRA), FSA_mean=mean(FSA),
+					 RadNet_mean=mean(RadNet), TurbNet_mean=mean(TurbNet)),
                                          by = "statArg,UTC_date"]
                         	mo <- as.integer(format(modLdasout.utcday$UTC_date, "%m"))
                         	yr <- as.integer(format(modLdasout.utcday$UTC_date, "%Y"))
                         	modLdasout.utcday$UTC_month <- as.Date(paste0(yr,"-",mo,"-15"), format="%Y-%m-%d")
                                 modLdasout.utcmonth <- modLdasout.utcday[, list(DEL_ACCEDIR=sum(DEL_ACCEDIR),
                                          DEL_ACCECAN=sum(DEL_ACCECAN), DEL_ACCETRAN=sum(DEL_ACCETRAN),
+                                         DEL_ET=sum(DEL_ET), ACCEDIR=tail(ACCEDIR, 1),
+                                         ACCECAN=tail(ACCECAN, 1), ACCETRAN=tail(ACCETRAN, 1),
+                                         ACCET=tail(ACCET, 1),
                                          SNEQV_mean=mean(SNEQV_mean), SNOWH_mean=mean(SNOWH_mean),
                                          SOIL_M1_mean=mean(SOIL_M1_mean), SOIL_M2_mean=mean(SOIL_M2_mean),
                                          SOIL_T1_mean=mean(SOIL_T1_mean), SOIL_T2_mean=mean(SOIL_T2_mean),
                                          LH_mean=mean(LH_mean), HFX_mean=mean(HFX_mean), GRDFLX_mean=mean(GRDFLX_mean),
-                                         FIRA_mean=mean(FIRA_mean), FSA_mean=mean(FSA_mean)),
+                                         FIRA_mean=mean(FIRA_mean), FSA_mean=mean(FSA_mean),
+					 RadNet_mean=mean(RadNet_mean), TurbNet_mean=mean(TurbNet_mean)),
                                          by = "statArg,UTC_month"]
 			}
                         # Add dummy POSIXct for ease of plotting
@@ -776,13 +794,30 @@ if (readMod & readChrtout) {
                 rm(modChrtout)
                 gc()
 	}
-        setkey(modChrtout_tmp, link)
+	# Add date for daily aggs
+	modChrtout_tmp$UTC_date <- CalcDateTrunc(modChrtout_tmp$POSIXct)
+   	setkey(modChrtout_tmp, tag, link, UTC_date)        
+	# Run daily aggs
+        modChrtout_tmp.d <- modChrtout_tmp[, list(q_cms=mean(q_cms, na.rm=TRUE)), 
+                                         by = "tag,link,UTC_date"]
+	modChrtout_tmp.d$POSIXct <- as.POSIXct(paste0(modChrtout_tmp.d$UTC_date, " 00:00"), tz="UTC")
+
+	# Join in gage IDs
+	setkey(modChrtout_tmp, link)
+	setkey(modChrtout_tmp.d, link)
         #modChrtout_tmp <- modChrtout_tmp[rtLinks,]
 	rtLinks_tmp <- data.table(rtLinks[,c("link","site_no")])
 	setkey(rtLinks_tmp, link)
 	modChrtout_tmp <- modChrtout_tmp[rtLinks_tmp,]
 	modChrtout_tmp <- modChrtout_tmp[!(tag==""),]
-	saveList <- c(saveList, "modChrtout_tmp")
+	modChrtout_tmp.d <- modChrtout_tmp.d[rtLinks_tmp,]
+        modChrtout_tmp.d <- modChrtout_tmp.d[!(tag==""),]
+
+	# Reset keys
+	setkey(modChrtout_tmp, tag, link, POSIXct)
+	setkey(modChrtout_tmp.d, tag, link, POSIXct)
+
+	saveList <- c(saveList, "modChrtout_tmp", "modChrtout_tmp.d")
         save(list=saveList, file=tmpRimg)
 
 } # end modchrtout processing
@@ -1029,6 +1064,12 @@ if (readMod) {
                 } else {
                         modChrtout <- modChrtout_tmp
                         saveListMod <- c(saveListMod, "modChrtout")
+                }
+                if (modAppend & exists("modChrtout.d")) {
+                        modChrtout.d <- rbindlist(list(modChrtout.d, modChrtout_tmp.d))
+                } else {
+                        modChrtout.d <- modChrtout_tmp.d
+                        saveListMod <- c(saveListMod, "modChrtout.d")
                 }
         }
 }

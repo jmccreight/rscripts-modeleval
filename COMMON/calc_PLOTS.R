@@ -11,9 +11,9 @@ source("PlotSnotel.R")
 source("PlotMaps.R")
 library(ggplot2)
 
-lineColors <- c("dodgerblue", "darkorange1", "olivedrab", "chocolate", "darkmagenta")
+lineColors <- scales::alpha(c("darkorange1", "dodgerblue", "olivedrab", "chocolate", "darkmagenta"), 0.8)
 lineTyp <- 1
-lineWd <- 3
+lineWd <- 2
 
 # Get needed geo info
 ncid <- ncdf4::nc_open(geoFile)
@@ -118,28 +118,24 @@ if (hydroPlot) {
 message("Generating hydrograph plots...")
 # Setup
 hydroList <- list()
-if (is.null(hydroTags)) {
-	if (exists("modFrxstout")) {
-		hydroTags <- unique(modFrxstout$tag)
-		gageNames <- names(gage2basinList)
-		idCol <- "site_no"
-	} else if (exists("modChrtout")) {
-		hydroTags <- unique(modChrtout$tag)
-		if (exists("gageList")) {
-			gageNames <- unique(gageList$link)
-		} else {
-			gageNames <- unique(obsStrData$link)
-		}
-		idCol <- "link"
-	}
+if (reachRting) {
+	if (is.null(hydroTags)) hydroTags <- unique(modChrtout$tag)
+        if (exists("gageList")) {
+        	gageNames <- unique(gageList$link)
+        } else {
+                gageNames <- unique(obsStrData$link)
+        }
+        idCol <- "link"
+} else {
+	if (is.null(hydroTags)) hydroTags <- unique(modFrxstout$tag)
+        gageNames <- names(gage2basinList)
+        idCol <- "site_no"
 }
 for (i in 1:length(hydroTags)) {
-	if (exists("modFrxstout")) {
+	if (!reachRting) {
         	hydroList[[i]] <- subset(modFrxstout, modFrxstout$tag==hydroTags[i])
-	} else if (exists("modChrtout")) {
-		hydroList[[i]] <- subset(modChrtout, modChrtout$tag==hydroTags[i])
 	} else {
-		stop()
+		hydroList[[i]] <- subset(modChrtout, modChrtout$tag==hydroTags[i])
 	}
 }
 hydroColors <- lineColors[1:length(hydroList)]
@@ -147,14 +143,22 @@ hydroTypes <- rep(lineTyp, length(hydroList))
 hydroWidths <- rep(lineWd, length(hydroList))
 # Loop plots
 for (n in gageNames) {
-        png(paste0(writePlotDir, "/hydrogr_", n, ".png"), width=2100, height=1350, res=225)
+	if (idCol == "site_no") {
+		siteId <- n
+		plotTitle <- paste0("Streamflow: ", n, " (", obsStrMeta$site_name[obsStrMeta$site_no==n], ")")
+	} else if (idCol =="link") {
+		siteId <- subset(rtLinks$site_no, rtLinks$link==n)
+		plotTitle <- paste0("Streamflow: ", subset(rtLinks$site_no, rtLinks$link==n), 
+			" (", obsStrMeta$site_name[obsStrMeta$site_no==subset(rtLinks$site_no, rtLinks$link==n)], ")")
+	}
+        png(paste0(writePlotDir, "/hydrogr_", siteId, ".png"), width=2100, height=1350, res=225)
         PlotFlow(n, modDfs=hydroList,
                         obs=obsStrData,
                         labMods=hydroTags,
                         labObs="Observed",
                         lnCols=hydroColors,
                         lnWds=hydroWidths,
-                        labTitle=paste0("Streamflow: ", n, " (", obsStrMeta$site_name[obsStrMeta$site_no==n], ")"),
+                        labTitle=plotTitle,
                         stdate=hydroStartDate, enddate=hydroEndDate, obsCol="q_cms", idCol=idCol)
         dev.off()
 }
@@ -163,14 +167,16 @@ if (writeHtml) {
         for (n in gageNames) {
                 cat(paste0("```{r hydro_", n, ", fig.width = 12, fig.height = 6, out.width='700', out.height='350', echo=FALSE}\n"), 
 			file=paste0(writePlotDir,"/plots_hydro.Rmd"), append=TRUE)
-                plottxt <- knitr::knit_expand(text='PlotFlow("{{n}}", modDfs=hydroList,
+                plottxt <- knitr::knit_expand(text='plotTitle <- paste0("Streamflow: ", subset(rtLinks$site_no, rtLinks$link=={{n}}),   
+                        " (", obsStrMeta$site_name[obsStrMeta$site_no==subset(rtLinks$site_no, rtLinks$link=={{n}})], ")");
+			PlotFlow("{{n}}", modDfs=hydroList,
                         obs=obsStrData,
                         labMods=hydroTags,
                         labObs="Observed",
                         lnCols=hydroColors,
                         lnWds=hydroWidths,
-                        labTitle=paste0("Streamflow: ", "{{n}}", " (", obsStrMeta$site_name[obsStrMeta$site_no=="{{n}}"], ")"),
-                        stdate=hydroStartDate, enddate=hydroEndDate, obsCol="q_cms")\n')
+                        labTitle=plotTitle,
+                        stdate=hydroStartDate, enddate=hydroEndDate, obsCol="q_cms", idCol=idCol)\n')
                 cat(plottxt, file=paste0(writePlotDir,"/plots_hydro.Rmd"), append=TRUE)
                 cat('```\n', file=paste0(writePlotDir,"/plots_hydro.Rmd"), append=TRUE)
         }
@@ -531,12 +537,12 @@ if (strBiasMap) {
                         	plotTitle="Modeled Streamflow Bias at CODWR Gages",
 				plotSubTitle=paste0(i, ", ", statsDateList[[j]]),
                         	sizeVar="t_mae", colorVar="t_bias",
-                        	sizeLab="Mean Abs Error (cms)", colorLab="Bias (%)",
+                        	sizeLab="Mean Abs\nError (cms)", colorLab="Bias (%)",
 				minThreshSize=0, maxThreshSize=100,
 				minThreshCol=(-100), maxThreshCol=100,
 				minPtsize=2, maxPtsize=8,
-				colBreaks=c("#0571b0", "#92c5de", "#f7f7f7", "#f4a582", "#ca0020"), 
-                        	valBreaks=c((-1000),(-50),(-10),10,50,1000))
+				colBreaks=c("#0571b0", "#92c5de", "#f7f7f7", "#f4a582", "#ca0020", "#800000"), 
+                        	valBreaks=c(-Inf, -25, -10, 10, 25, 100, Inf))
                 	ggplot2::ggsave(filename=paste0(writePlotDir, "/str_bias_map_", i, "_", j, ".png"),
                         	plot=gg, units="in", width=8, height=6, dpi=100)
 			if (writeHtml) {

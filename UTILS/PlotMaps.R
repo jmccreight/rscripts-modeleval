@@ -35,13 +35,16 @@ PlotMapErrors <- function(myMap, statsObj,
 	if (is.null(maxThreshCol)) maxThreshCol <- max(myData[,colorVar], na.rm=TRUE)
 	xCol <- ifelse("lon" %in% names(statsObj), "lon", "st_lon")
 	yCol <- ifelse("lat" %in% names(statsObj), "lat", "st_lat")
+	myData$plotcol <- cut(myData[,colorVar], breaks = valBreaks, right = FALSE)
 	valBreaksScaled <- scales::rescale(valBreaks, from=range(myData[,colorVar], na.rm = TRUE, finite = TRUE))
 	gg <- ggmap::ggmap(myMap) + 
-		ggplot2::geom_point(aes_string(x=xCol, y=yCol, size=sizeVar, fill=colorVar), data=myData, alpha=0.8, shape=21) + 
-		ggplot2::scale_size(sizeLab, range=c(minPtsize, maxPtsize), limits=c(minThreshSize, maxThreshSize)) + 
-		ggplot2::scale_fill_gradient2(colorLab, low=colorLow, mid=colorMid, high=colorHigh, midpoint=0, limits=c(minThreshCol, maxThreshCol)) +
-		#ggplot2::scale_fill_gradientn(colorLab, colours = colBreaks, values = valBreaksScaled) +
+		ggplot2::geom_point(aes_string(x=xCol, y=yCol, size=sizeVar, fill="plotcol"), data=myData, alpha=0.8, shape=21) + 
+		ggplot2::scale_size(sizeLab, range=c(minPtsize, maxPtsize), limits=c(minThreshSize, maxThreshSize)) +
+		ggplot2::scale_fill_manual(colorLab, values=colBreaks) +
+		#ggplot2::scale_fill_gradient2(colorLab, low=colorLow, mid=colorMid, high=colorHigh, midpoint=0, limits=c(minThreshCol, maxThreshCol)) +
+		#ggplot2::scale_fill_gradientn(colorLab, colours = colBreaks, values = scales::rescale(valBreaks)) +
 		ggplot2::ggtitle(bquote(atop(.(plotTitle), atop(italic(.(plotSubTitle)), "")))) +
-		ggplot2::theme(plot.title = element_text(size=18, face="bold", vjust=-1))
+		ggplot2::theme(plot.title = element_text(size=18, face="bold", vjust=-1)) +
+		ggplot2::guides(fill = guide_legend(override.aes = list(size=3)))
 	gg
 }

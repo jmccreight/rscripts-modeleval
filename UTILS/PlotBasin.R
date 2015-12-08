@@ -150,18 +150,19 @@ PlotFlow <- function(n, modDfs, obs,
   # Subset by dates
   if (is.null(stdate)) stdate <- min(str1$POSIXct)
   if (is.null(enddate)) enddate <- max(str1$POSIXct)
-  str1 <- subset(str1, str1[idCol]==n & str1$POSIXct>=stdate & str1$POSIXct<=enddate)
+  str1 <- subset(str1, str1[,idCol]==n & str1$POSIXct>=stdate & str1$POSIXct<=enddate)
   if (is.data.table(obs)) {
         obs <- obs[get(idCol)==as.integer(n) & POSIXct>=stdate & POSIXct<=enddate,]
   	obs <- data.frame(obs)
   } else {
-  	obs <- subset(obs, obs[idCol]==n & obs$POSIXct>=stdate & obs$POSIXct<=enddate)
+  	obs <- subset(obs, obs[,idCol]==n & obs$POSIXct>=stdate & obs$POSIXct<=enddate)
   }
   # Calculate maximum y val for plot limits
   ymax <- max(str1[,modCol], obs[,obsCol], na.rm=TRUE)
   if (!is.data.frame(modDfs) & is.list(modDfs) & length(modDfs)>1) {
         for (stri in modDfs) {
-        	stri <- subset(stri, stri[idCol]==n & stri$POSIXct>=stdate & stri$POSIXct<=enddate)
+		if (is.data.table(stri)) stri<-data.frame(stri)
+        	stri <- subset(stri, stri[,idCol]==n & stri$POSIXct>=stdate & stri$POSIXct<=enddate)
 		ymax <- max(ymax, stri[,modCol], na.rm=TRUE)
                 }
         }
@@ -173,17 +174,17 @@ PlotFlow <- function(n, modDfs, obs,
   if (is.null(labMods)) labMods <- paste0("Model", 1:strcnt)
   # Create plot
   plot(str1$POSIXct, str1[,modCol], typ='l', ylim=c(0, ymax),
-        xlim=c(stdate, enddate), col=lnCols[1], lty=lnTyps[1], lwd=lnWds[1],
+        xlim=c(stdate, enddate), col=lnCols[1], lty=lnTyps[1], lwd=0,
         xlab="", ylab="Streamflow (m3/s)", cex.axis=1.2, cex.lab=1.2)
+  lines(obs$POSIXct, obs[,obsCol], col='black', lwd=1.2, lty=1)
   if (!is.data.frame(modDfs) & is.list(modDfs) & length(modDfs)>1) {
-        for (j in 2:length(modDfs)) {
+        for (j in 1:length(modDfs)) {
                 stri <- modDfs[[j]]
 		if (is.data.table(stri)) stri<-data.frame(stri)
-                stri <- subset(stri, stri[idCol]==n & stri$POSIXct>=stdate & stri$POSIXct<=enddate)
+                stri <- subset(stri, stri[,idCol]==n & stri$POSIXct>=stdate & stri$POSIXct<=enddate)
                 lines(stri$POSIXct, stri[,modCol], col=lnCols[j], lty=lnTyps[j], lwd=lnWds[j])
                 }
         }
-  lines(obs$POSIXct, obs[,obsCol], col='black', lwd=2, lty=1)
   title(labTitle, cex.main=1.6)
   legend("topleft", c(labMods[1:strcnt], labObs),
                 lty=c(lnTyps[1:strcnt],1), lwd=c(lnWds[1:strcnt],2),

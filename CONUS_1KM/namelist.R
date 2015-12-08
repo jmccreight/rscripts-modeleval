@@ -63,7 +63,7 @@ readMod <- FALSE
 	modTagList <- c('SPINUP2010: GW Buck, All Routing')
 
         # Specify the output .Rdata file to create
-        modReadFileOut <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/151128_conus_gagesII_su2010allrt_modelout_AMF.Rdata'
+        modReadFileOut <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/151207_conus_gagesII_su2010allrt_modelout_AMF.Rdata'
         # Append to existing file? FALSE = create new file (or overwrite existing!)
         modAppend <- FALSE
 
@@ -105,7 +105,7 @@ readMod <- FALSE
 ################## Forcing Reads ##################
 
 ## Read forcing data?
-readForc <- TRUE
+readForc <- FALSE
 
 ## If TRUE, specify the following:
 
@@ -116,7 +116,7 @@ readForc <- TRUE
 	forcTagList <- c('NLDAS2-Downscaled')
 
 	# Specify the forcing output .Rdata file to create
-	forcReadFileOut <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/conus_spinup2010_2015_forcings.Rdata'
+	forcReadFileOut <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/conus_nldas_forcings_2010.Rdata'
         # Append to existing file? FALSE = create new file (or overwrite existing!)
         forcAppend <- FALSE
 
@@ -135,14 +135,14 @@ readForc <- TRUE
 		readMetLdasin <- FALSE
 
         # Specify start and end dates if you do NOT want to read all files
-        readForcStart <- NULL
-        readForcEnd <- NULL
+        readForcStart <- as.POSIXct("2010-01-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
+        readForcEnd <- as.POSIXct("2010-12-31 23:59", format="%Y-%m-%d %H:%M", tz="UTC")
 
 
 ############# Model Performance Stats #############
 
 ## Calculate stats?
-calcStats <- FALSE
+calcStats <- TRUE
 
 	## Calculate streamflow performance stats?
 	strProc <- FALSE
@@ -162,23 +162,23 @@ calcStats <- FALSE
 ## If any are TRUE, specify the following:
 
 	# If the raw data read .Rdata file exists (vs. created above), specify the file
-	modReadFileIn <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/151128_conus_gagesII_su2010allrt_modelout_AMF.Rdata'
+	modReadFileIn <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/151207_conus_gagesII_su2010allrt_modelout_AMF.Rdata'
 
         # Specify the stats output .Rdata file to create
-        statsFileOut <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/151128_conus_gagesII_su2010allrt_stats_AMF.Rdata'
+        statsFileOut <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/151207_conus_gagesII_su2010allrt_stats_AMF.Rdata'
 
 	# Range dates for main stats
-	stdate_stats <- NULL
-	enddate_stats <- NULL
+	stdate_stats <- as.POSIXct("2011-01-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
+	enddate_stats <- as.POSIXct("2014-10-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
 
 	# Range dates for seasonal stats (e.g., spring)
-	stdate_stats_sub <- as.POSIXct("2011-04-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
-	enddate_stats_sub <- as.POSIXct("2011-10-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
+	stdate_stats_sub <- as.POSIXct("2014-04-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
+	enddate_stats_sub <- as.POSIXct("2014-10-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
 
 	# Write stats tables?
 	writeStatsFile <- TRUE
 	# If TRUE, specify output directory
-	writeDir <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/151128_gagesII_su2010allrt_PLOTS'
+	writeDir <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/151207_gagesII_su2010allrt_PLOTS'
 
 
 

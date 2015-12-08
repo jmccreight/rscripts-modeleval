@@ -138,9 +138,17 @@ if (strProc) {
 		runTag <- runTagList[j]
 		# Subset
 		if (reachRting) {
-			modFrxstout_tmp <- subset(modChrtout, modChrtout$tag==runTag)
+			if (strProcDaily) {
+				modFrxstout_tmp <- subset(modChrtout.d, modChrtout.d$tag==runTag)
+			} else {
+				modFrxstout_tmp <- subset(modChrtout, modChrtout$tag==runTag)
+			}
 		} else {
-			modFrxstout_tmp <- subset(modFrxstout, modFrxstout$tag==runTag)
+			if (strProcDaily) {
+				modFrxstout_tmp <- subset(modFrxstout.d, modFrxstout.d$tag==runTag)
+			} else {
+				modFrxstout_tmp <- subset(modFrxstout, modFrxstout$tag==runTag)
+			}
 		}
 		# Stats
 		results <- CalcStrStats(modFrxstout_tmp, obsStrData, obsStrMeta, gageList,
@@ -664,7 +672,7 @@ if (amfProc) {
                         stats_ldasout_amf <- plyr::rbind.fill(stats_ldasout_amf, results)
 
                         results <- CalcVarStats(modLdasout_tmp.amf, obsAmfMeta, obsAmfData.match, stdate=stdate_stats, enddate=enddate_stats,
-                                          flxCol.obs="RglNet", flxCol.mod="FIRAsurf", overwriteDate=overwriteDate_flag, parallel=parallelFlag)
+                                          flxCol.obs="RglNet", flxCol.mod="FIRA", overwriteDate=overwriteDate_flag, parallel=parallelFlag)
                         results$tag <- runTag
                         results$var <- "LWnet"
                         results$seas <- "Full"
@@ -690,6 +698,14 @@ if (amfProc) {
                         results$var <- "SH"
                         results$seas <- "Full"
                         stats_ldasout_amf <- plyr::rbind.fill(stats_ldasout_amf, results)
+
+                        results <- CalcVarStats(modLdasout_AMF[["utcday"]], obsAmfMeta, obsAmfData.d, stdate=stdate_stats, enddate=enddate_stats,
+                                        flxCol.obs="H2O_mm", flxCol.mod="DEL_ET", overwriteDate=overwriteDate_flag, parallel=parallelFlag)
+                        results$tag <- runTag
+                        results$var <- "ET"
+                        results$seas <- "Full"
+                        stats_ldasout_amf <- plyr::rbind.fill(stats_ldasout_amf, results)
+
 
                         # Subset time period
                         results <- CalcVarStats(modLdasout_tmp.amf, obsAmfMeta, obsAmfData.match, stdate=stdate_stats_sub, enddate=enddate_stats_sub,
@@ -700,7 +716,7 @@ if (amfProc) {
                         stats_ldasout_amf <- plyr::rbind.fill(stats_ldasout_amf, results)
 
                         results <- CalcVarStats(modLdasout_tmp.amf, obsAmfMeta, obsAmfData.match, stdate=stdate_stats_sub, enddate=enddate_stats_sub,
-                                          flxCol.obs="RglNet", flxCol.mod="FIRAsurf", overwriteDate=overwriteDate_flag, parallel=parallelFlag)
+                                          flxCol.obs="RglNet", flxCol.mod="FIRA", overwriteDate=overwriteDate_flag, parallel=parallelFlag)
                         results$tag <- runTag
                         results$var <- "LWnet"
                         results$seas <- "Sub"
@@ -724,6 +740,13 @@ if (amfProc) {
                                         flxCol.obs="H", flxCol.mod="HFX", overwriteDate=overwriteDate_flag, parallel=parallelFlag)
                         results$tag <- runTag
                         results$var <- "SH"
+                        results$seas <- "Sub"
+                        stats_ldasout_amf <- plyr::rbind.fill(stats_ldasout_amf, results)
+
+                        results <- CalcVarStats(modLdasout_AMF[["utcday"]], obsAmfMeta, obsAmfData.d, stdate=stdate_stats_sub, enddate=enddate_stats_sub,
+                                        flxCol.obs="H2O_mm", flxCol.mod="DEL_ET", overwriteDate=overwriteDate_flag, parallel=parallelFlag)
+                        results$tag <- runTag
+                        results$var <- "ET"
                         results$seas <- "Sub"
                         stats_ldasout_amf <- plyr::rbind.fill(stats_ldasout_amf, results)
 
