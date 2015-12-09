@@ -18,7 +18,7 @@ if (ncores>1) {
 
 # Setup temp file
 saveList <- c()
-tmpRimg <- tempfile(fileext=".Rdata", tmpdir="/glade/scratch/adugger")
+tmpRimg <- tempfile(fileext=".Rdata", tmpdir=tmpDir)
 message(paste0("Temp output file:", tmpRimg))
 
 # Setup lookups
@@ -676,8 +676,11 @@ if (readMod & readFrxstout) {
                 modoutPath <- modPathList[i]
                 modoutTag <- modTagList[i]
                 # Read STR
-        	#modFrxstout <- ReadFrxstPts(paste0(modoutPath, '/frxst_pts_out.txt'), stIdType='integer')
-		modFrxstout <- ReadFrxstPts(paste0(modoutPath, '/frxst_pts_out.txt'))
+		if (reachRting) {
+			modFrxstout <- ReadFrxstPts(paste0(modoutPath, '/frxst_pts_out.txt'))
+		} else {
+        		modFrxstout <- ReadFrxstPts(paste0(modoutPath, '/frxst_pts_out.txt'), stIdType='integer')
+		}
         	# Filter out non-unique dates. Take values from latest run if dups.
         	modFrxstout <- modFrxstout[nrow(modFrxstout):1,]
         	modFrxstout$uni <- paste(modFrxstout$st_id, modFrxstout$timest, sep=",")

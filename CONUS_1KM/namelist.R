@@ -24,6 +24,9 @@ maskFile <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/DOMAIN/gagesII_MASKS.Rdata'
 # If TRUE, mask file should also contain rtLinks dataframe.
 reachRting <- TRUE
 
+## Temp directory to write intermediate files
+tmpDir <- '/glade/scratch/adugger'
+
 
 ################## Observations ###################
 
@@ -149,6 +152,8 @@ calcStats <- TRUE
 		# Read specified subset? Provide object with link and site_no columns
 		statsLink2gage <- read.table("/glade/p/ral/RHAP/adugger/CONUS_IOC/DOMAIN/link2gage_gagesII.txt", 
 					sep="\t", header=TRUE, colClasses=c("integer","character"))
+                # Calculate daily stats?
+                strProcDaily <- TRUE
 
 	## Calculate SNOTEL performance stats?
 	snoProc <- FALSE
