@@ -14,6 +14,10 @@ library(ggplot2)
 lineColors <- scales::alpha(c("darkorange1", "dodgerblue", "olivedrab", "chocolate", "darkmagenta"), 0.8)
 lineTyp <- 1
 lineWd <- 2
+seqColPurp5 <- c('#edf8fb', '#b3cde3', '#8c96c6', '#8856a7', '#810f7c')
+seqColGrn5 <- c("#f7f7f7", "#ffffcc", "#c2e699", "#78c679", "#238443")
+divColBluYelRed6 <- c('#2c7bb6', '#abd9e9', '#ffffbf', '#fdae61', '#d7191c', '#800000')
+divColBluWhtRed6 <- c("#0571b0", "#92c5de", "#f7f7f7", "#f4a582", "#ca0020", "#800000")
 
 # Get needed geo info
 ncid <- ncdf4::nc_open(geoFile)
@@ -42,7 +46,7 @@ if (writeHtml) {
                 writeLines('```{r set-options, echo=FALSE, cache=FALSE}\noptions(width=1600)\nopts_chunk$set(comment = "", warning = FALSE, message = FALSE, echo = TRUE, tidy = FALSE, size="small")\n```', con=paste0(writePlotDir,"/plots_snow.Rmd"))
                 cat('# MODEL OUTPUT: SNOW\n', file=paste0(writePlotDir,"/plots_snow.Rmd"), append=TRUE)
 	}
-        if (strBiasMap | strCorrMap | snosweErrMap | snoprecipErrMap) {
+        if (strBiasMap | strCorrMap | snosweErrMap | snoprecipErrMap | amfetErrMap | amfetCorrMap) {
                 writeLines('```{r set-options, echo=FALSE, cache=FALSE}\noptions(width=1600)\nopts_chunk$set(comment = "", warning = FALSE, message = FALSE, echo = TRUE, tidy = FALSE, size="small")\n```', con=paste0(writePlotDir,"/plots_stats.Rmd"))
                 cat('# MODEL OUTPUT: STATS\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
         }
@@ -497,24 +501,36 @@ if (metPlot) {
 # MAPS
 
 # Initialize for maps
-if (strBiasMap | strCorrMap | snosweErrMap | snoprecipErrMap ) {
+if (strBiasMap | strCorrMap | snosweErrMap | snoprecipErrMap | amfetErrMap | amfetCorrMap) {
 	library(ggplot2)
 	library(ggmap)
 	library(gridExtra)
-	if (reachRting) {
-		modStrout <- modChrtout
-	} else {
-		modStrout <- modFrxstout
-	}
-	# Setup date ranges
-	stdate_stats_PRINT <- ifelse(is.null(stdate_stats), min(modStrout$POSIXct), stdate_stats)
-	enddate_stats_PRINT <- ifelse(is.null(enddate_stats), max(modStrout$POSIXct), enddate_stats)
-	stdate_stats_sub_PRINT <- ifelse(is.null(stdate_stats_sub), min(modStrout$POSIXct), stdate_stats_sub)
-	enddate_stats_sub_PRINT <- ifelse(is.null(enddate_stats_sub), max(modStrout$POSIXct), enddate_stats_sub)
-	statsDateList <- list("Full" = paste0(format(as.POSIXct(stdate_stats_PRINT, origin="1970-01-01 00:00.00 UTC", tz="UTC"), "%Y-%m-%d %H:%M"), 
+	if (strBiasMap | strCorrMap) {
+		if (reachRting & exists("modChrtout")) {
+			modStrout <- modChrtout
+		} else if (exists("modFrxstout")) {
+			modStrout <- modFrxstout
+		}
+		# Setup date ranges
+		stdate_stats_PRINT <- ifelse(is.null(stdate_stats), ifelse(exists("modStrout"), min(modStrout$POSIXct), ""), stdate_stats)
+		enddate_stats_PRINT <- ifelse(is.null(enddate_stats), ifelse(exists("modStrout"), max(modStrout$POSIXct), ""), enddate_stats)
+		stdate_stats_sub_PRINT <- ifelse(is.null(stdate_stats_sub), ifelse(exists("modStrout"), min(modStrout$POSIXct), ""), stdate_stats_sub)
+		enddate_stats_sub_PRINT <- ifelse(is.null(enddate_stats_sub), ifelse(exists("modStrout"), max(modStrout$POSIXct), ""), enddate_stats_sub)
+		statsDateList_STR <- list("Full" = paste0(format(as.POSIXct(stdate_stats_PRINT, origin="1970-01-01 00:00.00 UTC", tz="UTC"), "%Y-%m-%d %H:%M"), 
 			" to ", format(as.POSIXct(enddate_stats_PRINT, origin="1970-01-01 00:00.00 UTC", tz="UTC"), "%Y-%m-%d %H:%M")), 
 			"Sub" = paste0(format(as.POSIXct(stdate_stats_sub_PRINT, origin="1970-01-01 00:00.00 UTC", tz="UTC"), "%Y-%m-%d %H:%M"), 
                         " to ", format(as.POSIXct(enddate_stats_sub_PRINT, origin="1970-01-01 00:00.00 UTC", tz="UTC"), "%Y-%m-%d %H:%M")))
+	}
+	if (snosweErrMap | snoprecipErrMap |amfetErrMap | amfetCorrMap) {
+                stdate_stats_PRINT <- ifelse(is.null(stdate_stats), ifelse(exists("modLdasout"), min(modLdasout$POSIXct), ""), stdate_stats)
+                enddate_stats_PRINT <- ifelse(is.null(enddate_stats), ifelse(exists("modLdasout"), max(modLdasout$POSIXct), ""), enddate_stats)
+                stdate_stats_sub_PRINT <- ifelse(is.null(stdate_stats_sub), ifelse(exists("modLdasout"), min(modLdasout$POSIXct), ""), stdate_stats_sub)
+                enddate_stats_sub_PRINT <- ifelse(is.null(enddate_stats_sub), ifelse(exists("modLdasout"), max(modLdasout$POSIXct), ""), enddate_stats_sub)
+                statsDateList_LDAS <- list("Full" = paste0(format(as.POSIXct(stdate_stats_PRINT, origin="1970-01-01 00:00.00 UTC", tz="UTC"), "%Y-%m-%d %H:%M"),
+                        " to ", format(as.POSIXct(enddate_stats_PRINT, origin="1970-01-01 00:00.00 UTC", tz="UTC"), "%Y-%m-%d %H:%M")),
+                        "Sub" = paste0(format(as.POSIXct(stdate_stats_sub_PRINT, origin="1970-01-01 00:00.00 UTC", tz="UTC"), "%Y-%m-%d %H:%M"),
+                        " to ", format(as.POSIXct(enddate_stats_sub_PRINT, origin="1970-01-01 00:00.00 UTC", tz="UTC"), "%Y-%m-%d %H:%M")))
+	}
 	# Setup map
 	geoMap <- SetupMap(geoFile)
 }
@@ -528,27 +544,31 @@ if (strBiasMap) {
 	if (writeHtml) {
         	cat('## Streamflow Bias Maps\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
 		strBias.ggList <- list()
+		strBias.freqList <- list()
+		strBias.histList <- list()
 		strBias.tblList <- list()
 	}
 	for (i in strBiasTags) {
         	for (j in strBiasSeas) {
-                	gg <- PlotMapErrors(geoMap, stats_str,
-                        	statsTag=i, statsVar=NULL, statsSeas=j,
+                	tbltmp <- subset(stats_str, stats_str$tag==i & stats_str$seas==j)
+                	gg <- PlotMapErrors(geoMap, tbltmp,
                         	plotTitle="Modeled Streamflow Bias at CODWR Gages",
-				plotSubTitle=paste0(i, ", ", statsDateList[[j]]),
-                        	sizeVar="t_mae", colorVar="t_bias",
-                        	sizeLab="Mean Abs\nError (cms)", colorLab="Bias (%)",
+				plotSubTitle=paste0(i, ", ", statsDateList_STR[[j]]),
+                        	sizeVar="dy_mae", colorVar="dy_bias",
+                        	sizeLab="Mean\nAbsolute\nError (cms)", colorLab="Bias (%)",
 				minThreshSize=0, maxThreshSize=100,
 				minThreshCol=(-100), maxThreshCol=100,
 				minPtsize=2, maxPtsize=8,
-				colBreaks=c("#0571b0", "#92c5de", "#f7f7f7", "#f4a582", "#ca0020", "#800000"), 
+				exclVar="dy_n", exclThresh=0.5*max(tbltmp$dy_n),
+				colBreaks=divColBluYelRed6, 
                         	valBreaks=c(-Inf, -25, -10, 10, 25, 100, Inf))
                 	ggplot2::ggsave(filename=paste0(writePlotDir, "/str_bias_map_", i, "_", j, ".png"),
-                        	plot=gg, units="in", width=8, height=6, dpi=100)
+                        	plot=gg[[1]], units="in", width=8, height=6, dpi=300)
 			if (writeHtml) {
-				strBias.ggList <- c(strBias.ggList, list(gg))
+				strBias.ggList <- c(strBias.ggList, list(gg[[1]]))
+                                strBias.freqList <- c(strBias.freqList, list(gg[[2]]))
+                                strBias.histList <- c(strBias.histList, list(gg[[3]]))
 				if (statsMapTables) {
-					tbltmp <- subset(stats_str, stats_str$tag==i & stats_str$seas==j)
 					tbltmp <- tbltmp[order(tbltmp$site_no),]
                                 	tbltmp <- data.frame(site_no=tbltmp$site_no, lat=tbltmp$lat, lon=tbltmp$lon, n=tbltmp$t_n, 
                                                 bias=tbltmp$t_bias, mae=tbltmp$t_mae,
@@ -559,23 +579,20 @@ if (strBiasMap) {
 			}
 		}
 	}
-	#i <- 1
-	if (writeHtml) {
-		for (i in 1:length(strBias.ggList)) {
-		#while (i <= length(ggList)) {
-			#if ( (i+1) <= length(ggList)) {
-			# Map
-			cat(paste0("```{r strbiasmap_", i, ", fig.width = 12, fig.height = 9, echo=FALSE}\n"), 
-				file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
-			#plottxt <- knitr::knit_expand(text='grid.arrange(ggList[[{{i}}]], ggList[[{{i}}+1]], ncol=2)\n')
-			plottxt <- knitr::knit_expand(text='strBias.ggList[[{{i}}]]\n')
-			#} else {
-			#	cat(paste0("```{r strbiasmap_", i, ", fig.width = 10, fig.height = 5, out.width='1000', out.height='500', echo=FALSE}\n"),   
-                	#                file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
-                	#        plottxt <- knitr::knit_expand(text='grid.arrange(ggList[[{{i}}]], ncol=1)\n')
-			#}
-			cat(plottxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
-			cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+        if (writeHtml) {
+                for (i in 1:length(strBias.ggList)) {
+                        # Map
+                        cat(paste0("```{r strbiasmap_", i, ", fig.width = 8, fig.height = 6, out.width='800', out.height='600', echo=FALSE}\n"),
+                                file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        plottxt <- knitr::knit_expand(text='strBias.ggList[[{{i}}]]\n')
+                        cat(plottxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        # Freq Histogram
+                        cat(paste0("```{r strbiashist_", i, ", fig.width = 6, fig.height = 4, out.width='600', out.height='400', echo=FALSE}\n"),
+                                file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+			plottxt <- knitr::knit_expand(text='strBias.histList[[{{i}}]]\n')
+                        cat(plottxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
 			# Table
 			if (statsMapTables) {
 				cat(paste0("```{r strbiastbl_", i, ", fig.width = 8, fig.height = 6, out.width='800', out.height='600', echo=FALSE, results='asis'}\n"),
@@ -585,7 +602,6 @@ if (strBiasMap) {
 				cat(tbltxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
 				cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
 			}
-			#i <- i + 2
 		}
            }
 }
@@ -599,28 +615,32 @@ if (strCorrMap) {
 	if (writeHtml) {
         	cat('## Streamflow Correlation Maps\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
         	strCorr.ggList <- list()
+		strCorr.freqList <- list()
+		strCorr.histList <- list()
 		strCorr.tblList <- list()
 	}
 	for (i in strCorrTags) {
         	for (j in strCorrSeas) {
-                	gg <- PlotMapErrors(geoMap, stats_str,
-                        	statsTag=i, statsVar=NULL, statsSeas=j,
+			tbltmp <- subset(stats_str, stats_str$tag==i & stats_str$seas==j)
+                	gg <- PlotMapErrors(geoMap, tbltmp,
                         	plotTitle="Modeled Streamflow Correlation at CODWR Gages",
-				plotSubTitle=paste0(i, ", ", statsDateList[[j]]),
+				plotSubTitle=paste0(i, ", ", statsDateList_STR[[j]]),
                         	sizeVar="dy_cor", colorVar="dy_cor",
-                        	sizeLab="Correlation", colorLab="Correlation",
+                        	sizeLab="Daily\nCorrelation", colorLab="Daily\nCorrelation",
 				colorLow="orange", colorMid="yellow", colorHigh="cyan4",
 				minThreshSize=0, maxThreshSize=1,
                                 minThreshCol=0, maxThreshCol=1,
 				minPtsize=0.5, maxPtsize=6,
-                                colBreaks=c("#f7f7f7", "#ffffcc", "#c2e699", "#78c679", "#238443"),
+				exclVar="dy_n", exclThresh=0.5*max(tbltmp$dy_n),
+                                colBreaks=seqColPurp5,
                                 valBreaks=c(-1, 0.2, 0.4, 0.6, 0.8, 1.0))
                 	ggplot2::ggsave(filename=paste0(writePlotDir, "/str_corr_map_", i, "_", j, ".png"),
-                        	plot=gg, units="in", width=8, height=6, dpi=100)
+                        	plot=gg[[1]], units="in", width=8, height=6, dpi=300)
                 	if (writeHtml) {
-                        	strCorr.ggList <- c(strCorr.ggList, list(gg))
+                        	strCorr.ggList <- c(strCorr.ggList, list(gg[[1]]))
+				strCorr.freqList <- c(strCorr.freqList, list(gg[[2]]))
+				strCorr.histList <- c(strCorr.histList, list(gg[[3]]))
 				if (statsMapTables) {
-                                	tbltmp <- subset(stats_str, stats_str$tag==i & stats_str$seas==j)
 					tbltmp <- tbltmp[order(tbltmp$site_no),]
                                 	tbltmp <- data.frame(site_no=tbltmp$site_no, lat=tbltmp$lat, lon=tbltmp$lon, n=tbltmp$t_n, 
 						bias=tbltmp$t_bias, mae=tbltmp$t_mae,
@@ -638,6 +658,12 @@ if (strCorrMap) {
                                 file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
                         plottxt <- knitr::knit_expand(text='strCorr.ggList[[{{i}}]]\n')
                 	cat(plottxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        # Histogram
+                        cat(paste0("```{r strcorrhist_", i, ", fig.width = 6, fig.height = 4, out.width='600', out.height='400', echo=FALSE}\n"),
+                                file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        plottxt <- knitr::knit_expand(text='strCorr.histList[[{{i}}]]\n')
+                        cat(plottxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
                         cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
 			# Table
 			if (statsMapTables) {
@@ -661,46 +687,65 @@ if (snosweErrMap) {
         if (writeHtml) {
                 cat('## SNOTEL SWE Error Maps\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
                 snosweErr.ggList <- list()
+		snosweErr.freqList <- list()
+		snosweErr.histList <- list()
 		snosweErr.tblList <- list()
         }
 	for (i in snosweErrTags) {
 		for (j in snosweErrSeas) {
-			gg <- PlotMapErrors(geoMap, stats_ldasout_sno,
-                        	statsTag=i, statsVar="SWE", statsSeas=j,
+			tbltmp <- subset(stats_ldasout_sno, stats_ldasout_sno$tag==i & stats_ldasout_sno$var=="SWE" & stats_ldasout_sno$seas==j)
+			gg <- PlotMapErrors(geoMap, tbltmp,
                         	plotTitle="Modeled SWE Errors at SNOTEL Stations",
-				plotSubTitle=paste0(i, ", ", statsDateList[[j]]),
-                        	sizeVar="t_mae", colorVar="t_msd",
-                        	sizeLab="Mean Absolute Error (mm)", colorLab="Mean Signed Deviation (mm)")
+				plotSubTitle=paste0(i, ", ", statsDateList_LDAS[[j]]),
+                        	sizeVar="t_mae", colorVar="t_bias",
+                        	sizeLab="Mean Abs\nError (mm)", colorLab="Bias (%)",
+                                minThreshSize=0, maxThreshSize=100,
+                                minThreshCol=(-100), maxThreshCol=100,
+                                minPtsize=2, maxPtsize=8,
+				exclVar="t_n", exclThresh=0.5*max(stats_ldasout_sno$t_n),
+                                colBreaks=divColBluYelRed6,
+                                valBreaks=c(-Inf, -25, -10, 10, 25, 100, Inf))
 			ggplot2::ggsave(filename=paste0(writePlotDir, "/sno_sweerr_map_", i, "_", j, ".png"), 
-				plot=gg, units="in", width=9, height=6, dpi=100)
+				plot=gg[[1]], units="in", width=8, height=6, dpi=100)
                         if (writeHtml) {
-                                snosweErr.ggList <- c(snosweErr.ggList, list(gg))
-                                tbltmp <- subset(stats_ldasout_sno, stats_ldasout_sno$tag==i & stats_ldasout_sno$seas==j & stats_ldasout_sno$var=="SWE")
-				tbltmp <- tbltmp[order(tbltmp$site_id),]
-                                tbltmp <- data.frame(site_no=tbltmp$site_id, site_name=tbltmp$site_name, 
+                                snosweErr.ggList <- c(snosweErr.ggList, list(gg[[1]]))
+				snosweErr.freqList <- c(snosweErr.freqList, list(gg[[2]]))
+				snosweErr.histList <- c(snosweErr.histList, list(gg[[3]]))
+				if (statsMapTables) {
+					tbltmp <- tbltmp[order(tbltmp$site_id),]
+                                	tbltmp <- data.frame(site_no=tbltmp$site_id, site_name=tbltmp$site_name, 
 						lat=tbltmp$lat, lon=tbltmp$lon, n=tbltmp$t_n, 
                                                 bias=tbltmp$t_bias, mae=tbltmp$t_mae,
                                                 corr=tbltmp$t_cor, daily_corr=tbltmp$dy_cor, mo_corr=tbltmp$mo_cor,
                                                 nse=tbltmp$t_nse, daily_nse=tbltmp$dy_nse, mo_nse=tbltmp$mo_nse)
-                                snosweErr.tblList <- c(snosweErr.tblList, list(tbltmp))
+                                	snosweErr.tblList <- c(snosweErr.tblList, list(tbltmp))
+				}
                         }
 		}
 	}
         if (writeHtml) {
                 for (i in 1:length(snosweErr.ggList)) {
 			# Map
-                        cat(paste0("```{r snosweerrmap_", i, ", fig.width = 9, fig.height = 6, out.width='900', out.height='600', echo=FALSE}\n"),
+                        cat(paste0("```{r snosweerrmap_", i, ", fig.width = 8, fig.height = 6, out.width='800', out.height='600', echo=FALSE}\n"),
                                 file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
                         plottxt <- knitr::knit_expand(text='snosweErr.ggList[[{{i}}]]\n')
                         cat(plottxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
                         cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
-                        # Table
-                        cat(paste0("```{r snosweerrtbl_", i, ", fig.width = 8, fig.height = 6, out.width='800', out.height='600', echo=FALSE, results='asis'}\n"),
+                        # Histogram
+                        cat(paste0("```{r snosweerrhist_", i, ", fig.width = 6, fig.height = 4, out.width='600', out.height='400', echo=FALSE}\n"),
                                 file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
-                        #tbltxt <- knitr::knit_expand(text='pandoc.table(snosweErr.tblList[[{{i}}]], style = "simple", split.table=160)\n')
-			tbltxt <- knitr::knit_expand(text='print(xtable(snosweErr.tblList[[{{i}}]]), type="html", comment=FALSE)\n')
-                        cat(tbltxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
-			cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        plottxt <- knitr::knit_expand(text='snosweErr.histList[[{{i}}]]\n')
+                        cat(plottxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        # Table
+			if (statsMapTables) {
+                        	cat(paste0("```{r snosweerrtbl_", i, ", fig.width = 8, fig.height = 6, out.width='800', out.height='600', echo=FALSE, results='asis'}\n"),
+                                file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        	#tbltxt <- knitr::knit_expand(text='pandoc.table(snosweErr.tblList[[{{i}}]], style = "simple", split.table=160)\n')
+				tbltxt <- knitr::knit_expand(text='print(xtable(snosweErr.tblList[[{{i}}]]), type="html", comment=FALSE)\n')
+                        	cat(tbltxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+				cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+			}
                 }
         }
 }
@@ -714,50 +759,212 @@ if (snoprecipErrMap) {
         if (writeHtml) {
                 cat('## SNOTEL Precipitation Error Maps\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
                 snoprecipErr.ggList <- list()
+		snoprecipErr.freqList <- list()
+		snoprecipErr.histList <- list()
 		snoprecipErr.tblList <- list()
         }
 	for (i in snoprecipErrTags) {
         	for (j in snoprecipErrSeas) {
-                	gg <- PlotMapErrors(geoMap, stats_ldasout_sno,
-                        	statsTag=i, statsVar="Precip", statsSeas=j,
+			tbltmp <- subset(stats_ldasout_sno, stats_ldasout_sno$tag==i & stats_ldasout_sno$seas==j & stats_ldasout_sno$var=="Precip")
+                	gg <- PlotMapErrors(geoMap, tbltmp,
                         	plotTitle="Modeled Precipitation Errors at SNOTEL Stations",
-				plotSubTitle=paste0(i, ", ", statsDateList[[j]]),
-                        	sizeVar="t_mae", colorVar="t_msd",
-                        	sizeLab="Mean Absolute Error (mm)", colorLab="Mean Signed Deviation (mm)")
+				plotSubTitle=paste0(i, ", ", statsDateList_LDAS[[j]]),
+                        	sizeVar="t_mae", colorVar="t_bias",
+                        	sizeLab="Mean Abs\nError (mm)", colorLab="Bias (%)",
+                                minThreshSize=0, maxThreshSize=3,
+                                minThreshCol=(-100), maxThreshCol=100,
+                                minPtsize=2, maxPtsize=8,
+				exclVar="t_n", exclThresh=0.5*max(stats_ldasout_sno$t_n),
+                                colBreaks=divColBluYelRed6,
+                                valBreaks=c(-Inf, -25, -10, 10, 25, 100, Inf))
                 	ggplot2::ggsave(filename=paste0(writePlotDir, "/sno_preciperr_map_", i, "_", j, ".png"),
-                        	plot=gg, units="in", width=9, height=6, dpi=100)
+                        	plot=gg[[1]], units="in", width=8, height=6, dpi=100)
                         if (writeHtml) {
-                                snoprecipErr.ggList <- c(snoprecipErr.ggList, list(gg))
-                                tbltmp <- subset(stats_ldasout_sno, stats_ldasout_sno$tag==i & stats_ldasout_sno$seas==j & stats_ldasout_sno$var=="Precip")
-				tbltmp <- tbltmp[order(tbltmp$site_id),]
-                                tbltmp <- data.frame(site_no=tbltmp$site_id, site_name=tbltmp$site_name, 
+                                snoprecipErr.ggList <- c(snoprecipErr.ggList, list(gg[[1]]))
+				snoprecipErr.freqList <- c(snoprecipErr.freqList, list(gg[[2]]))
+				snoprecipErr.histList <- c(snoprecipErr.histList, list(gg[[3]]))
+				if (statsMapTables) {
+					tbltmp <- tbltmp[order(tbltmp$site_id),]
+                                	tbltmp <- data.frame(site_no=tbltmp$site_id, site_name=tbltmp$site_name, 
                                                 lat=tbltmp$lat, lon=tbltmp$lon, n=tbltmp$t_n,
                                                 bias=tbltmp$t_bias, mae=tbltmp$t_mae,
                                                 corr=tbltmp$t_cor, daily_corr=tbltmp$dy_cor, mo_corr=tbltmp$mo_cor,
                                                 nse=tbltmp$t_nse, daily_nse=tbltmp$dy_nse, mo_nse=tbltmp$mo_nse)
-                                snoprecipErr.tblList <- c(snoprecipErr.tblList, list(tbltmp))
+                                	snoprecipErr.tblList <- c(snoprecipErr.tblList, list(tbltmp))
+				}
                         }
                 }
         }
         if (writeHtml) {
                 for (i in 1:length(snoprecipErr.ggList)) {
-                        cat(paste0("```{r snopreciperrmap_", i, ", fig.width = 9, fig.height = 6, out.width='900', out.height='600', echo=FALSE}\n"),
+			# Map
+                        cat(paste0("```{r snopreciperrmap_", i, ", fig.width = 8, fig.height = 6, out.width='800', out.height='600', echo=FALSE}\n"),
                                 file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
                         plottxt <- knitr::knit_expand(text='snoprecipErr.ggList[[{{i}}]]\n')
 			cat(plottxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
                         cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
-                        # Table
-                        cat(paste0("```{r snopreciperrtbl_", i, ", fig.width = 9, fig.height = 6, out.width='900', out.height='600', echo=FALSE, results='asis'}\n"),
+                        # Histogram
+                        cat(paste0("```{r snopreciperrhist_", i, ", fig.width = 6, fig.height = 4, out.width='600', out.height='400', echo=FALSE}\n"),
                                 file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
-                        #tbltxt <- knitr::knit_expand(text='pandoc.table(snoprecipErr.tblList[[{{i}}]], style = "simple", split.table=160)\n')
-			tbltxt <- knitr::knit_expand(text='print(xtable(snoprecipErr.tblList[[{{i}}]]), type="html", comment=FALSE)\n')
-                        cat(tbltxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
-			cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        plottxt <- knitr::knit_expand(text='snoprecipErr.histList[[{{i}}]]\n')
+                        cat(plottxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        # Table
+			if (statsMapTables) {
+                        	cat(paste0("```{r snopreciperrtbl_", i, ", fig.width = 8, fig.height = 6, out.width='800', out.height='600', echo=FALSE, results='asis'}\n"),
+                                	file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        	#tbltxt <- knitr::knit_expand(text='pandoc.table(snoprecipErr.tblList[[{{i}}]], style = "simple", split.table=160)\n')
+				tbltxt <- knitr::knit_expand(text='print(xtable(snoprecipErr.tblList[[{{i}}]]), type="html", comment=FALSE)\n')
+                        	cat(tbltxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+				cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+			}
                 }
         }
 }
 
+# AMERIFLUX ET Maps
+if (amfetErrMap) {
+        message("Generating AMERIFLUX ET error map...")
+        # Setup
+        if (is.null(amfetErrTags)) amfetErrTags <- unique(stats_ldasout_amf$tag)
+        if (is.null(emfetErrSeas)) amfetErrSeas <- unique(stats_ldasout_amf$seas)
+        if (writeHtml) {
+                cat('## AMERIFLUX ET Error Maps\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                amfetErr.ggList <- list()
+		amfetErr.freqList <- list()
+		amfetErr.histList <- list()
+                amfetErr.tblList <- list()
+        }
+        for (i in amfetErrTags) {
+                for (j in amfetErrSeas) {
+			tbltmp <- subset(stats_ldasout_amf, stats_ldasout_amf$tag==i & stats_ldasout_amf$seas==j & stats_ldasout_amf$var=="ET")
+                        gg <- PlotMapErrors(geoMap, tbltmp,
+                                plotTitle="Modeled ET Errors at Ameriflux Stations",
+                                plotSubTitle=paste0(i, ", ", statsDateList_LDAS[[j]]),
+                                sizeVar="dy_mae", colorVar="dy_bias",
+                                sizeLab="Mean Daily\nAbsolute\nError\n(mm)", colorLab="Bias (%)",
+                                minThreshSize=0, maxThreshSize=3,
+                                minThreshCol=(-100), maxThreshCol=100,
+                                minPtsize=2, maxPtsize=8,
+                                exclVar="dy_n", exclThresh=100,
+                                colBreaks=divColBluYelRed6,
+                                valBreaks=c(-Inf, -25, -10, 10, 25, 100, Inf))
+                        ggplot2::ggsave(filename=paste0(writePlotDir, "/amf_eterr_map_", i, "_", j, ".png"),
+                                plot=gg[[1]], units="in", width=8, height=6, dpi=100)
+                        if (writeHtml) {
+                                amfetErr.ggList <- c(amfetErr.ggList, list(gg[[1]]))
+				amfetErr.freqList <- c(amfetErr.freqList, list(gg[[2]]))
+				amfetErr.histList <- c(amfetErr.histList, list(gg[[3]]))
+				if (statsMapTables) {
+                                	tbltmp <- tbltmp[order(tbltmp$site_id),]
+                                	tbltmp <- data.frame(site_no=tbltmp$site_id, site_name=tbltmp$name,
+                                                lat=tbltmp$lat, lon=tbltmp$lon, n=tbltmp$t_n,
+                                                bias=tbltmp$t_bias, mae=tbltmp$t_mae,
+                                                corr=tbltmp$t_cor, daily_corr=tbltmp$dy_cor, mo_corr=tbltmp$mo_cor,
+                                                nse=tbltmp$t_nse, daily_nse=tbltmp$dy_nse, mo_nse=tbltmp$mo_nse)
+                                	amfetErr.tblList <- c(amfetErr.tblList, list(tbltmp))
+				}
+                        }
+                }
+        }
+        if (writeHtml) {
+                for (i in 1:length(amfetErr.ggList)) {
+                        # Map
+                        cat(paste0("```{r amfeterrmap_", i, ", fig.width = 8, fig.height = 6, out.width='800', out.height='600', echo=FALSE}\n"),
+                                file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        plottxt <- knitr::knit_expand(text='amfetErr.ggList[[{{i}}]]\n')
+                        cat(plottxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        # Histogram
+                        cat(paste0("```{r amfeterrhist_", i, ", fig.width = 6, fig.height = 4, out.width='600', out.height='400', echo=FALSE}\n"),
+                                file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        plottxt <- knitr::knit_expand(text='amfetErr.histList[[{{i}}]]\n')
+                        cat(plottxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        # Table
+			if (statsMapTables) {
+                        	cat(paste0("```{r amfeterrtbl_", i, ", fig.width = 8, fig.height = 6, out.width='800', out.height='600', echo=FALSE, results='asis'}\n"),
+                                	file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        	#tbltxt <- knitr::knit_expand(text='pandoc.table(amfetErr.tblList[[{{i}}]], style = "simple", split.table=160)\n')
+                        	tbltxt <- knitr::knit_expand(text='print(xtable(amfetErr.tblList[[{{i}}]]), type="html", comment=FALSE)\n')
+                        	cat(tbltxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        	cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+			}
+                }
+        }
+}
 
+if (amfetCorrMap) {
+        message("Generating AMERIFLUX ET correlation map...")
+        # Setup
+        if (is.null(amfetCorrTags)) amfetCorrTags <- unique(stats_ldasout_amf$tag)
+        if (is.null(emfetCorrSeas)) amfetCorrSeas <- unique(stats_ldasout_amf$seas)
+        if (writeHtml) {
+                cat('## AMERIFLUX ET Correlation Maps\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                amfetCorr.ggList <- list()
+		amfetCorr.freqList <- list()
+		amfetCorr.histList <- list()
+                amfetCorr.tblList <- list()
+        }
+        for (i in amfetCorrTags) {
+                for (j in amfetCorrSeas) {
+			tbltmp <- subset(stats_ldasout_amf, stats_ldasout_amf$tag==i & stats_ldasout_amf$seas==j & stats_ldasout_amf$var=="ET")
+                        gg <- PlotMapErrors(geoMap, tbltmp,
+                                plotTitle="Modeled ET Correlation at Ameriflux Stations",
+                                plotSubTitle=paste0(i, ", ", statsDateList_LDAS[[j]]),
+                                sizeVar="dy_cor", colorVar="dy_cor",
+                                sizeLab="Daily\nCorrelation", colorLab="Daily\nCorrelation",
+                                colorLow="orange", colorMid="yellow", colorHigh="cyan4",
+                                minThreshSize=0, maxThreshSize=1,
+                                minThreshCol=0, maxThreshCol=1,
+                                minPtsize=0.5, maxPtsize=6,
+                                exclVar="dy_n", exclThresh=100,
+                                colBreaks=seqColPurp5,
+                                valBreaks=c(-1, 0.2, 0.4, 0.6, 0.8, 1.0))
+			ggplot2::ggsave(filename=paste0(writePlotDir, "/amf_etcorr_map_", i, "_", j, ".png"),
+                                plot=gg[[1]], units="in", width=8, height=6, dpi=100)
+                        if (writeHtml) {
+                                amfetCorr.ggList <- c(amfetCorr.ggList, list(gg[[1]]))
+				amfetCorr.freqList <- c(amfetCorr.freqList, list(gg[[2]]))
+				amfetCorr.histList <- c(amfetCorr.histList, list(gg[[3]]))
+				if (statsMapTables) {
+                                	tbltmp <- tbltmp[order(tbltmp$site_id),]
+                                	tbltmp <- data.frame(site_no=tbltmp$site_id, site_name=tbltmp$name,
+                                                lat=tbltmp$lat, lon=tbltmp$lon, n=tbltmp$t_n,
+                                                bias=tbltmp$t_bias, mae=tbltmp$t_mae,
+                                                corr=tbltmp$t_cor, daily_corr=tbltmp$dy_cor, mo_corr=tbltmp$mo_cor,
+                                                nse=tbltmp$t_nse, daily_nse=tbltmp$dy_nse, mo_nse=tbltmp$mo_nse)
+                                	amfetCorr.tblList <- c(amfetCorr.tblList, list(tbltmp))
+				}
+                        }
+                }
+        }
+        if (writeHtml) {
+                for (i in 1:length(amfetCorr.ggList)) {
+                        # Map
+                        cat(paste0("```{r amfetcorrmap_", i, ", fig.width = 8, fig.height = 6, out.width='800', out.height='600', echo=FALSE}\n"),
+                                file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        plottxt <- knitr::knit_expand(text='amfetCorr.ggList[[{{i}}]]\n')
+                        cat(plottxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        # Histogram
+                        cat(paste0("```{r amfetcorrhist_", i, ", fig.width = 6, fig.height = 4, out.width='600', out.height='400', echo=FALSE}\n"),
+                                file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        plottxt <- knitr::knit_expand(text='amfetCorr.histList[[{{i}}]]\n')
+                        cat(plottxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        # Table
+			if (statsMapTables) {
+                        	cat(paste0("```{r amfetcorrtbl_", i, ", fig.width = 8, fig.height = 6, out.width='800', out.height='600', echo=FALSE, results='asis'}\n"),
+                                	file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        	#tbltxt <- knitr::knit_expand(text='pandoc.table(amfetCorr.tblList[[{{i}}]], style = "simple", split.table=160)\n')
+                        	tbltxt <- knitr::knit_expand(text='print(xtable(amfetCorr.tblList[[{{i}}]]), type="html", comment=FALSE)\n')
+                        	cat(tbltxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                        	cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+			}
+                }
+        }
+}
 
 
 # Output HTML
@@ -774,7 +981,7 @@ if (writeHtml) {
 		knit2html(paste0(writePlotDir,"/plots_snow.Rmd"), paste0(writePlotDir,"/plots_snow.html"))
 		file.remove("plots_snow.md")
 	}
-	if (strBiasMap | strCorrMap | snosweErrMap | snoprecipErrMap) {	
+	if (strBiasMap | strCorrMap | snosweErrMap | snoprecipErrMap | amfetErrMap | amfetCorrMap) {	
 		knit2html(paste0(writePlotDir,"/plots_stats.Rmd"), paste0(writePlotDir,"/plots_stats.html"))
 		file.remove("plots_stats.md")
 	}

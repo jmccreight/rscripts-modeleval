@@ -45,7 +45,7 @@ STRfile <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/OBS/STRFLOW/obsStrData.Rda
 ################ Model Output Reads ###############
 
 ## Read model output?
-readMod <- TRUE
+readMod <- FALSE
 
 ## If TRUE, specify the following to read in model output:
 
@@ -59,12 +59,12 @@ readMod <- TRUE
         # Specify the output .Rdata file to create
         modReadFileOut <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/151111_urg_modelreads_RETEST.Rdata' 
         # Append to existing file? FALSE = create new file (or overwrite existing!)
-        modAppend <- FALSE
+        modAppend <- TRUE
 
 	# Select what aggregations/imports to run:
 
 		# Basin means and imports
-		readBasinLdasout <- TRUE
+		readBasinLdasout <- FALSE
 		readBasinRtout <- FALSE
 		readGwout <- FALSE
 		readFrxstout <- TRUE
@@ -157,7 +157,7 @@ calcStats <- FALSE
 
 	# If the raw data read .Rdata file exists (vs. created above), specify the file
         modReadFileIn <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/151111_urg_modelreads_RETEST.Rdata'
-        forcReadFileIn <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/151111_urg_forcingreads_RETEST.Rdata'
+        forcReadFileIn <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/151111_urg_forcingreads.Rdata'
 
         # Specify the stats output .Rdata file to create
         statsFileOut <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/151111_urg_stats_RETEST.Rdata'
@@ -180,7 +180,7 @@ calcStats <- FALSE
 ################### Plotting ######################
 
 ## Create plots and/or maps?
-createPlots <- FALSE
+createPlots <- TRUE
 
 ## Create HTML files?
 writeHtml <- TRUE

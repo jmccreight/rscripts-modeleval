@@ -727,6 +727,9 @@ if (readMod & readFrxstout) {
 		# Add model run tag and bind
                 modFrxstout$tag <- modoutTag
                 modFrxstout_tmp <- plyr::rbind.fill(modFrxstout_tmp, modFrxstout)
+		### !!! NEED TO CONVERT THIS ROUTINE OVER TO FULL DATATABLE AT SOME POINT...
+		### !!! For now just convert at the end
+		modFrxstout_tmp <- data.table(modFrxstout_tmp)
                 rm(modFrxstout)
                 gc()
         }
@@ -1055,7 +1058,7 @@ if (readMod) {
 	}
         if (readFrxstout) {
                 if (modAppend & exists("modFrxstout")) {
-                        modFrxstout <- plyr::rbind.fill(modFrxstout, modFrxstout_tmp)
+                        modFrxstout <- rbindlist(list(modFrxstout, modFrxstout_tmp))
                 } else {
                         modFrxstout <- modFrxstout_tmp
                 	saveListMod <- c(saveListMod, "modFrxstout")

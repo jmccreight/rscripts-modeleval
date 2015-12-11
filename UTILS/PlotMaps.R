@@ -9,7 +9,6 @@ SetupMap <- function(file) {
 }
 
 PlotMapErrors <- function(myMap, statsObj, 
-			statsTag, statsVar, statsSeas, 
 			plotTitle="Model Errors", plotSubTitle="",
 			sizeVar="t_mae", colorVar="t_msd",
 			sizeLab="Mean Absolute Error", colorLab="Mean Signed Deviation",
@@ -20,13 +19,13 @@ PlotMapErrors <- function(myMap, statsObj,
 			exclVar="t_n", exclThresh=0.8,
 			colBreaks, 
 			valBreaks) {
-	if (is.null(statsVar)) {
-		myData <- subset(statsObj, statsObj$tag==statsTag & statsObj$seas==statsSeas)
-	} else {
-		myData <- subset(statsObj, statsObj$tag==statsTag & statsObj$var==statsVar & statsObj$seas==statsSeas)
-	}
-	maxCnt <- max(myData[,exclVar], na.rm=TRUE)
-	myData <- subset(myData, myData[,exclVar] >= exclThresh*maxCnt)
+	#if (is.null(statsVar)) {
+	#	myData <- subset(statsObj, statsObj$tag==statsTag & statsObj$seas==statsSeas)
+	#} else {
+	#	myData <- subset(statsObj, statsObj$tag==statsTag & statsObj$var==statsVar & statsObj$seas==statsSeas)
+	#}
+	#maxCnt <- max(myData[,exclVar], na.rm=TRUE)
+	myData <- subset(statsObj, statsObj[,exclVar] >= exclThresh)
 	#myData <- subset(myData, myData[,sizeVar]>quantile(myData[,sizeVar], 0.05, na.rm=TRUE) & 
 	#		myData[,sizeVar]<quantile(myData[,sizeVar], 0.95, na.rm=TRUE))
 	if (is.null(minThreshSize)) minThreshSize <- min(myData[,sizeVar], na.rm=TRUE)
@@ -36,6 +35,7 @@ PlotMapErrors <- function(myMap, statsObj,
 	xCol <- ifelse("lon" %in% names(statsObj), "lon", "st_lon")
 	yCol <- ifelse("lat" %in% names(statsObj), "lat", "st_lat")
 	myData$plotcol <- cut(myData[,colorVar], breaks = valBreaks, right = FALSE)
+	myData <- subset(myData, !is.na(myData$plotcol))
 	valBreaksScaled <- scales::rescale(valBreaks, from=range(myData[,colorVar], na.rm = TRUE, finite = TRUE))
 	gg <- ggmap::ggmap(myMap) + 
 		ggplot2::geom_point(aes_string(x=xCol, y=yCol, size=sizeVar, fill="plotcol"), data=myData, alpha=0.8, shape=21) + 
@@ -46,5 +46,13 @@ PlotMapErrors <- function(myMap, statsObj,
 		ggplot2::ggtitle(bquote(atop(.(plotTitle), atop(italic(.(plotSubTitle)), "")))) +
 		ggplot2::theme(plot.title = element_text(size=18, face="bold", vjust=-1)) +
 		ggplot2::guides(fill = guide_legend(override.aes = list(size=3)))
-	gg
+	freqtbl <- table(myData$plotcol)
+	#myDataSub <- subset(myData, !is.na(myData$plotcol))
+	gghist <- ggplot2::ggplot(data=myData, aes(plotcol, fill=plotcol)) + 
+			ggplot2::geom_histogram() +
+			ggplot2::labs(x=colorLab, y="Site Count") +
+			ggplot2::ggtitle(paste0("Distribution of ", colorLab)) +
+			ggplot2::scale_fill_manual(colorLab, values=colBreaks) 
+                	#ggplot2::theme(plot.title = element_text(size=12, face="bold", vjust=1))
+	list(gg, freqtbl, gghist)
 }

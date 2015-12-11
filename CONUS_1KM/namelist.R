@@ -145,7 +145,7 @@ readForc <- FALSE
 ############# Model Performance Stats #############
 
 ## Calculate stats?
-calcStats <- TRUE
+calcStats <- FALSE
 
 	## Calculate streamflow performance stats?
 	strProc <- FALSE
@@ -167,36 +167,36 @@ calcStats <- TRUE
 ## If any are TRUE, specify the following:
 
 	# If the raw data read .Rdata file exists (vs. created above), specify the file
-	modReadFileIn <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/151207_conus_gagesII_su2010allrt_modelout_AMF.Rdata'
+	modReadFileIn <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/151202_conus_gagesII_su2010allrt_modelout_STR.Rdata'
 
         # Specify the stats output .Rdata file to create
-        statsFileOut <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/151207_conus_gagesII_su2010allrt_stats_AMF.Rdata'
+        statsFileOut <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/151202_conus_gagesII_su2010allrtnort_stats_STR.Rdata'
 
 	# Range dates for main stats
 	stdate_stats <- as.POSIXct("2011-01-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
 	enddate_stats <- as.POSIXct("2014-10-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
 
 	# Range dates for seasonal stats (e.g., spring)
-	stdate_stats_sub <- as.POSIXct("2014-04-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
-	enddate_stats_sub <- as.POSIXct("2014-10-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
+	stdate_stats_sub <- as.POSIXct("2013-04-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
+	enddate_stats_sub <- as.POSIXct("2013-10-01 00:00", format="%Y-%m-%d %H:%M", tz="UTC")
 
 	# Write stats tables?
 	writeStatsFile <- TRUE
 	# If TRUE, specify output directory
-	writeDir <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/151207_gagesII_su2010allrt_PLOTS'
+	writeDir <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/151207_gagesII_su2010allrt_PLOTS2'
 
 
 
 ################### Plotting ######################
 
 ## Create plots and/or maps?
-createPlots <- FALSE
+createPlots <- TRUE
 
 ## Create HTML files?
 writeHtml <- TRUE
 
 ## If TRUE, specify output directory
-writePlotDir <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/151128_gagesII_su2010allrt_PLOTS'
+writePlotDir <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/151207_gagesII_su2010allrt_PLOTS2'
 
 	######### TIME SERIES PLOTS ###########
 
@@ -322,6 +322,24 @@ writePlotDir <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/ANALYSIS/151128_gagesII_su2
 
         	# Specify which run seasons to plot
         	snoprecipErrSeas <- NULL
+
+        ## Generate SNOTEL SWE error maps?
+        amfetErrMap <- FALSE
+
+                # Specify which run tags to plot
+                amfetErrTags <- NULL
+
+                # Specify which run seasons to plot
+                emfetErrSeas <- NULL
+
+        ## Generate SNOTEL SWE error maps?
+        amfetCorrMap <- FALSE
+        
+                # Specify which run tags to plot
+                amfetCorrTags <- NULL
+
+                # Specify which run seasons to plot
+                emfetCorrSeas <- NULL
 
 	## Include summary stats tables?
 	statsMapTables <- FALSE

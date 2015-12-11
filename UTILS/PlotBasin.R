@@ -35,6 +35,7 @@ PlotAccPrecip <- function(n, modDfs,
   } else {
         stop("modDfs must be a dataframe or a list of dataframes")
   }
+  if (is.data.table(str1)) str1<-data.frame(str1)
   # Subset by dates
   if (is.null(stdate)) stdate <- min(str1$POSIXct)
   if (is.null(enddate)) enddate <- max(str1$POSIXct)
@@ -43,6 +44,7 @@ PlotAccPrecip <- function(n, modDfs,
   ymax <- max(str1[nrow(str1),modCol]-str1[1,modCol], na.rm=TRUE)
   if (!is.data.frame(modDfs) & is.list(modDfs) & length(modDfs)>1) {
         for (stri in modDfs) {
+		if (is.data.table(stri)) stri<-data.frame(stri)
                 stri <- subset(stri, stri$statArg==n & stri$POSIXct>=stdate & stri$POSIXct<=enddate)
                 ymax <- max(ymax, stri[nrow(stri),modCol]-stri[1,modCol], na.rm=TRUE)
                 }
@@ -60,6 +62,7 @@ PlotAccPrecip <- function(n, modDfs,
   if (!is.data.frame(modDfs) & is.list(modDfs) & length(modDfs)>1) {
         for (j in 2:length(modDfs)) {
                 stri <- modDfs[[j]]
+		if (is.data.table(stri)) stri<-data.frame(stri)
                 stri <- subset(stri, stri$statArg==n & stri$POSIXct>=stdate & stri$POSIXct<=enddate)
                 lines(stri$POSIXct, stri[,modCol]-stri[1,modCol], col=lnCols[j], lty=lnTyps[j], lwd=lnWds[j])
                 }
@@ -89,6 +92,7 @@ PlotAccFlow <- function(n, modDfs, obs,
   } else {
         stop("modDfs must be a dataframe or a list of dataframes")
   }
+  if (is.data.table(str1)) str1<-data.frame(str1)
   # Subset by dates
   if (is.null(stdate)) stdate <- min(str1$POSIXct)
   if (is.null(enddate)) enddate <- max(str1$POSIXct)
@@ -98,6 +102,7 @@ PlotAccFlow <- function(n, modDfs, obs,
   ymax <- max(str1[nrow(str1),modCol]-str1[1,modCol], obs[nrow(obs),obsCol]-obs[1,obsCol], na.rm=TRUE)
   if (!is.data.frame(modDfs) & is.list(modDfs) & length(modDfs)>1) {
         for (stri in modDfs) {
+		if (is.data.table(stri)) stri<-data.frame(stri)
                 stri <- subset(stri, stri$site_no==n & stri$POSIXct>=stdate & stri$POSIXct<=enddate)
                 ymax <- max(ymax, stri[nrow(stri),modCol]-stri[1,modCol], na.rm=TRUE)
                 }
@@ -115,6 +120,7 @@ PlotAccFlow <- function(n, modDfs, obs,
   if (!is.data.frame(modDfs) & is.list(modDfs) & length(modDfs)>1) {
         for (j in 2:length(modDfs)) {
                 stri <- modDfs[[j]]
+		if (is.data.table(stri)) stri<-data.frame(stri)
                 stri <- subset(stri, stri$site_no==n & stri$POSIXct>=stdate & stri$POSIXct<=enddate)
                 lines(stri$POSIXct, stri[,modCol]-stri[1,modCol], col=lnCols[j], lty=lnTyps[j], lwd=lnWds[j])
                 }
@@ -212,6 +218,7 @@ PlotFlowSwe <- function(n, modDfs, lsmDfs, obs,
   } else {
         stop("modDfs must be a dataframe or a list of dataframes")
   }
+  if (is.data.table(str1)) str1<-data.frame(str1)
   # Parse type of input for model data (dataframe or list of multiple dataframes)
   if (is.data.frame(lsmDfs)) {
         lsm1 <- lsmDfs
@@ -222,6 +229,7 @@ PlotFlowSwe <- function(n, modDfs, lsmDfs, obs,
   } else {
         stop("lsmDfs must be a dataframe or a list of dataframes")
   }
+  if (is.data.table(lsm1)) lsm1<-data.frame(lsm1)
   # Subset by dates
   if (is.null(stdate)) stdate <- min(str1$POSIXct)
   if (is.null(enddate)) enddate <- max(str1$POSIXct)
@@ -233,12 +241,14 @@ PlotFlowSwe <- function(n, modDfs, lsmDfs, obs,
   ymax_lsm <- max(lsm1[,lsmCol], na.rm=TRUE)
   if (!is.data.frame(modDfs) & is.list(modDfs) & length(modDfs)>1) {
         for (stri in modDfs) {
+		if (is.data.table(stri)) stri<-data.frame(stri)
                 stri <- subset(stri, stri[idCol]==n & stri$POSIXct>=stdate & stri$POSIXct<=enddate)
                 ymax <- max(ymax, stri[,modCol], na.rm=TRUE)
                 }   
         }   
   if (!is.data.frame(lsmDfs) & is.list(lsmDfs) & length(lsmDfs)>1) {
         for (lsmi in lsmDfs) {
+		if (is.data.table(lsmi)) lsmi<-data.frame(lsmi)
                 lsmi <- subset(lsmi, lsmi$statArg==n & lsmi$POSIXct>=stdate & lsmi$POSIXct<=enddate)
                 ymax_lsm <- max(ymax_lsm, lsmi[,lsmCol], na.rm=TRUE)
                 }
@@ -257,6 +267,7 @@ PlotFlowSwe <- function(n, modDfs, lsmDfs, obs,
   if (!is.data.frame(modDfs) & is.list(modDfs) & length(modDfs)>1) {
         for (j in 2:length(modDfs)) {
                 stri <- modDfs[[j]]
+		if (is.data.table(stri)) stri<-data.frame(stri)
                 stri <- subset(stri, stri[idCol]==n & stri$POSIXct>=stdate & stri$POSIXct<=enddate)
                 lines(stri$POSIXct, stri[,modCol], col=lnCols[j], lty=lnTyps[j], lwd=lnWds[j])
                 }   
@@ -271,6 +282,7 @@ PlotFlowSwe <- function(n, modDfs, lsmDfs, obs,
   if (!is.data.frame(lsmDfs) & is.list(lsmDfs) & length(lsmDfs)>1) {
         for (j in 2:length(lsmDfs)) {
                 lsmi <- lsmDfs[[j]]
+		if (is.data.table(lsmi)) lsmi<-data.frame(lsmi)
                 lsmi <- subset(lsmi, lsmi$statArg==n)
                 lines(lsmi$POSIXct, lsmi[,lsmCol], col=lnCols[j], lty=2, lwd=lnWds[j])
                 }

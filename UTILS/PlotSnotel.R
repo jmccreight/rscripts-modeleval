@@ -18,6 +18,7 @@ PlotSwe <- function(n, modDfs, obs, obsmeta,
   } else {
         stop("modDfs must be a dataframe or a list of dataframes")
   }
+  if (is.data.table(str1)) str1<-data.frame(str1)
   if (snowh) {
         ylab <- "Snow Depth (mm)"
         leglab <- "Snow Depth"
@@ -48,6 +49,7 @@ PlotSwe <- function(n, modDfs, obs, obsmeta,
                 obs_prec[nrow(obs_prec),precCol.obs]-obs_prec[1,precCol.obs], na.rm=TRUE)
   if (!is.data.frame(modDfs) & is.list(modDfs) & length(modDfs)>1) {
         for (stri in modDfs[2:length(modDfs)]) {
+		if (is.data.table(stri)) stri<-data.frame(stri)
                 stri <- subset(stri, stri$statArg==n & stri$POSIXct>=stdate & stri$POSIXct<=enddate)
 		if (!(is.null(stdate_prec))) {
    		     stri_prec <- subset(stri, stri$statArg==n & stri$POSIXct>=stdate_prec & stri$POSIXct<=enddate)
@@ -78,6 +80,7 @@ PlotSwe <- function(n, modDfs, obs, obsmeta,
   if (!is.data.frame(modDfs) & is.list(modDfs) & length(modDfs)>1) {
         for (j in 2:length(modDfs)) {
                 stri <- modDfs[[j]]
+		if (is.data.table(stri)) stri<-data.frame(stri)
                 stri <- subset(stri, stri$statArg==n & stri$POSIXct>=stdate & stri$POSIXct<=enddate)
                 lines(stri$POSIXct, stri[,sweCol.mod]*fact, col=lnCols[j], lty=2, lwd=lnWds[j])
                 }
@@ -92,6 +95,7 @@ PlotSwe <- function(n, modDfs, obs, obsmeta,
   if (!is.data.frame(modDfs) & is.list(modDfs) & length(modDfs)>1) {
         for (j in 2:length(modDfs)) {
                 stri <- modDfs[[j]]
+		if (is.data.table(stri)) stri<-data.frame(stri)
                 stri <- subset(stri, stri$statArg==n & stri$POSIXct>=stdate & stri$POSIXct<=enddate)
                 if (!(is.null(stdate_prec))) {
                      stri_prec <- subset(stri, stri$statArg==n & stri$POSIXct>=stdate_prec & stri$POSIXct<=enddate)
@@ -129,6 +133,7 @@ PlotMet <- function(obs=obsMetData, mod,
 			lnLabs, title, xLab="POSIXct", 
 			adj=0, mult=1, cols=1,
 			stdate=NULL, enddate=NULL) {
+  if (is.data.table(mod)) mod<-data.frame(mod)
   plotList <- c()
   obs <- subset(obs, obs$site_id==site)
   obs$tmp <- "Observed"

@@ -134,9 +134,12 @@ if (createPlots) {
 	if (accflowPlot | hydroPlot | accprecipPlot | 
 			flowswePlot | flowlsmPlot | swePlot | 
 			strBiasMap | strCorrMap | 
-			snosweErrMap | snoprecipErrMap) {
+			snosweErrMap | snoprecipErrMap |
+			amfetErrMap | amfetCorrMap) {
         	message("Generating plots")
-		if (strBiasMap | strCorrMap | snosweErrMap | snoprecipErrMap) {
+		if (strBiasMap | strCorrMap | 
+			snosweErrMap | snoprecipErrMap |
+			amfetErrMap | amfetCorrMap) {
 			load(statsFileOut)
 		}
         	if (is.null(modReadFileOut)) {
