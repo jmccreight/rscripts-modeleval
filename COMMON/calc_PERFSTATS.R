@@ -156,6 +156,8 @@ if (strProc) {
 		runTagList <- unique(modFrxstout$tag)
 		idCol.mod <- "st_id"
 	}
+	stats_dates <- list()
+	stats_qmean <- list()
 	# Loop through runs
 	for (j in 1:length(runTagList)) {
 		runTag <- runTagList[j]
@@ -188,10 +190,29 @@ if (strProc) {
 		results$tag <- runTag
 		results$seas <- "Sub"
 		stats_str <- rbind(stats_str, results)
+		stats_dates_tag <- list(Full=list(start=ifelse(is.null(stdate_stats), min(modFrxstout_tmp$POSIXct), stdate_stats),
+						end=ifelse(is.null(enddate_stats), max(modFrxstout_tmp$POSIXct), enddate_stats)),
+					Sub=list(start=ifelse(is.null(stdate_stats_sub), min(modFrxstout_tmp$POSIXct), stdate_stats_sub),
+						end=ifelse(is.null(enddate_stats_sub), max(modFrxstout_tmp$POSIXct), enddate_stats_sub)))
+		modFrxstout_tmp <- subset(modFrxstout_tmp, modFrxstout_tmp$POSIXct >= stats_dates_tag$Full$start & modFrxstout_tmp$POSIXct <= stats_dates_tag$Full$end)
+		modFrxstout_tmp_sub <- subset(modFrxstout_tmp, modFrxstout_tmp$POSIXct >= stats_dates_tag$Sub$start & modFrxstout_tmp$POSIXct <= stats_dates_tag$Sub$end)
+		# Qmeans
+		stats_qmean_tag <- as.data.frame(modFrxstout_tmp[, j=list(qmean=mean(q_cms, na.rm=TRUE)), by=list(site_no)])
+		stats_qmean_tag$tag <- runTag
+		stats_qmean_tag$seas <- "Full"
+                stats_qmean_tag_sub <- as.data.frame(modFrxstout_tmp_sub[, j=list(qmean=mean(q_cms, na.rm=TRUE)), by=list(site_no)])
+                stats_qmean_tag_sub$tag <- runTag
+		stats_qmean_tag_sub$seas <- "Sub"
+		stats_qmean <- as.data.frame(rbindlist(list(stats_qmean, stats_qmean_tag, stats_qmean_tag_sub)))
+		# Dates
+                stats_dates_tag <- list(stats_dates_tag)
+                names(stats_dates_tag) <- runTag
+                stats_dates <- c(stats_dates, stats_dates_tag)
 	}
         # Mean across all sites
         stats_str_MEAN <- aggregate(stats_str[,1:57], by=list(stats_str$tag, stats_str$seas), mean)
 	names(stats_str_MEAN)[1:2] <- c("tag", "seas")
+	#stats_qmean <- modChrtout[, j=list(qmean=mean(q_cms, na.rm=TRUE)), by=list(site_no,tag)]
 	# Output
 	if (writeStatsFile) {
 		# Change NAs to large negative for QGIS so data type is not affected
@@ -201,8 +222,11 @@ if (strProc) {
                 stats_str_MEAN_tmp <- stats_str_MEAN
                 stats_str_MEAN_tmp[is.na(stats_str_MEAN_tmp)]<-(-1e+30)
                 write.table(stats_str_MEAN_tmp, file=paste0(writeDir, "/stats_str_MEAN.txt"), sep="\t", row.names=FALSE)
+		stats_qmean_tmp <- stats_qmean
+                stats_qmean_tmp[is.na(stats_qmean_tmp)]<-(-1e+30)
+                write.table(stats_qmean_tmp, file=paste0(writeDir, "/stats_qmean.txt"), sep="\t", row.names=FALSE)
 	}
-saveList <- c(saveList, "stats_str", "stats_str_MEAN")
+saveList <- c(saveList, "stats_str", "stats_str_MEAN", "stats_dates", "stats_qmean")
 }
 
 ## -----------------------------------------------------------------------

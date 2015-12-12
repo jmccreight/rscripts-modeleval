@@ -551,16 +551,18 @@ if (strBiasMap) {
 	for (i in strBiasTags) {
         	for (j in strBiasSeas) {
                 	tbltmp <- subset(stats_str, stats_str$tag==i & stats_str$seas==j)
+			tbltmp <- plyr::join(tbltmp, subset(stats_qmean, stats_qmean$tag==i & stats_qmean$seas==j), by="site_no")
                 	gg <- PlotMapErrors(geoMap, tbltmp,
-                        	plotTitle="Modeled Streamflow Bias at CODWR Gages",
+                        	plotTitle="Modeled Streamflow Bias at USGS Gages",
 				plotSubTitle=paste0(i, ", ", statsDateList_STR[[j]]),
-                        	sizeVar="dy_mae", colorVar="dy_bias",
-                        	sizeLab="Mean\nAbsolute\nError (cms)", colorLab="Bias (%)",
-				minThreshSize=0, maxThreshSize=100,
+                        	sizeVar="qmean", colorVar="dy_bias",
+                        	sizeLab="Mean\nFlowrate\n(cms)", colorLab="Bias (%)",
+				minThreshSize=0, maxThreshSize=300,
 				minThreshCol=(-100), maxThreshCol=100,
 				minPtsize=2, maxPtsize=8,
 				exclVar="dy_n", exclThresh=0.5*max(tbltmp$dy_n),
 				colBreaks=divColBluYelRed6, 
+				#valBreaks=c(0, 5, 20, 100, 300, 500, Inf)
                         	valBreaks=c(-Inf, -25, -10, 10, 25, 100, Inf))
                 	ggplot2::ggsave(filename=paste0(writePlotDir, "/str_bias_map_", i, "_", j, ".png"),
                         	plot=gg[[1]], units="in", width=8, height=6, dpi=300)
@@ -622,13 +624,14 @@ if (strCorrMap) {
 	for (i in strCorrTags) {
         	for (j in strCorrSeas) {
 			tbltmp <- subset(stats_str, stats_str$tag==i & stats_str$seas==j)
+			tbltmp <- plyr::join(tbltmp, subset(stats_qmean, stats_qmean$tag==i & stats_qmean$seas==j), by="site_no")
                 	gg <- PlotMapErrors(geoMap, tbltmp,
                         	plotTitle="Modeled Streamflow Correlation at CODWR Gages",
 				plotSubTitle=paste0(i, ", ", statsDateList_STR[[j]]),
-                        	sizeVar="dy_cor", colorVar="dy_cor",
-                        	sizeLab="Daily\nCorrelation", colorLab="Daily\nCorrelation",
+                        	sizeVar="qmean", colorVar="dy_cor",
+                        	sizeLab="Mean\nFlowrate\n(cms)", colorLab="Daily\nCorrelation",
 				colorLow="orange", colorMid="yellow", colorHigh="cyan4",
-				minThreshSize=0, maxThreshSize=1,
+				minThreshSize=0, maxThreshSize=300,
                                 minThreshCol=0, maxThreshCol=1,
 				minPtsize=0.5, maxPtsize=6,
 				exclVar="dy_n", exclThresh=0.5*max(tbltmp$dy_n),
