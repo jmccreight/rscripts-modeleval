@@ -209,6 +209,8 @@ if (strProc) {
                 names(stats_dates_tag) <- runTag
                 stats_dates <- c(stats_dates, stats_dates_tag)
 	}
+	stnIDs <- unique(obsStrMeta[c("site_no", "lat", "lon")])
+	stats_qmean <- plyr::join(stats_qmean, stnIDs, by="site_no")	
         # Mean across all sites
         stats_str_MEAN <- aggregate(stats_str[,1:57], by=list(stats_str$tag, stats_str$seas), mean)
 	names(stats_str_MEAN)[1:2] <- c("tag", "seas")

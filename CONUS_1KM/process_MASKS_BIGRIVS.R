@@ -200,7 +200,7 @@ if (createBasMask) {
 if (createRouteLink) {
         rtLinks <- GetNcdfFile(rtLinkFile, variables=c("time"), exclude=TRUE, quiet=TRUE)
         #rtLinks <- subset(rtLinks, !(stringr::str_trim(rtLinks$gages)==""))
-        rtLinks$gages <- stringr::str_trim(rtLinks$gages)
+        rtLinks$site_no <- stringr::str_trim(rtLinks$gages)
         saveList <- c(saveList, "rtLinks")
 }
 

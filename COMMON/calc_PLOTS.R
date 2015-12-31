@@ -11,9 +11,9 @@ source("PlotSnotel.R")
 source("PlotMaps.R")
 library(ggplot2)
 
-lineColors <- scales::alpha(c("darkorange1", "dodgerblue", "olivedrab", "chocolate", "darkmagenta"), 0.8)
+lineColors <- c(scales::alpha("dodgerblue", 0.8), scales::alpha("darkorange1", 0.7), "olivedrab", "chocolate", "darkmagenta")
 lineTyp <- 1
-lineWd <- 2
+lineWd <- c(1,3,1)
 seqColPurp5 <- c('#edf8fb', '#b3cde3', '#8c96c6', '#8856a7', '#810f7c')
 seqColGrn5 <- c("#f7f7f7", "#ffffcc", "#c2e699", "#78c679", "#238443")
 divColBluYelRed6 <- c('#2c7bb6', '#abd9e9', '#ffffbf', '#fdae61', '#d7191c', '#800000')
@@ -25,9 +25,13 @@ geoDX <- ncdf4::ncatt_get(ncid,varid=0,'DX')$value
 ncdf4::nc_close(ncid)
 hydDX <- geoDX/aggfact
 
-if (!exists("gageList") & exists("rtLinks")) {
-	gageList<-subset(rtLinks[c("link","site_no")], rtLinks$gages!="")
-	#names(link2gage)[names(link2gage)=="gages"]<-"site_no"
+if (!is.null(plotLink2gage)) {
+	gageList <- plotLink2gage
+} else {
+	if (!exists("gageList") & exists("rtLinks")) {
+		gageList<-subset(rtLinks[c("link","site_no")], rtLinks$gages!="")
+		#names(link2gage)[names(link2gage)=="gages"]<-"site_no"
+	}
 }
 
 if (writeHtml) {
@@ -137,9 +141,17 @@ if (reachRting) {
 }
 for (i in 1:length(hydroTags)) {
 	if (!reachRting) {
-        	hydroList[[i]] <- subset(modFrxstout, modFrxstout$tag==hydroTags[i])
+		if (hydroPlotDaily) {
+        		hydroList[[i]] <- subset(modFrxstout.d, modFrxstout.d$tag==hydroTags[i])
+		} else {
+			hydroList[[i]] <- subset(modFrxstout, modFrxstout$tag==hydroTags[i])
+		}
 	} else {
-		hydroList[[i]] <- subset(modChrtout, modChrtout$tag==hydroTags[i])
+		if (hydroPlotDaily) {
+			hydroList[[i]] <- subset(modChrtout.d, modChrtout.d$tag==hydroTags[i])
+		} else {
+			hydroList[[i]] <- subset(modChrtout, modChrtout$tag==hydroTags[i])
+		}
 	}
 }
 hydroColors <- lineColors[1:length(hydroList)]
@@ -541,6 +553,10 @@ if (strBiasMap) {
 	# Setup
 	if (is.null(strBiasTags)) strBiasTags <- unique(stats_str$tag)
 	if (is.null(strBiasSeas)) strBiasSeas <- unique(stats_str$seas)
+        if (exists("trustThresh") & !is.null(trustThresh)) {
+		stats_str <- plyr::join(stats_str, trustGages, by="site_no")
+		stats_str <- subset(stats_str, stats_str$fractPerfect > trustThresh | is.na(stats_str$fractPerfect))
+	}
 	if (writeHtml) {
         	cat('## Streamflow Bias Maps\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
 		strBias.ggList <- list()
@@ -550,19 +566,18 @@ if (strBiasMap) {
 	}
 	for (i in strBiasTags) {
         	for (j in strBiasSeas) {
-                	tbltmp <- subset(stats_str, stats_str$tag==i & stats_str$seas==j)
+                	tbltmp <- subset(stats_str, stats_str$tag==i & stats_str$seas==j & stats_str$site_no %in% unique(gageList$site_no))
 			tbltmp <- plyr::join(tbltmp, subset(stats_qmean, stats_qmean$tag==i & stats_qmean$seas==j), by="site_no")
                 	gg <- PlotMapErrors(geoMap, tbltmp,
                         	plotTitle="Modeled Streamflow Bias at USGS Gages",
 				plotSubTitle=paste0(i, ", ", statsDateList_STR[[j]]),
                         	sizeVar="qmean", colorVar="dy_bias",
                         	sizeLab="Mean\nFlowrate\n(cms)", colorLab="Bias (%)",
-				minThreshSize=0, maxThreshSize=300,
+				minThreshSize=0, maxThreshSize=200,
 				minThreshCol=(-100), maxThreshCol=100,
-				minPtsize=2, maxPtsize=8,
-				exclVar="dy_n", exclThresh=0.5*max(tbltmp$dy_n),
+				minPtsize=1.5, maxPtsize=10,
+				exclVar="dy_n", exclThresh=nThresh*max(tbltmp$dy_n),
 				colBreaks=divColBluYelRed6, 
-				#valBreaks=c(0, 5, 20, 100, 300, 500, Inf)
                         	valBreaks=c(-Inf, -25, -10, 10, 25, 100, Inf))
                 	ggplot2::ggsave(filename=paste0(writePlotDir, "/str_bias_map_", i, "_", j, ".png"),
                         	plot=gg[[1]], units="in", width=8, height=6, dpi=300)
@@ -623,18 +638,18 @@ if (strCorrMap) {
 	}
 	for (i in strCorrTags) {
         	for (j in strCorrSeas) {
-			tbltmp <- subset(stats_str, stats_str$tag==i & stats_str$seas==j)
+			tbltmp <- subset(stats_str, stats_str$tag==i & stats_str$seas==j & stats_str$site_no %in% unique(gageList$site_no))
 			tbltmp <- plyr::join(tbltmp, subset(stats_qmean, stats_qmean$tag==i & stats_qmean$seas==j), by="site_no")
                 	gg <- PlotMapErrors(geoMap, tbltmp,
-                        	plotTitle="Modeled Streamflow Correlation at CODWR Gages",
+                        	plotTitle="Modeled Streamflow Correlation at USGS Gages",
 				plotSubTitle=paste0(i, ", ", statsDateList_STR[[j]]),
                         	sizeVar="qmean", colorVar="dy_cor",
                         	sizeLab="Mean\nFlowrate\n(cms)", colorLab="Daily\nCorrelation",
 				colorLow="orange", colorMid="yellow", colorHigh="cyan4",
-				minThreshSize=0, maxThreshSize=300,
+				minThreshSize=0, maxThreshSize=200,
                                 minThreshCol=0, maxThreshCol=1,
-				minPtsize=0.5, maxPtsize=6,
-				exclVar="dy_n", exclThresh=0.5*max(tbltmp$dy_n),
+				minPtsize=1.5, maxPtsize=10,
+				exclVar="dy_n", exclThresh=nThresh*max(tbltmp$dy_n),
                                 colBreaks=seqColPurp5,
                                 valBreaks=c(-1, 0.2, 0.4, 0.6, 0.8, 1.0))
                 	ggplot2::ggsave(filename=paste0(writePlotDir, "/str_corr_map_", i, "_", j, ".png"),
@@ -705,11 +720,11 @@ if (snosweErrMap) {
                                 minThreshSize=0, maxThreshSize=100,
                                 minThreshCol=(-100), maxThreshCol=100,
                                 minPtsize=2, maxPtsize=8,
-				exclVar="t_n", exclThresh=0.5*max(stats_ldasout_sno$t_n),
+				exclVar="t_n", exclThresh=nThresh*max(stats_ldasout_sno$t_n),
                                 colBreaks=divColBluYelRed6,
                                 valBreaks=c(-Inf, -25, -10, 10, 25, 100, Inf))
 			ggplot2::ggsave(filename=paste0(writePlotDir, "/sno_sweerr_map_", i, "_", j, ".png"), 
-				plot=gg[[1]], units="in", width=8, height=6, dpi=100)
+				plot=gg[[1]], units="in", width=8, height=6, dpi=300)
                         if (writeHtml) {
                                 snosweErr.ggList <- c(snosweErr.ggList, list(gg[[1]]))
 				snosweErr.freqList <- c(snosweErr.freqList, list(gg[[2]]))
@@ -777,11 +792,11 @@ if (snoprecipErrMap) {
                                 minThreshSize=0, maxThreshSize=3,
                                 minThreshCol=(-100), maxThreshCol=100,
                                 minPtsize=2, maxPtsize=8,
-				exclVar="t_n", exclThresh=0.5*max(stats_ldasout_sno$t_n),
+				exclVar="t_n", exclThresh=nThresh*max(stats_ldasout_sno$t_n),
                                 colBreaks=divColBluYelRed6,
                                 valBreaks=c(-Inf, -25, -10, 10, 25, 100, Inf))
                 	ggplot2::ggsave(filename=paste0(writePlotDir, "/sno_preciperr_map_", i, "_", j, ".png"),
-                        	plot=gg[[1]], units="in", width=8, height=6, dpi=100)
+                        	plot=gg[[1]], units="in", width=8, height=6, dpi=300)
                         if (writeHtml) {
                                 snoprecipErr.ggList <- c(snoprecipErr.ggList, list(gg[[1]]))
 				snoprecipErr.freqList <- c(snoprecipErr.freqList, list(gg[[2]]))
@@ -853,7 +868,7 @@ if (amfetErrMap) {
                                 colBreaks=divColBluYelRed6,
                                 valBreaks=c(-Inf, -25, -10, 10, 25, 100, Inf))
                         ggplot2::ggsave(filename=paste0(writePlotDir, "/amf_eterr_map_", i, "_", j, ".png"),
-                                plot=gg[[1]], units="in", width=8, height=6, dpi=100)
+                                plot=gg[[1]], units="in", width=8, height=6, dpi=300)
                         if (writeHtml) {
                                 amfetErr.ggList <- c(amfetErr.ggList, list(gg[[1]]))
 				amfetErr.freqList <- c(amfetErr.freqList, list(gg[[2]]))
@@ -925,7 +940,7 @@ if (amfetCorrMap) {
                                 colBreaks=seqColPurp5,
                                 valBreaks=c(-1, 0.2, 0.4, 0.6, 0.8, 1.0))
 			ggplot2::ggsave(filename=paste0(writePlotDir, "/amf_etcorr_map_", i, "_", j, ".png"),
-                                plot=gg[[1]], units="in", width=8, height=6, dpi=100)
+                                plot=gg[[1]], units="in", width=8, height=6, dpi=300)
                         if (writeHtml) {
                                 amfetCorr.ggList <- c(amfetCorr.ggList, list(gg[[1]]))
 				amfetCorr.freqList <- c(amfetCorr.freqList, list(gg[[2]]))

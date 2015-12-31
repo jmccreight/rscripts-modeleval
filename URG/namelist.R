@@ -200,7 +200,7 @@ writePlotDir <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/151111_PLOTS
 		accflowStartDate <- as.POSIXct("2015-04-01", format="%Y-%m-%d", tz="UTC")
 
 		# Specify end date
-		accflowEndDate <- NULL
+		accflowEndDate <- as.POSIXct("2015-09-30", format="%Y-%m-%d", tz="UTC")
 
 	## Generate hydrographs?
 	hydroPlot <- TRUE
@@ -212,7 +212,7 @@ writePlotDir <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/151111_PLOTS
         	hydroStartDate <- as.POSIXct("2014-10-01", format="%Y-%m-%d", tz="UTC")
         
         	# Specify end date
-        	hydroEndDate <- NULL
+        	hydroEndDate <- as.POSIXct("2015-09-30", format="%Y-%m-%d", tz="UTC")
 
 	## Generate accumulated precip plots?
 	accprecipPlot <- TRUE
@@ -224,7 +224,7 @@ writePlotDir <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/151111_PLOTS
         	accprecipStartDate <- as.POSIXct("2014-10-01", format="%Y-%m-%d", tz="UTC") 
         
         	# Specify end date
-        	accprecipEndDate <- NULL
+        	accprecipEndDate <- as.POSIXct("2015-09-30", format="%Y-%m-%d", tz="UTC")
 
 	## Generate Streamflow and Basin-mean SWE plots?
 	flowswePlot <- TRUE
@@ -236,7 +236,7 @@ writePlotDir <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/151111_PLOTS
         	flowsweStartDate <- as.POSIXct("2014-10-01", format="%Y-%m-%d", tz="UTC")
         
         	# Specify end date
-        	flowsweEndDate <- NULL
+        	flowsweEndDate <- as.POSIXct("2015-09-30", format="%Y-%m-%d", tz="UTC")
 
         ## Generate Streamflow and Basin-mean LSM Runoff plots?
         flowlsmPlot <- FALSE
@@ -260,7 +260,7 @@ writePlotDir <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/151111_PLOTS
         	sweStartDate <- as.POSIXct("2014-10-01", format="%Y-%m-%d", tz="UTC")
 
         	# Specify end date
-        	sweEndDate <- NULL
+        	sweEndDate <- as.POSIXct("2015-09-30", format="%Y-%m-%d", tz="UTC")
 
         ## Generate MET station plots?
         metPlot <- TRUE
@@ -272,7 +272,7 @@ writePlotDir <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/151111_PLOTS
                 metStartDate <- as.POSIXct("2014-10-01", format="%Y-%m-%d", tz="UTC")
 
                 # Specify end date
-                metEndDate <- NULL
+                metEndDate <- as.POSIXct("2015-09-30", format="%Y-%m-%d", tz="UTC")
 
 
 	########### MAPS #############
@@ -312,6 +312,24 @@ writePlotDir <- '/glade/p/ral/RHAP/adugger/Upper_RioGrande/ANALYSIS/151111_PLOTS
 
         	# Specify which run seasons to plot
         	snoprecipErrSeas <- NULL
+
+        ## Generate Ameriflux ET error maps?
+        amfetErrMap <- FALSE
+
+                # Specify which run tags to plot
+                amfetErrTags <- NULL
+
+                # Specify which run seasons to plot
+                amfetErrSeas <- NULL
+
+        ## Generate Ameriflux ET correlation maps?
+        amfetCorrMap <- FALSE
+
+                # Specify which run tags to plot
+                amfetCorrTags <- NULL
+
+                # Specify which run seasons to plot
+                amfetCorrSeas <- NULL
 
 	## Include summary stats tables?
 	statsMapTables <- TRUE
