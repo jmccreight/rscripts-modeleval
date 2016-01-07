@@ -596,6 +596,8 @@ if (strBiasMap) {
                         	valBreaks=c(-Inf, -100, -60, -20, 20, 60, 100, Inf))
                 	ggplot2::ggsave(filename=paste0(writePlotDir, "/str_bias_map_", i, "_", j, ".png"),
                         	plot=gg[[1]], units="in", width=8, height=6, dpi=300)
+                        ggplot2::ggsave(filename=paste0(writePlotDir, "/str_bias_hist_", i, "_", j, ".png"),
+                                plot=gg[[3]], units="in", width=6, height=4, dpi=300)
 			if (writeHtml) {
 				strBias.ggList <- c(strBias.ggList, list(gg[[1]]))
                                 strBias.freqList <- c(strBias.freqList, list(gg[[2]]))
@@ -669,6 +671,8 @@ if (strCorrMap) {
                                 valBreaks=c(-1, 0.2, 0.4, 0.6, 0.8, 1.0))
                 	ggplot2::ggsave(filename=paste0(writePlotDir, "/str_corr_map_", i, "_", j, ".png"),
                         	plot=gg[[1]], units="in", width=8, height=6, dpi=300)
+                        ggplot2::ggsave(filename=paste0(writePlotDir, "/str_corr_hist_", i, "_", j, ".png"),
+                                plot=gg[[3]], units="in", width=6, height=4, dpi=300)
                 	if (writeHtml) {
                         	strCorr.ggList <- c(strCorr.ggList, list(gg[[1]]))
 				strCorr.freqList <- c(strCorr.freqList, list(gg[[2]]))
@@ -740,6 +744,8 @@ if (snosweErrMap) {
                                 valBreaks=c(-Inf, -25, -10, 10, 25, 100, Inf))
 			ggplot2::ggsave(filename=paste0(writePlotDir, "/sno_sweerr_map_", i, "_", j, ".png"), 
 				plot=gg[[1]], units="in", width=8, height=6, dpi=300)
+                        ggplot2::ggsave(filename=paste0(writePlotDir, "/sno_sweerr_hist_", i, "_", j, ".png"),
+                                plot=gg[[3]], units="in", width=6, height=4, dpi=300)
                         if (writeHtml) {
                                 snosweErr.ggList <- c(snosweErr.ggList, list(gg[[1]]))
 				snosweErr.freqList <- c(snosweErr.freqList, list(gg[[2]]))
@@ -812,6 +818,8 @@ if (snoprecipErrMap) {
                                 valBreaks=c(-Inf, -25, -10, 10, 25, 100, Inf))
                 	ggplot2::ggsave(filename=paste0(writePlotDir, "/sno_preciperr_map_", i, "_", j, ".png"),
                         	plot=gg[[1]], units="in", width=8, height=6, dpi=300)
+                        ggplot2::ggsave(filename=paste0(writePlotDir, "/sno_preciperr_hist_", i, "_", j, ".png"),
+                                plot=gg[[3]], units="in", width=6, height=4, dpi=300)
                         if (writeHtml) {
                                 snoprecipErr.ggList <- c(snoprecipErr.ggList, list(gg[[1]]))
 				snoprecipErr.freqList <- c(snoprecipErr.freqList, list(gg[[2]]))
@@ -884,6 +892,8 @@ if (amfetErrMap) {
                                 valBreaks=c(-Inf, -25, -10, 10, 25, 100, Inf))
                         ggplot2::ggsave(filename=paste0(writePlotDir, "/amf_eterr_map_", i, "_", j, ".png"),
                                 plot=gg[[1]], units="in", width=8, height=6, dpi=300)
+                        ggplot2::ggsave(filename=paste0(writePlotDir, "/amf_eterr_hist_", i, "_", j, ".png"),
+                                plot=gg[[3]], units="in", width=6, height=4, dpi=300)
                         if (writeHtml) {
                                 amfetErr.ggList <- c(amfetErr.ggList, list(gg[[1]]))
 				amfetErr.freqList <- c(amfetErr.freqList, list(gg[[2]]))
@@ -956,6 +966,8 @@ if (amfetCorrMap) {
                                 valBreaks=c(-1, 0.2, 0.4, 0.6, 0.8, 1.0))
 			ggplot2::ggsave(filename=paste0(writePlotDir, "/amf_etcorr_map_", i, "_", j, ".png"),
                                 plot=gg[[1]], units="in", width=8, height=6, dpi=300)
+                        ggplot2::ggsave(filename=paste0(writePlotDir, "/amf_etcorr_hist_", i, "_", j, ".png"),
+                                plot=gg[[3]], units="in", width=6, height=4, dpi=300)
                         if (writeHtml) {
                                 amfetCorr.ggList <- c(amfetCorr.ggList, list(gg[[1]]))
 				amfetCorr.freqList <- c(amfetCorr.freqList, list(gg[[2]]))
