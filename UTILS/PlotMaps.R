@@ -2,9 +2,12 @@ SetupMap <- function(file) {
         ncid <- ncdf4::nc_open(file)
         lats<-ncdf4::ncvar_get(ncid, "XLAT_M")
         lons<-ncdf4::ncvar_get(ncid, "XLONG_M")
+	clat <- mean(lats)
+	clon <- mean(lons)
         ncdf4::nc_close(ncid)
-        myLocation <- c(min(lons)-0.1, min(lats)-0.1, max(lons)+0.1, max(lats)+0.1)
+        myLocation <- c(min(lons), min(lats), max(lons), max(lats)-5.0)
         myMap <- ggmap::get_map(location=myLocation, source="stamen", maptype="terrain", crop=TRUE)
+	#myMap <- ggmap::get_googlemap(center=c(lon=clon, lat=clat), zoom=4, maptype="terrain", format="png8", size=c(640,480), scale=2)
 	myMap
 }
 
@@ -34,7 +37,7 @@ PlotMapErrors <- function(myMap, statsObj,
 	if (is.null(maxThreshCol)) maxThreshCol <- max(myData[,colorVar], na.rm=TRUE)
 	xCol <- ifelse("lon" %in% names(statsObj), "lon", "st_lon")
 	yCol <- ifelse("lat" %in% names(statsObj), "lat", "st_lat")
-	myData$plotcol <- cut(myData[,colorVar], breaks = valBreaks, right = FALSE)
+	myData$plotcol <- cut(myData[,colorVar], breaks = valBreaks, right = TRUE)
 	myData <- subset(myData, !is.na(myData$plotcol))
 	valBreaksScaled <- scales::rescale(valBreaks, from=range(myData[,colorVar], na.rm = TRUE, finite = TRUE))
 	gg <- ggmap::ggmap(myMap) + 

@@ -47,7 +47,7 @@ if (calcStats | createPlots) {
                 	stop(paste("MET obs file specified but does not exist:", METfile))
         	}
 	}
-	if (!is.null(STRfile) & (strProc | accflowPlot | hydroPlot | flowswePlot | flowlsmPlot) ) {
+	if (!is.null(STRfile) & ( (calcStats & strProc) | (createPlots & (accflowPlot | hydroPlot | flowswePlot | flowlsmPlot)) ) ) {
 		obsStrData_FINAL <- data.frame()
 		obsStrMeta_FINAL <- data.frame()
 		# Gridded routing case w/ subset
@@ -59,8 +59,10 @@ if (calcStats | createPlots) {
 			}
 		# Reach routing case w/ subset
 		} else if (reachRting) {
-			if ( exists("statsLink2gage") & !is.null(statsLink2gage) ) {
+			if ( calcStats & strProc & exists("statsLink2gage") & !is.null(statsLink2gage) ) {
 				gageList <- statsLink2gage[,c("link","site_no")]
+			} else if ( createPlots & (accflowPlot | hydroPlot | flowswePlot | flowlsmPlot) & exists("plotLink2gage") & !is.null(plotLink2gage) ) {
+				gageList <- plotLink2gage[,c("link","site_no")]
 			} else {
 				gageList <- subset(rtLinks[,c("link","site_no")], !(rtLinks$site_no == ''))
 			}
@@ -73,15 +75,29 @@ if (calcStats | createPlots) {
 				load(i)
 				if (exists("obsStrData.map")) obsStrData <- remapData(obsStrData, obsStrData.map)
 				if (exists("obsStrMeta.map")) obsStrMeta <- remapData(obsStrMeta, obsStrMeta.map)
-				if ( !is.null(gageList) ) { 
-					obsStrData_TMP <- subset(obsStrData, obsStrData$site_no %in% unique(gageList$site_no))
-					obsStrMeta_TMP <- subset(obsStrMeta, obsStrMeta$site_no %in% unique(gageList$site_no))
+				if (is.data.table(obsStrData)) {
+					message("Obs are in data.table format")
+					obsStrData_FINAL <- data.table()
+                                        if ( !is.null(gageList) ) {
+                                                obsStrData_TMP <- obsStrData[site_no %in% unique(gageList$site_no),]
+                                                obsStrMeta_TMP <- subset(obsStrMeta, obsStrMeta$site_no %in% unique(gageList$site_no))
+                                        } else {
+                                                obsStrData_TMP <- obsStrData
+                                                obsStrMeta_TMP <- obsStrMeta
+                                        }
+                                        obsStrData_FINAL <- rbindlist(list(obsStrData_FINAL, obsStrData_TMP), fill=TRUE)
+                                        obsStrMeta_FINAL <- plyr::rbind.fill(obsStrMeta_FINAL, obsStrMeta_TMP)
 				} else {
-					obsStrData_TMP <- obsStrData
-					obsStrMeta_TMP <- obsStrMeta
+					if ( !is.null(gageList) ) { 
+						obsStrData_TMP <- subset(obsStrData, obsStrData$site_no %in% unique(gageList$site_no))
+						obsStrMeta_TMP <- subset(obsStrMeta, obsStrMeta$site_no %in% unique(gageList$site_no))
+					} else {
+						obsStrData_TMP <- obsStrData
+						obsStrMeta_TMP <- obsStrMeta
+					}
+					obsStrData_FINAL <- plyr::rbind.fill(obsStrData_FINAL, obsStrData_TMP)
+                        		obsStrMeta_FINAL <- plyr::rbind.fill(obsStrMeta_FINAL, obsStrMeta_TMP)
 				}
-				obsStrData_FINAL <- plyr::rbind.fill(obsStrData_FINAL, obsStrData_TMP)
-                        	obsStrMeta_FINAL <- plyr::rbind.fill(obsStrMeta_FINAL, obsStrMeta_TMP)
 			} else {
 				stop(paste("Streamflow obs file specified but does not exist:", STRfile))
 			}
