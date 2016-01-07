@@ -4,6 +4,12 @@
 
 ################## General Setup ##################
 
+options(warn=1)
+
+## rwrfhydro source path, if non-blank uses devtools::load_all() to install this,
+## otherwise loads preinstalled library.
+rwrfhydroSrcPath <- '/glade/u/home/jamesmcc/R/jlm_lib/rwrfhydro/'
+
 ## Number of cores to use? Must have the doParallel package installed
 ncores <- 15
 
@@ -20,7 +26,7 @@ aggfact <- 1
 maskFile <- '/glade/p/ral/RHAP/adugger/CONUS_IOC/DOMAIN/gagesII_MASKS.Rdata'
 
 ## Specify whether the model run used NHD reach-based routing (otherwise gridded routing assumed)
-# If TRUE, mask file should also contain rtLinks dataframe.
+# UNLESS readLink2gage is specified below: If TRUE, mask file should contain rtLinks dataframe.
 reachRting <- TRUE
 
 ## Temp directory to write intermediate files
@@ -39,6 +45,9 @@ SNOfile <- "/glade/p/ral/RHAP/adugger/CONUS_IOC/OBS/SNOTEL/obs_SNOTEL_1998_curre
 METfile <- NULL
 
 ## Path to streamflow data .Rdata file
+## This file contains two data frames, with these columns:
+#obsStrData: site_no, POSIXct, q_cms
+##obsStrMeta: site_no, site_name, area_sqmi, lon, lat
 STRfile <- "/glade/p/ral/RHAP/adugger/CONUS_IOC/OBS/USGS/obsStrData_GAGESII_2010_2014_DV.Rdata"
 
 ################ Model Output Reads ###############
@@ -137,9 +146,12 @@ calcStats <- FALSE
 
 	## Calculate streamflow performance stats?
 	strProc <- TRUE
+                # JLM: Is this necessary if the CHRTOUT read was already subsetted?
 		# Read specified subset? Provide object with link and site_no columns
                 statsLink2gage <- read.table("/glade/p/ral/RHAP/adugger/CONUS_IOC/DOMAIN/link2gage_gagesII_CORRECTED.txt",
                                         sep="\t", header=TRUE, colClasses=c("integer","character"))
+		# Output the pair data frame formed for calculating the stats? A path/file
+		strWriteOutPairDf <- NULL
                 # Calculate daily stats?
                 strProcDaily <- TRUE
 
@@ -329,7 +341,7 @@ createPlots <- TRUE
         	# Specify which run seasons to plot
         	snoprecipErrSeas <- NULL
 
-        ## Generate SNOTEL SWE error maps?
+        ## Generate Ameriflux error maps?
         amfetErrMap <- FALSE
 
                 # Specify which run tags to plot
@@ -338,7 +350,7 @@ createPlots <- TRUE
                 # Specify which run seasons to plot
                 amfetErrSeas <- NULL
 
-        ## Generate SNOTEL SWE error maps?
+        ## Generate Ameriflux correlation maps?
         amfetCorrMap <- FALSE
         
                 # Specify which run tags to plot
