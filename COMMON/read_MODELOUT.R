@@ -754,6 +754,10 @@ if (readMod & readChrtout) {
                 modoutTag <- modTagList[i]
                 # Read STR
 		filesList <- list.files(path=modoutPath, pattern=glob2rx('*.CHRTOUT_DOMAIN*'), full.names=TRUE)
+                if(!length(filesList))
+                  warning(paste0("No files found: pattern=*.CHRTOUT_DOMAIN*",
+                                 " in ", modoutPath), immediate.=TRUE)
+
 		if (!is.null(readLink2gage)) {
                 	idlist <- unique(readLink2gage$link)
                 } else if (readChrtout_GAGES) {

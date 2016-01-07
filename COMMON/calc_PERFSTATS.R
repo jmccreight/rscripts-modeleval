@@ -23,21 +23,25 @@ if (writeStatsFile) {
 # Setup processing functions
 
 CalcStrStats <- function(modDf, obsDf, obsMeta, stid2gageList.=gageList, 
-                      stdate=NULL, enddate=NULL,
-		      idCol.obs="site_no", idCol.mod="st_id", 
-			parallel=FALSE) {
+                         stdate=NULL, enddate=NULL,
+                         idCol.obs="site_no", idCol.mod="st_id", 
+                         parallel=FALSE, writeOutPairDf=NULL, runTag=NULL) {
   sites <- stid2gageList.[,idCol.mod]
   stnIDs <- unique(obsMeta[c(idCol.obs, "lat", "lon")])
   results <- data.frame()
   if (parallel) {
   	results <- foreach(n=1:length(sites), .combine=rbind, .inorder=FALSE, .errorhandling='remove') %dopar% {
 			gageID <- subset(stid2gageList.[,idCol.obs],stid2gageList.[,idCol.mod]==sites[n])
-  			out <- tryCatch(suppressWarnings( CalcModPerfMulti( modDf[get(idCol.mod)==sites[n],], 
-                                                      subset(obsDf, obsDf[,idCol.obs]==gageID), 
-                                                      flxCol.obs="q_cms", flxCol.mod="q_cms",
-                                                      stdate=stdate,
-                                                      enddate=enddate) ), 
-                  		error=function(cond) {message(cond); return(NA)})
+  			out <- tryCatch(suppressWarnings(
+                                          CalcModPerfMulti( modDf[get(idCol.mod)==sites[n],], 
+                                                           subset(obsDf, obsDf[,idCol.obs]==gageID), 
+                                                           flxCol.obs="q_cms", flxCol.mod="q_cms",
+                                                           stdate=stdate, enddate=enddate,
+                                                           writeOutPairDf=writeOutPairDf,
+                                                           fileTag=paste0(gageID,
+                                                                         if(is.null(runTag)) '' else
+                                                                         paste0('.',runTag)) ) ), 
+                                        error=function(cond) {message(cond); return(NA)})
 			if ( !is.na(out) ) {
       				out[,idCol.mod] <- sites[n]
       				out[,idCol.obs] <- gageID
@@ -47,12 +51,16 @@ CalcStrStats <- function(modDf, obsDf, obsMeta, stid2gageList.=gageList,
   } else {
 	for (n in 1:length(sites)) {
 			gageID <- subset(stid2gageList.[,idCol.obs],stid2gageList.[,idCol.mod]==sites[n])
-		       out <- tryCatch(suppressWarnings( CalcModPerfMulti( modDf[get(idCol.mod)==sites[n],],
-                                                      subset(obsDf, obsDf[,idCol.obs]==gageID),
-                                                      flxCol.obs="q_cms", flxCol.mod="q_cms",
-                                                      stdate=stdate,
-                                                      enddate=enddate) ),
-                                error=function(cond) {message(cond); return(NA)})
+		       out <- tryCatch(suppressWarnings(
+                                         CalcModPerfMulti( modDf[get(idCol.mod)==sites[n],],
+                                                          subset(obsDf, obsDf[,idCol.obs]==gageID),
+                                                          flxCol.obs="q_cms", flxCol.mod="q_cms",
+                                                          stdate=stdate, enddate=enddate,
+                                                          writeOutPairDf=writeOutPairDf,
+                                                          fileTag=paste0(gageID,
+                                                                         if(is.null(runTag)) '' else
+                                                                         paste0('.',runTag)) ) ),
+                                        error=function(cond) {message(cond); return(NA)})
                         if ( !is.na(out) ) {
                                 out[,idCol.mod] <- sites[n]
                                 out[,idCol.obs] <- gageID
@@ -179,17 +187,23 @@ if (strProc) {
 		results <- CalcStrStats(modFrxstout_tmp, obsStrData, obsStrMeta, gageList,
 					idCol.mod=idCol.mod, 
 					stdate=stdate_stats, enddate=enddate_stats,
+                                        writeOutPairDf=strWriteOutPairDf, runTag=paste0(runTag,'.Full'),
 					parallel=parallelFlag)
 		results$tag <- runTag
 		results$seas <- "Full"
 		stats_str <- rbind(stats_str, results)
-		results <- CalcStrStats(modFrxstout_tmp, obsStrData, obsStrMeta, gageList,
-					idCol.mod=idCol.mod, 
-					stdate=stdate_stats_sub, enddate=enddate_stats_sub, 
-					parallel=parallelFlag)
-		results$tag <- runTag
-		results$seas <- "Sub"
-		stats_str <- rbind(stats_str, results)
+
+                if(!is.null(stdate_stats_sub) & !is.null(stdate_stats_sub)) {
+                  results <- CalcStrStats(modFrxstout_tmp, obsStrData, obsStrMeta, gageList,
+                                          idCol.mod=idCol.mod, 
+                                          stdate=stdate_stats_sub, enddate=enddate_stats_sub,
+                                          writeOutPairDf=strWriteOutPairDf, runTag=paste0(runTag,'.Sub'),
+                                          parallel=parallelFlag)
+                  results$tag <- runTag
+                  results$seas <- "Sub"
+                  stats_str <- rbind(stats_str, results)
+                }
+                
 		stats_dates_tag <- list(Full=list(start=ifelse(is.null(stdate_stats), min(modFrxstout_tmp$POSIXct), stdate_stats),
 						end=ifelse(is.null(enddate_stats), max(modFrxstout_tmp$POSIXct), enddate_stats)),
 					Sub=list(start=ifelse(is.null(stdate_stats_sub), min(modFrxstout_tmp$POSIXct), stdate_stats_sub),
@@ -200,10 +214,15 @@ if (strProc) {
 		stats_qmean_tag <- as.data.frame(modFrxstout_tmp[, j=list(qmean=mean(q_cms, na.rm=TRUE)), by=list(site_no)])
 		stats_qmean_tag$tag <- runTag
 		stats_qmean_tag$seas <- "Full"
-                stats_qmean_tag_sub <- as.data.frame(modFrxstout_tmp_sub[, j=list(qmean=mean(q_cms, na.rm=TRUE)), by=list(site_no)])
-                stats_qmean_tag_sub$tag <- runTag
-		stats_qmean_tag_sub$seas <- "Sub"
-		stats_qmean <- as.data.frame(rbindlist(list(stats_qmean, stats_qmean_tag, stats_qmean_tag_sub)))
+                if(!is.null(stdate_stats_sub) & !is.null(stdate_stats_sub)) {
+                  stats_qmean_tag_sub <- as.data.frame(modFrxstout_tmp_sub[, j=list(qmean=mean(q_cms, na.rm=TRUE)), by=list(site_no)])
+                  stats_qmean_tag_sub$tag <- runTag
+                  stats_qmean_tag_sub$seas <- "Sub"
+                }
+		stats_qmean <- if(!is.null(stdate_stats_sub) & !is.null(stdate_stats_sub))
+                  as.data.frame(rbindlist(list(stats_qmean, stats_qmean_tag, stats_qmean_tag_sub))) else
+                  as.data.frame(rbindlist(list(stats_qmean, stats_qmean_tag)))  
+
 		# Dates
                 stats_dates_tag <- list(stats_dates_tag)
                 names(stats_dates_tag) <- runTag
@@ -269,26 +288,28 @@ if (snoProc) {
                         stats_ldasin_sno <- plyr::rbind.fill(stats_ldasin_sno, results)
 
                         # Subset (e.g., spring)
-                        results <- CalcVarStats(modLdasin_tmp.snod, obsSnoMeta, obsSnoData, stdate=stdate_stats_sub, enddate=enddate_stats_sub,
-                                        flxCol.obs="Tavg_K", flxCol.mod="T2D_mean", parallel=parallelFlag)
-                        results$tag <- runTag
-                        results$var <- "Tmean"
-                        results$seas <- "Sub"
-                        stats_ldasin_sno <- plyr::rbind.fill(stats_ldasin_sno, results)
-
-                        results <- CalcVarStats(modLdasin_tmp.snod, obsSnoMeta, obsSnoData, stdate=stdate_stats_sub, enddate=enddate_stats_sub,
-                                        flxCol.obs="Tmin_K", flxCol.mod="T2D_min", parallel=parallelFlag)
-                        results$tag <- runTag
-                        results$var <- "Tmin"
-                        results$seas <- "Sub"
-                        stats_ldasin_sno <- plyr::rbind.fill(stats_ldasin_sno, results)
-
-                        results <- CalcVarStats(modLdasin_tmp.snod, obsSnoMeta, obsSnoData, stdate=stdate_stats_sub, enddate=enddate_stats_sub,
-                                         flxCol.obs="Tmax_K", flxCol.mod="T2D_max", parallel=parallelFlag)
-                        results$tag <- runTag
-                        results$var <- "Tmax"
-                        results$seas <- "Sub"
-                        stats_ldasin_sno <- plyr::rbind.fill(stats_ldasin_sno, results)
+                        if(!is.null(stdate_stats_sub) & !is.null(stdate_stats_sub)) {
+                          results <- CalcVarStats(modLdasin_tmp.snod, obsSnoMeta, obsSnoData, stdate=stdate_stats_sub, enddate=enddate_stats_sub,
+                                                  flxCol.obs="Tavg_K", flxCol.mod="T2D_mean", parallel=parallelFlag)
+                          results$tag <- runTag
+                          results$var <- "Tmean"
+                          results$seas <- "Sub"
+                          stats_ldasin_sno <- plyr::rbind.fill(stats_ldasin_sno, results)
+                          
+                          results <- CalcVarStats(modLdasin_tmp.snod, obsSnoMeta, obsSnoData, stdate=stdate_stats_sub, enddate=enddate_stats_sub,
+                                                  flxCol.obs="Tmin_K", flxCol.mod="T2D_min", parallel=parallelFlag)
+                          results$tag <- runTag
+                          results$var <- "Tmin"
+                          results$seas <- "Sub"
+                          stats_ldasin_sno <- plyr::rbind.fill(stats_ldasin_sno, results)
+                          
+                          results <- CalcVarStats(modLdasin_tmp.snod, obsSnoMeta, obsSnoData, stdate=stdate_stats_sub, enddate=enddate_stats_sub,
+                                                  flxCol.obs="Tmax_K", flxCol.mod="T2D_max", parallel=parallelFlag)
+                          results$tag <- runTag
+                          results$var <- "Tmax"
+                          results$seas <- "Sub"
+                          stats_ldasin_sno <- plyr::rbind.fill(stats_ldasin_sno, results)
+                        }
 		} # end loop
                 # Mean across all sites
                 stats_ldasin_sno_MEAN <- aggregate(stats_ldasin_sno[,1:57], by=list(stats_ldasin_sno$tag, stats_ldasin_sno$var, stats_ldasin_sno$seas), mean)

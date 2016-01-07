@@ -5,7 +5,11 @@
 ###########################################################################################
 ## RUN (do not change anything below this line)
 
-library(rwrfhydro)
+if(rwrfhydroSrcPath=='') library(rwrfhydro) else {
+  print(paste0("Loading rwrfhydro using devtools::load_all('",rwrfhydroSrcPath,"')"))
+  devtools::load_all(rwrfhydroSrcPath)
+}
+  
 library(data.table)
 
 load(maskFile)
