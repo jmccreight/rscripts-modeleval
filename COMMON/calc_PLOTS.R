@@ -563,81 +563,96 @@ if (strBiasMap | strCorrMap | snosweErrMap | snoprecipErrMap | amfetErrMap | amf
 
 # STRFLOW Bias Maps
 if (strBiasMap) {
-	message("Generating STRFLOW Bias error map...")
-	# Setup
-	if (is.null(strBiasTags)) strBiasTags <- unique(stats_str$tag)
-	if (is.null(strBiasSeas)) strBiasSeas <- unique(stats_str$seas)
-        if (exists("trustThresh") & !is.null(trustThresh)) {
-		stats_str <- plyr::join(stats_str, trustGages, by="site_no")
-		stats_str <- subset(stats_str, stats_str$fractPerfect > trustThresh | is.na(stats_str$fractPerfect))
-	}
-	if (writeHtml) {
-        	cat('## Streamflow Bias Maps\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
-		strBias.ggList <- list()
-		strBias.freqList <- list()
-		strBias.histList <- list()
-		strBias.tblList <- list()
-	}
-	for (i in strBiasTags) {
-        	for (j in strBiasSeas) {
-                	tbltmp <- subset(stats_str, stats_str$tag==i & stats_str$seas==j & stats_str$site_no %in% unique(gageList$site_no))
-			tbltmp <- plyr::join(tbltmp, subset(stats_qmean, stats_qmean$tag==i & stats_qmean$seas==j & stats_qmean$typ=="Obs"), by="site_no")
-			message(paste0("nrow tbltmp= ", nrow(tbltmp)))
-                	gg <- PlotMapErrors(geoMap, tbltmp,
-                        	plotTitle="Modeled Streamflow Bias at USGS Gages",
-				plotSubTitle=paste0(i, ", ", statsDateList_STR[[j]]),
-                        	sizeVar="qmean", colorVar="dy_bias",
-                        	sizeLab="Mean\nFlowrate\n(cms)", colorLab="Bias (%)",
-				minThreshSize=0, maxThreshSize=200,
-				minThreshCol=(-100), maxThreshCol=100,
-				minPtsize=1.5, maxPtsize=10,
-				exclVar="dy_n", exclThresh=nThresh*max(tbltmp$dy_n),
-				colBreaks=divColRedYelBlu7, 
-                        	valBreaks=c(-Inf, -100, -60, -20, 20, 60, 100, Inf))
-                	ggplot2::ggsave(filename=paste0(writePlotDir, "/str_bias_map_", i, "_", j, ".png"),
-                        	plot=gg[[1]], units="in", width=8, height=6, dpi=300)
-                        ggplot2::ggsave(filename=paste0(writePlotDir, "/str_bias_hist_", i, "_", j, ".png"),
-                                plot=gg[[3]], units="in", width=6, height=4, dpi=300)
-			if (writeHtml) {
-				strBias.ggList <- c(strBias.ggList, list(gg[[1]]))
-                                strBias.freqList <- c(strBias.freqList, list(gg[[2]]))
-                                strBias.histList <- c(strBias.histList, list(gg[[3]]))
-				if (statsMapTables) {
-					tbltmp <- tbltmp[order(tbltmp$site_no),]
-                                	tbltmp <- data.frame(site_no=tbltmp$site_no, lat=tbltmp$lat, lon=tbltmp$lon, n=tbltmp$t_n, 
-                                                bias=tbltmp$t_bias, mae=tbltmp$t_mae,
-                                                corr=tbltmp$t_cor, daily_corr=tbltmp$dy_cor, mo_corr=tbltmp$mo_cor,
-                                                nse=tbltmp$t_nse, daily_nse=tbltmp$dy_nse, mo_nse=tbltmp$mo_nse)
-					strBias.tblList <- c(strBias.tblList, list(tbltmp))
-				}
-			}
-		}
-	}
-        if (writeHtml) {
-                for (i in 1:length(strBias.ggList)) {
-                        # Map
-                        cat(paste0("```{r strbiasmap_", i, ", fig.width = 8, fig.height = 6, out.width='800', out.height='600', echo=FALSE}\n"),
-                                file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
-                        plottxt <- knitr::knit_expand(text='strBias.ggList[[{{i}}]]\n')
-                        cat(plottxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
-                        cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
-                        # Freq Histogram
-                        cat(paste0("```{r strbiashist_", i, ", fig.width = 6, fig.height = 4, out.width='600', out.height='400', echo=FALSE}\n"),
-                                file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
-			plottxt <- knitr::knit_expand(text='strBias.histList[[{{i}}]]\n')
-                        cat(plottxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
-                        cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
-			# Table
-			if (statsMapTables) {
-				cat(paste0("```{r strbiastbl_", i, ", fig.width = 8, fig.height = 6, out.width='800', out.height='600', echo=FALSE, results='asis'}\n"),
-                                file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
-				#tbltxt <- knitr::knit_expand(text='pandoc.table(strBias.tblList[[{{i}}]], style = "simple", split.table=160)\n')
-				tbltxt <- knitr::knit_expand(text='print(xtable(strBias.tblList[[{{i}}]]), type="html", comment=FALSE)\n')
-				cat(tbltxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
-				cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
-			}
-		}
-           }
+  message("Generating STRFLOW Bias error map...")
+                                        # Setup
+  if (is.null(strBiasTags)) strBiasTags <- unique(stats_str$tag)
+  if (is.null(strBiasSeas)) strBiasSeas <- unique(stats_str$seas)
+  if (exists("trustThresh") & !is.null(trustThresh)) {
+    stats_str <- plyr::join(stats_str, trustGages, by="site_no")
+    stats_str <- subset(stats_str, stats_str$fractPerfect > trustThresh | is.na(stats_str$fractPerfect))
+  }
+  if (writeHtml) {
+    cat('## Streamflow Bias Maps\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+    strBias.ggList <- list()
+    strBias.freqList <- list()
+    strBias.histList <- list()
+    strBias.tblList <- list()
+  }
+  for (i in strBiasTags) {
+    for (j in strBiasSeas) {
+      
+      tbltmp <- subset(stats_str, stats_str$tag==i  &
+                       stats_str$seas==j &
+                       stats_str$site_no %in% unique(gageList$site_no))
+      tbltmp <- plyr::join(tbltmp, subset(stats_qmean, stats_qmean$tag==i  &
+                                          stats_qmean$seas==j &
+                                          stats_qmean$typ=="Obs"),
+                           by="site_no")
+
+      message(paste0("nrow tbltmp= ", nrow(tbltmp)))
+
+      
+      gg <-
+        PlotMapErrors(geoMap, tbltmp,
+                      plotTitle="Modeled Streamflow Bias at USGS Gages",
+                      plotSubTitle=paste0(i, ", ", statsDateList_STR[[j]])
+                      sizeVar="qmean", colorVar="t_bias",
+                      sizeLab= "Mean\nFlowrate\n(cms)",
+                      colorLab="Bias (%)",
+                      minThreshSize=0, maxThreshSize=200,
+                      minThreshCol=(-100), maxThreshCol=100,
+                      minPtsize=1.5, maxPtsize=10,
+                      exclVar="dy_n", exclThresh=nThresh*max(tbltmp$dy_n),
+                      colBreaks=divColRedYelBlu7,
+                      valBreaks=c(-Inf, -100, -60, -20, 20, 60, 100, Inf))
+
+      ggplot2::ggsave(filename=paste0(writePlotDir,
+                        "/str_bias_map_", i, "_", j, ".png"),
+                      plot=gg[[1]], units="in", width=8, height=6, dpi=300)
+      
+      ggplot2::ggsave(filename=paste0(writePlotDir, "/str_bias_hist_", i, "_", j, ".png"),
+                      plot=gg[[3]], units="in", width=6, height=4, dpi=300)
+      if (writeHtml) {
+        strBias.ggList <- c(strBias.ggList, list(gg[[1]]))
+        strBias.freqList <- c(strBias.freqList, list(gg[[2]]))
+        strBias.histList <- c(strBias.histList, list(gg[[3]]))
+                    if (statsMapTables) {
+                      tbltmp <- tbltmp[order(tbltmp$site_no),]
+                      tbltmp <- data.frame(site_no=tbltmp$site_no, lat=tbltmp$lat, lon=tbltmp$lon, n=tbltmp$t_n, 
+                                           bias=tbltmp$t_bias, mae=tbltmp$t_mae,
+                                           corr=tbltmp$t_cor, daily_corr=tbltmp$dy_cor, mo_corr=tbltmp$mo_cor,
+                                           nse=tbltmp$t_nse, daily_nse=tbltmp$dy_nse, mo_nse=tbltmp$mo_nse)
+                      strBias.tblList <- c(strBias.tblList, list(tbltmp))
+                    }
+      }
+    }
+  }
+  
+  if (writeHtml) {
+    for (i in 1:length(strBias.ggList)) {
+                                        # Map
+      cat(paste0("```{r strbiasmap_", i, ", fig.width = 8, fig.height = 6, out.width='800', out.height='600', echo=FALSE}\n"),
+          file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+      plottxt <- knitr::knit_expand(text='strBias.ggList[[{{i}}]]\n')
+      cat(plottxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+      cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                                        # Freq Histogram
+      cat(paste0("```{r strbiashist_", i, ", fig.width = 6, fig.height = 4, out.width='600', out.height='400', echo=FALSE}\n"),
+          file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+      plottxt <- knitr::knit_expand(text='strBias.histList[[{{i}}]]\n')
+      cat(plottxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+      cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                                        # Table
+      if (statsMapTables) {
+        cat(paste0("```{r strbiastbl_", i, ", fig.width = 8, fig.height = 6, out.width='800', out.height='600', echo=FALSE, results='asis'}\n"),
+            file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+                                        #tbltxt <- knitr::knit_expand(text='pandoc.table(strBias.tblList[[{{i}}]], style = "simple", split.table=160)\n')
+        tbltxt <- knitr::knit_expand(text='print(xtable(strBias.tblList[[{{i}}]]), type="html", comment=FALSE)\n')
+        cat(tbltxt, file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+        cat('```\n', file=paste0(writePlotDir,"/plots_stats.Rmd"), append=TRUE)
+      }
+    }
+  }
 }
 
 # STRFLOW Correlation Maps

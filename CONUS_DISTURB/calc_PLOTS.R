@@ -540,7 +540,7 @@ if (strBiasMap | strCorrMap | snosweErrMap | snoprecipErrMap | amfetErrMap | amf
 }
 
 
-load("~/RHAP/CONUS_IOC/ANALYSIS_DISTURB/forgages.Rdata")
+## load("~adugger/RHAP/CONUS_IOC/ANALYSIS_DISTURB/forgages.Rdata")
 # STRFLOW Bias Maps
 if (strBiasMap) {
 	message("Generating STRFLOW Bias error map...")

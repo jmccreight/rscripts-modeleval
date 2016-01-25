@@ -9,7 +9,14 @@ if(rwrfhydroSrcPath=='') library(rwrfhydro) else {
   print(paste0("Loading rwrfhydro using devtools::load_all('",rwrfhydroSrcPath,"')"))
   devtools::load_all(rwrfhydroSrcPath)
 }
-  
+
+## this list to be maintained by hand... 
+requiredPackages <- c('data.table', 'doParallel', 'ggplot2', 'ggmap', 'ggplot2', 'grid',
+                      'gridExtra', 'knitr', 'pander', 'plyr', 'xtable')
+missingPackages <- setdiff(requiredPackages, installed.packages()[,"Package"])
+if(length(missingPackages)) warning(paste0("The following need to be installed:",
+                                           missingPackages), immediate.=TRUE)
+
 library(data.table)
 
 load(maskFile)

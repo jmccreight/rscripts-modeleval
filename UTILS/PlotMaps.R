@@ -11,6 +11,7 @@ SetupMap <- function(file) {
 	myMap
 }
 
+
 PlotMapErrors <- function(myMap, statsObj, 
 			plotTitle="Model Errors", plotSubTitle="",
 			sizeVar="t_mae", colorVar="t_msd",
@@ -29,33 +30,53 @@ PlotMapErrors <- function(myMap, statsObj,
 	#}
 	#maxCnt <- max(myData[,exclVar], na.rm=TRUE)
 	myData <- subset(statsObj, statsObj[,exclVar] >= exclThresh)
-	#myData <- subset(myData, myData[,sizeVar]>quantile(myData[,sizeVar], 0.05, na.rm=TRUE) & 
-	#		myData[,sizeVar]<quantile(myData[,sizeVar], 0.95, na.rm=TRUE))
-	if (is.null(minThreshSize)) minThreshSize <- min(myData[,sizeVar], na.rm=TRUE)
-	if (is.null(maxThreshSize)) maxThreshSize <- max(myData[,sizeVar], na.rm=TRUE)
+#	myData <- subset(myData, myData[,sizeVar]>quantile(myData[,sizeVar], 0.05, na.rm=TRUE) & 
+#                                 myData[,sizeVar]<quantile(myData[,sizeVar], 0.95, na.rm=TRUE))
+        if (is.null(minThreshSize)) minThreshSize <- min(myData[,sizeVar], na.rm=TRUE)
+        if (is.null(maxThreshSize)) maxThreshSize <- max(myData[,sizeVar], na.rm=TRUE)
 	if (is.null(minThreshCol)) minThreshCol <- min(myData[,colorVar], na.rm=TRUE)
 	if (is.null(maxThreshCol)) maxThreshCol <- max(myData[,colorVar], na.rm=TRUE)
 	xCol <- ifelse("lon" %in% names(statsObj), "lon", "st_lon")
 	yCol <- ifelse("lat" %in% names(statsObj), "lat", "st_lat")
 	myData$plotcol <- cut(myData[,colorVar], breaks = valBreaks, right = TRUE)
-	myData <- subset(myData, !is.na(myData$plotcol))
-	valBreaksScaled <- scales::rescale(valBreaks, from=range(myData[,colorVar], na.rm = TRUE, finite = TRUE))
-	gg <- ggmap::ggmap(myMap) + 
-		ggplot2::geom_point(aes_string(x=xCol, y=yCol, size=sizeVar, fill="plotcol"), data=myData, alpha=0.8, shape=21) + 
-		ggplot2::scale_size(sizeLab, range=c(minPtsize, maxPtsize), limits=c(minThreshSize, maxThreshSize)) +
-		ggplot2::scale_fill_manual(colorLab, values=colBreaks) +
-		#ggplot2::scale_fill_gradient2(colorLab, low=colorLow, mid=colorMid, high=colorHigh, midpoint=0, limits=c(minThreshCol, maxThreshCol)) +
-		#ggplot2::scale_fill_gradientn(colorLab, colours = colBreaks, values = scales::rescale(valBreaks)) +
-		ggplot2::ggtitle(bquote(atop(.(plotTitle), atop(italic(.(plotSubTitle)), "")))) +
-		ggplot2::theme(plot.title = element_text(size=18, face="bold", vjust=-1)) +
-		ggplot2::guides(fill = guide_legend(override.aes = list(size=3)))
+        myData <- subset(myData, !is.na(myData$plotcol))
+        valBreaksScaled <-
+          scales::rescale(valBreaks, from=range(myData[,colorVar], na.rm = TRUE, finite = TRUE))
+
+	gg <- ggmap::ggmap(myMap) +
+		ggplot2::geom_point(aes_string(x=xCol, y=yCol, size=sizeVar,
+                                               fill="plotcol",
+                                               alpha="absColorVar"
+                                               ),
+                                    data=myData, shape=21) + 
+		ggplot2::scale_size(sizeLab, range=c(minPtsize, maxPtsize),
+                                    limits=c(minThreshSize, maxThreshSize),
+                                    guide=guide_legend(order = 2)) +
+		ggplot2::scale_fill_manual(colorLab,
+                                           limits=levels(myData$plotcol), ## JLM: key change/improvmt
+                                           values=colBreaks,
+                                           guide=guide_legend(override.aes=list(size=6), order=1)) +
+                ##ggplot2::scale_alpha_manual(guide='none', values=seq(.5,.9,len=length(valBreaks)))+
+                ##ggplot2::theme_bw(base_size=26) +
+                ##ggplot2::scale_x_continuous(name='') +
+                ##ggplot2::scale_y_continuous(name='') +
+                ##ggplot2::scale_fill_gradient2(colorLab, low=colorLow, mid=colorMid, high=colorHigh,
+                ##                              midpoint=0, limits=c(minThreshCol, maxThreshCol)) +
+                ##ggplot2::scale_fill_gradientn(colorLab, colours = colBreaks,
+                ##                           values = scales::rescale(valBreaks)) +
+                ggplot2::ggtitle(bquote(atop(.(plotTitle), atop(italic(.(plotSubTitle)), "")))) +
+                ggplot2::theme(plot.title = element_text(size=18, face="bold", vjust=-1)) +
+                ggplot2::guides(fill = guide_legend(override.aes = list(size=3)))
+
 	freqtbl <- table(myData$plotcol)
-	#myDataSub <- subset(myData, !is.na(myData$plotcol))
+        #myDataSub <- subset(myData, !is.na(myData$plotcol))
+        
 	gghist <- ggplot2::ggplot(data=myData, aes(plotcol, fill=plotcol)) + 
 			ggplot2::geom_histogram() +
 			ggplot2::labs(x=colorLab, y="Site Count") +
 			ggplot2::ggtitle(paste0("Distribution of ", colorLab)) +
 			ggplot2::scale_fill_manual(colorLab, values=colBreaks) 
                 	#ggplot2::theme(plot.title = element_text(size=12, face="bold", vjust=1))
+
 	list(gg, freqtbl, gghist)
 }
